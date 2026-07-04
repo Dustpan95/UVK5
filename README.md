@@ -239,7 +239,6 @@ boards are marked; no marking means V1 -- the one VUURWERK supports.
 ## Built By
 
 **Firmware design and architecture:** James Honiball (KC3TFZ)
-**Implementation:** Built with [Claude Code](https://claude.ai) (Anthropic)
 **Based on:** [Egzumer](https://github.com/egzumer/uv-k5-firmware-custom),
 with credits to [DualTachyon](https://github.com/DualTachyon),
 [OneOfEleven](https://github.com/OneOfEleven), [fagci](https://github.com/fagci)
