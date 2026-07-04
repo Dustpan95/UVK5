@@ -1,0 +1,822 @@
+/* Copyright 2023 Dual Tachyon
+ * https://github.com/DualTachyon
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
+
+#include <string.h>
+
+#include "app/action.h"
+#include "app/app.h"
+#include "dtmf.h"
+#include "app/chFrScanner.h"
+#include "app/common.h"
+#ifdef ENABLE_FMRADIO
+	#include "app/fm.h"
+#endif
+#include "app/generic.h"
+#include "app/main.h"
+#include "app/scanner.h"
+
+#ifdef ENABLE_SPECTRUM
+#include "app/spectrum.h"
+#endif
+
+#include "audio.h"
+#include "board.h"
+#include "driver/bk4819.h"
+#include "frequencies.h"
+#include "misc.h"
+#include "radio.h"
+#include "settings.h"
+#include "ui/inputbox.h"
+#include "ui/menu.h"
+#include "ui/ui.h"
+#include "ui/vuurwerk_menu.h"
+#include "external/printf/printf.h"
+#include <stdlib.h>
+#include "bandscope.h"
+#include "toast.h"
+
+void toggle_chan_scanlist(void)
+{	// toggle the selected channels scanlist setting
+
+	if (SCANNER_IsScanning())
+		return;
+
+	if(!IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE)) {
+#ifdef ENABLE_SCAN_RANGES
+		gScanRangeStart = gScanRangeStart ? 0 : gTxVfo->pRX->Frequency;
+		gScanRangeStop = gEeprom.VfoInfo[!gEeprom.TX_VFO].freq_config_RX.Frequency;
+		if(gScanRangeStart > gScanRangeStop)
+			SWAP(gScanRangeStart, gScanRangeStop);
+#endif
+		return;
+	}
+	
+	if (gTxVfo->SCANLIST1_PARTICIPATION ^ gTxVfo->SCANLIST2_PARTICIPATION){
+		gTxVfo->SCANLIST2_PARTICIPATION = gTxVfo->SCANLIST1_PARTICIPATION;
+	} else {
+		gTxVfo->SCANLIST1_PARTICIPATION = !gTxVfo->SCANLIST1_PARTICIPATION;
+	}
+
+	SETTINGS_UpdateChannel(gTxVfo->CHANNEL_SAVE, gTxVfo, true);
+
+	gVfoConfigureMode = VFO_CONFIGURE;
+	gFlagResetVfos    = true;
+}
+
+// ---- Calling frequency lookup table ----
+typedef struct {
+	uint32_t band_start;    // band lower edge in Hz/10
+	uint32_t band_end;      // band upper edge in Hz/10
+	uint32_t call_freq;     // calling frequency in Hz/10
+	uint16_t step_freq;     // step size in Hz/10
+	uint8_t  modulation;    // 0=FM, 1=AM, 2=USB
+} BandCallFreq_t;
+
+static const BandCallFreq_t band_call_table[] = {
+	{ 14400000, 14430000, 14420000, 100,   MODULATION_USB },  // 2m SSB (narrow, checked first)
+	{ 14400000, 14800000, 14652000, 500,   MODULATION_FM  },  // 2m FM
+	{ 43200000, 43300000, 43210000, 500,   MODULATION_USB },  // 70cm SSB (narrow, first)
+	{ 42000000, 45000000, 44600000, 2500,  MODULATION_FM  },  // 70cm FM
+	{ 15100000, 15400000, 15194000, 1125,  MODULATION_FM  },  // MURS 151.940 MHz
+	{ 46200000, 46700000, 46256250, 1250,  MODULATION_FM  },  // FRS/GMRS 462.5625 MHz
+	{  2690000,  2740000,  2718500, 1000,  MODULATION_FM  },  // CB 27.185 MHz
+	{ 15600000, 16200000, 15680000, 2500,  MODULATION_FM  },  // Marine 156.800 MHz
+	{ 11800000, 13600000, 12150000, 2500,  MODULATION_AM  },  // Airband 121.500 MHz
+};
+#define BAND_CALL_COUNT (sizeof(band_call_table) / sizeof(band_call_table[0]))
+
+// ---- Save/restore state for calling freq toggle ----
+static bool     call_freq_active   = false;
+static uint32_t saved_frequency    = 0;
+static uint16_t saved_step         = 0;
+static uint8_t  saved_modulation   = 0;
+static uint8_t  saved_step_setting = 0;
+
+static void VUURWERK_FKeyShortcut(uint8_t key_num)
+{
+	switch (key_num) {
+		case 1: { // F+1 = BAND -- cycle frequency band (matches "1 BAND" printed)
+			uint8_t Vfo = gEeprom.TX_VFO;
+			if (!IS_FREQ_CHANNEL(gTxVfo->CHANNEL_SAVE)) {
+				TOAST_Show("FREQ ONLY");
+				break;
+			}
+#ifdef ENABLE_WIDE_RX
+			if (gTxVfo->Band == BAND7_470MHz && gTxVfo->pRX->Frequency < _1GHz_in_KHz) {
+				gTxVfo->pRX->Frequency = _1GHz_in_KHz;
+			}
+#endif
+			gTxVfo->Band += 1;
+			if (gTxVfo->Band == BAND5_350MHz && !gSetting_350EN)
+				gTxVfo->Band += 1;
+			if (gTxVfo->Band >= BAND_N_ELEM)
+				gTxVfo->Band = BAND1_50MHz;
+			gEeprom.ScreenChannel[Vfo] = FREQ_CHANNEL_FIRST + gTxVfo->Band;
+			gEeprom.FreqChannel[Vfo]   = FREQ_CHANNEL_FIRST + gTxVfo->Band;
+			gRequestSaveVFO            = true;
+			gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+			gRequestDisplayScreen      = DISPLAY_MAIN;
+			TOAST_Show("BAND");
+			break;
+		}
+
+		case 2: { // F+2 = A/B -- toggle VFO A/B (matches "2 A/B" printed)
+			COMMON_SwitchVFOs();
+			TOAST_Show(gEeprom.TX_VFO == 0 ? "VFO: A" : "VFO: B");
+			break;
+		}
+
+		case 3: { // F+3 = VFO/MR -- toggle VFO/Memory mode (matches "3 VFO MR")
+			// === VUURWERK v1.2.5 F+3 NO CHANNELS guard ===
+			// COMMON_SwitchVFOMode silently returns when going VFO->MR
+			// and RADIO_FindNextChannel reports 0xFF (empty channel
+			// memory). Pre/post compare detects the silent no-op and
+			// surfaces "NO CHANNELS" instead of the misleading
+			// "VFO MODE" toast that just said the mode the operator
+			// pressed F+3 to leave.
+			// VUURWERK v1.2.8: COMMON_SwitchVFOMode updates ScreenChannel
+			// synchronously (common.c:54/66) but defers the CHANNEL_SAVE
+			// reload, so reading gTxVfo->CHANNEL_SAVE here was stale and made
+			// was_mr==is_mr fire a false "NO CHANNELS" on every successful
+			// toggle. Read the synchronously-updated ScreenChannel instead.
+			bool was_mr = IS_MR_CHANNEL(gEeprom.ScreenChannel[gEeprom.TX_VFO]);
+			COMMON_SwitchVFOMode();
+			bool is_mr  = IS_MR_CHANNEL(gEeprom.ScreenChannel[gEeprom.TX_VFO]);
+			if (was_mr == is_mr)
+				TOAST_Show("NO CHANNELS");
+			else
+				TOAST_Show(is_mr ? "MR MODE" : "VFO MODE");
+			// === END VUURWERK ===
+			break;
+		}
+
+		case 4: { // F+4 = Cycle squelch level (FC key repurposed)
+			gEeprom.SQUELCH_LEVEL = (gEeprom.SQUELCH_LEVEL + 1) % 10;
+			gRequestSaveSettings = true;
+			gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+			gFlagResetVfos = true;
+			char msg[7];
+			msg[0] = 'S';
+			msg[1] = 'Q';
+			msg[2] = 'L';
+			msg[3] = ':';
+			msg[4] = ' ';
+			msg[5] = '0' + gEeprom.SQUELCH_LEVEL;
+			msg[6] = 0;
+			TOAST_Show(msg);
+			break;
+		}
+
+		case 5: { // F+5 = Spectrum analyzer (NOAA key repurposed)
+			APP_RunSpectrum();
+			break;
+		}
+
+		case 6: { // F+6 = H/M/L -- cycle TX power (matches "6 H/M/L")
+			gTxVfo->OUTPUT_POWER = (gTxVfo->OUTPUT_POWER + 1) % 3;
+			gRequestSaveChannel = 1;
+			TOAST_Show(gTxVfo->OUTPUT_POWER == 0 ? "PWR: LOW" :
+			           gTxVfo->OUTPUT_POWER == 1 ? "PWR: MID" : "PWR: HIGH");
+			break;
+		}
+
+		case 7: { // F+7 = Bandscope toggle
+			BANDSCOPE_SetEnabled(!BANDSCOPE_IsEnabled());
+			TOAST_Show(BANDSCOPE_IsEnabled() ? "SCOPE ON" : "SCOPE OFF");
+			break;
+		}
+
+		case 8: { // F+8 = R -- Reverse repeater offset (matches "8 R")
+			gEeprom.VfoInfo[gEeprom.TX_VFO].FrequencyReverse =
+				!gEeprom.VfoInfo[gEeprom.TX_VFO].FrequencyReverse;
+			// VUURWERK v1.3.3: was gRequestSaveSettings + gFlagReconfigureVfos,
+			// which made F+8 a no-op with a misleading toast: the pRX/pTX swap
+			// that actually reverses the channel happens ONLY inside
+			// RADIO_ConfigureChannel (which gFlagReconfigureVfos never calls),
+			// and FrequencyReverse is persisted by SaveChannel, not
+			// SaveSettings. gRequestSaveChannel=1 matches F+6/F+0 and stock:
+			// it runs ConfigureChannel (the swap) and SaveChannel (persist).
+			gRequestSaveChannel = 1;
+			TOAST_Show(gEeprom.VfoInfo[gEeprom.TX_VFO].FrequencyReverse ?
+				"REVERSE" : "NORMAL");
+			break;
+		}
+
+		case 9: { // F+9 = Call -- calling freq jump (matches "9 Call")
+			// VUURWERK v1.3.0 (F5): operate on the operator's VFO (TX_VFO),
+			// not gRxVfo -- dual watch flips RX_VFO in the background and
+			// crossband inverts it, so gRxVfo at keypress time could be the
+			// wrong VFO, and the untagged restore could write VFO A's saved
+			// state onto VFO B. The restore now targets the VFO it saved
+			// from; RADIO_SelectVfos re-syncs gRxVfo before reconfigure.
+			static uint8_t saved_vfo;
+			if (call_freq_active) {
+				VFO_Info_t *p = &gEeprom.VfoInfo[saved_vfo];
+				p->pRX->Frequency = saved_frequency;
+				p->pTX->Frequency = saved_frequency;
+				p->STEP_SETTING   = saved_step_setting;
+				p->StepFrequency  = saved_step;
+				p->Modulation     = saved_modulation;
+				call_freq_active = false;
+				RADIO_SelectVfos();
+				RADIO_SetupRegisters(true);
+				TOAST_Show("RESTORED");
+			} else {
+				VFO_Info_t *p = &gEeprom.VfoInfo[gEeprom.TX_VFO];
+				uint32_t freq = p->pRX->Frequency;
+				for (uint8_t i = 0; i < BAND_CALL_COUNT; i++) {
+					if (freq >= band_call_table[i].band_start &&
+						freq <= band_call_table[i].band_end) {
+						saved_vfo          = gEeprom.TX_VFO;
+						saved_frequency    = freq;
+						saved_step         = p->StepFrequency;
+						saved_step_setting = p->STEP_SETTING;
+						saved_modulation   = p->Modulation;
+						p->pRX->Frequency = band_call_table[i].call_freq;
+						p->pTX->Frequency = band_call_table[i].call_freq;
+						p->StepFrequency  = band_call_table[i].step_freq;
+						p->Modulation     = band_call_table[i].modulation;
+						call_freq_active = true;
+						RADIO_SelectVfos();
+						RADIO_SetupRegisters(true);
+						TOAST_Show("CALL FREQ");
+						break;
+					}
+				}
+				if (!call_freq_active) {
+					TOAST_Show("NO BAND");
+				}
+			}
+			break;
+		}
+
+		case 0: { // F+0 = FM -- cycle modulation (matches "0 FM")
+			gTxVfo->Modulation = (gTxVfo->Modulation + 1) % 3;
+			gRequestSaveChannel = 1;
+			TOAST_Show(gTxVfo->Modulation == 0 ? "MOD: FM" :
+			           gTxVfo->Modulation == 1 ? "MOD: AM" : "MOD: USB");
+			break;
+		}
+	}
+}
+
+// === VUURWERK v1.2.5 processFKeyFunction reclamation ===
+// Both call sites of processFKeyFunction (MAIN_Key_DIGITS at the
+// long-hold and short-press-with-F-key paths) pass Key from the
+// case KEY_0...KEY_9 dispatch in MAIN_ProcessKeys, so Key - KEY_0
+// is always 0..9. The egzumer parent's F+digit switch was therefore
+// unreachable behind VUURWERK's intercept block since v1.0.0.
+// Removing the dead switch reclaims flash and removes a maintenance
+// trap (a future reader would otherwise have to verify the dead
+// branch every time they touched the F+key dispatch). All F+digit
+// behaviour now lives exclusively in VUURWERK_FKeyShortcut.
+static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
+{
+	(void)beep;
+
+	if (gScreenToDisplay == DISPLAY_MENU) {
+		gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		return;
+	}
+
+	VUURWERK_FKeyShortcut(Key - KEY_0);
+	gWasFKeyPressed = false;
+	gUpdateStatus   = true;
+	gUpdateDisplay  = true;
+	gBeepToPlay     = BEEP_1KHZ_60MS_OPTIONAL;
+}
+// === END VUURWERK ===
+
+static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+{
+	if (bKeyHeld) { // key held down
+		if (bKeyPressed) {
+			if (gScreenToDisplay == DISPLAY_MAIN) {
+				if (gInputBoxIndex > 0) { // delete any inputted chars
+					gInputBoxIndex        = 0;
+					gRequestDisplayScreen = DISPLAY_MAIN;
+				}
+
+				gWasFKeyPressed = false;
+				gUpdateStatus   = true;
+
+				processFKeyFunction(Key, false);
+			}
+		}
+		return;
+	}
+
+	if (bKeyPressed)
+	{	// key is pressed
+		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;  // beep when key is pressed
+		return;                                 // don't use the key till it's released
+	}
+
+	if (!gWasFKeyPressed) { // F-key wasn't pressed
+		const uint8_t Vfo = gEeprom.TX_VFO;
+		gKeyInputCountdown = key_input_timeout_500ms;
+		INPUTBOX_Append(Key);
+		gRequestDisplayScreen = DISPLAY_MAIN;
+
+		if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE)) { // user is entering channel number
+
+			if (gInputBoxIndex != 3) {
+				#ifdef ENABLE_VOICE
+					gAnotherVoiceID   = (VOICE_ID_t)Key;
+				#endif
+				gRequestDisplayScreen = DISPLAY_MAIN;
+				return;
+			}
+
+			gInputBoxIndex = 0;
+
+			const uint16_t Channel = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
+
+			if (!RADIO_CheckValidChannel(Channel, false, 0)) {
+				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+				return;
+			}
+
+			#ifdef ENABLE_VOICE
+				gAnotherVoiceID        = (VOICE_ID_t)Key;
+			#endif
+
+			gEeprom.MrChannel[Vfo]     = (uint8_t)Channel;
+			gEeprom.ScreenChannel[Vfo] = (uint8_t)Channel;
+			gRequestSaveVFO            = true;
+			gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+
+			return;
+		}
+
+//		#ifdef ENABLE_NOAA
+//			if (!IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+//		#endif
+		if (IS_FREQ_CHANNEL(gTxVfo->CHANNEL_SAVE))
+		{	// user is entering a frequency
+
+#ifdef ENABLE_VOICE
+			gAnotherVoiceID = (VOICE_ID_t)Key;
+#endif
+			bool isGigaF = gTxVfo->pRX->Frequency >= _1GHz_in_KHz;
+			if (gInputBoxIndex < 6 + isGigaF) {
+				return;
+			}
+
+			gInputBoxIndex = 0;
+			uint32_t Frequency = StrToUL(INPUTBOX_GetAscii()) * 100;
+
+			// clamp the frequency entered to some valid value
+			if (Frequency < frequencyBandTable[0].lower) {
+				Frequency = frequencyBandTable[0].lower;
+			}
+			else if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower) {
+				const uint32_t center = (BX4819_band1.upper + BX4819_band2.lower) / 2;
+				Frequency = (Frequency < center) ? BX4819_band1.upper : BX4819_band2.lower;
+			}
+			else if (Frequency > frequencyBandTable[BAND_N_ELEM - 1].upper) {
+				Frequency = frequencyBandTable[BAND_N_ELEM - 1].upper;
+			}
+
+			const FREQUENCY_Band_t band = FREQUENCY_GetBand(Frequency);
+
+			if (gTxVfo->Band != band) {
+				gTxVfo->Band               = band;
+				gEeprom.ScreenChannel[Vfo] = band + FREQ_CHANNEL_FIRST;
+				gEeprom.FreqChannel[Vfo]   = band + FREQ_CHANNEL_FIRST;
+
+				SETTINGS_SaveVfoIndices();
+
+				RADIO_ConfigureChannel(Vfo, VFO_CONFIGURE_RELOAD);
+			}
+
+			Frequency = FREQUENCY_RoundToStep(Frequency, gTxVfo->StepFrequency);
+
+			if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
+			{	// clamp the frequency to the limit
+				const uint32_t center = (BX4819_band1.upper + BX4819_band2.lower) / 2;
+				Frequency = (Frequency < center) ? BX4819_band1.upper - gTxVfo->StepFrequency : BX4819_band2.lower;
+			}
+
+			gTxVfo->freq_config_RX.Frequency = Frequency;
+
+			gRequestSaveChannel = 1;
+			return;
+
+		}
+		#ifdef ENABLE_NOAA
+			else
+			if (IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+			{	// user is entering NOAA channel
+				if (gInputBoxIndex != 2) {
+					#ifdef ENABLE_VOICE
+						gAnotherVoiceID   = (VOICE_ID_t)Key;
+					#endif
+					gRequestDisplayScreen = DISPLAY_MAIN;
+					return;
+				}
+
+				gInputBoxIndex = 0;
+
+				uint8_t Channel = (gInputBox[0] * 10) + gInputBox[1];
+				if (Channel >= 1 && Channel <= ARRAY_SIZE(NoaaFrequencyTable)) {
+					Channel                   += NOAA_CHANNEL_FIRST;
+					#ifdef ENABLE_VOICE
+						gAnotherVoiceID        = (VOICE_ID_t)Key;
+					#endif
+					gEeprom.NoaaChannel[Vfo]   = Channel;
+					gEeprom.ScreenChannel[Vfo] = Channel;
+					gRequestSaveVFO            = true;
+					gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+					return;
+				}
+			}
+		#endif
+
+		gRequestDisplayScreen = DISPLAY_MAIN;
+		gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		return;
+	}
+
+	gWasFKeyPressed = false;
+	gUpdateStatus   = true;
+
+	processFKeyFunction(Key, true);
+}
+
+static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
+{
+	if (!bKeyHeld && bKeyPressed) { // exit key pressed
+		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+
+		// v1.4.4: F+EXIT = RESET VFO TO TRUE SIMPLEX (operator-requested rescue). Clears every
+		// per-VFO field that can silently block or mistune RX while the green LED still lights:
+		// RX/TX CTCSS-DCS (tone squelch holds audio for a tone that never comes, app.c:224),
+		// repeater offset + direction, frequency reverse (listens off the displayed freq), and
+		// scrambler. Persists via the blessed keypad-commit path (SaveChannel + ConfigureChannel
+		// + SetupRegisters(true)). FREQ mode only -- memory channels are never touched.
+		if (gWasFKeyPressed) {
+			gWasFKeyPressed = false;
+			gUpdateStatus   = true;
+			if (!IS_FREQ_CHANNEL(gTxVfo->CHANNEL_SAVE)) {
+				TOAST_Show("FREQ ONLY");
+				return;
+			}
+			gTxVfo->TX_OFFSET_FREQUENCY           = 0;
+			gTxVfo->TX_OFFSET_FREQUENCY_DIRECTION = TX_OFFSET_FREQUENCY_DIRECTION_OFF;
+			gTxVfo->freq_config_RX.Code     = 0;
+			gTxVfo->freq_config_TX.Code     = 0;
+			gTxVfo->freq_config_RX.CodeType = CODE_TYPE_OFF;
+			gTxVfo->freq_config_TX.CodeType = CODE_TYPE_OFF;
+			gTxVfo->SCRAMBLING_TYPE  = 0;
+			gTxVfo->FrequencyReverse = false;
+			gTxVfo->Modulation       = MODULATION_FM;   // v1.4.5: a slot stuck in AM/USB renders
+			gRequestSaveChannel = 1;                    // FM voice unintelligible -- reset it too
+			TOAST_Show("SIMPLEX");
+			return;
+		}
+
+#ifdef ENABLE_DTMF_CALLING
+		if (gDTMF_CallState != DTMF_CALL_STATE_NONE && gCurrentFunction != FUNCTION_TRANSMIT)
+		{	// clear CALL mode being displayed
+			gDTMF_CallState = DTMF_CALL_STATE_NONE;
+			gUpdateDisplay  = true;
+			return;
+		}
+#endif
+
+#ifdef ENABLE_FMRADIO
+		if (!gFmRadioMode)
+#endif
+		{
+			if (gScanStateDir == SCAN_OFF) {
+				if (gInputBoxIndex == 0) {
+					// Nothing to cancel -- toggle VFO A/B (original Egzumer behavior)
+					COMMON_SwitchVFOs();
+					return;
+				}
+				gInputBox[--gInputBoxIndex] = 10;
+
+				gKeyInputCountdown = key_input_timeout_500ms;
+
+#ifdef ENABLE_VOICE
+				if (gInputBoxIndex == 0)
+					gAnotherVoiceID = VOICE_ID_CANCEL;
+#endif
+			}
+			else {
+				gScanKeepResult = false;
+				CHFRSCANNER_Stop();
+
+#ifdef ENABLE_VOICE
+				gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+#endif
+			}
+
+			gRequestDisplayScreen = DISPLAY_MAIN;
+			return;
+		}
+
+#ifdef ENABLE_FMRADIO
+		ACTION_FM();
+#endif
+		return;
+	}
+
+	if (bKeyHeld && bKeyPressed) { // exit key held down
+		if (gInputBoxIndex > 0 || gDTMF_InputBox_Index > 0 || gDTMF_InputMode)
+		{	// cancel key input mode (channel/frequency entry)
+			gDTMF_InputMode       = false;
+			gDTMF_InputBox_Index  = 0;
+			memset(gDTMF_String, 0, sizeof(gDTMF_String));
+			gInputBoxIndex        = 0;
+			gRequestDisplayScreen = DISPLAY_MAIN;
+			gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
+		}
+	}
+}
+
+static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
+{
+	if (bKeyPressed && !bKeyHeld) // menu key pressed
+		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+
+	if (bKeyHeld) { // menu key held down (long press)
+		if (bKeyPressed) { // long press MENU key
+
+			gWasFKeyPressed = false;
+
+			if (gScreenToDisplay == DISPLAY_MAIN) {
+				if (gInputBoxIndex > 0) { // delete any inputted chars
+					gInputBoxIndex        = 0;
+					gRequestDisplayScreen = DISPLAY_MAIN;
+				}
+
+				gWasFKeyPressed = false;
+				gUpdateStatus   = true;
+
+				ACTION_Handle(KEY_MENU, bKeyPressed, bKeyHeld);
+			}
+		}
+
+		return;
+	}
+
+	if (!bKeyPressed && !gDTMF_InputMode) { // menu key released
+		const bool bFlag = !gInputBoxIndex;
+		gInputBoxIndex   = 0;
+
+		if (bFlag) {
+			if (gScanStateDir != SCAN_OFF) {
+				CHFRSCANNER_Stop();
+				return;
+			}
+
+			VUURWERK_MENU_EnterCategoryPicker();
+			gFlagRefreshSetting = true;
+			gRequestDisplayScreen = DISPLAY_MENU;
+			#ifdef ENABLE_VOICE
+				gAnotherVoiceID   = VOICE_ID_MENU;
+			#endif
+		}
+		else {
+			gRequestDisplayScreen = DISPLAY_MAIN;
+		}
+	}
+}
+
+static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
+{
+	if (gCurrentFunction == FUNCTION_TRANSMIT)
+		return;
+	
+	if (gInputBoxIndex) {
+		if (!bKeyHeld && bKeyPressed)
+			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		return;
+	}
+
+	if (bKeyHeld && !gWasFKeyPressed){ // long press
+		if (!bKeyPressed) // released
+			return;
+
+		ACTION_Scan(false);// toggle scanning
+
+		// === VUURWERK v1.2.7 STAR long-hold scan toast (parity with side_toast.c ACTION_OPT_SCAN) ===
+		TOAST_Show(gScanStateDir != SCAN_OFF ? "SCAN ON" : "SCAN OFF");
+		// === END VUURWERK ===
+		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+		return;
+	}
+
+	if (bKeyPressed) { // just pressed
+		return;
+	}
+	
+	// just released
+	
+	if (!gWasFKeyPressed)
+	{
+		// VUURWERK: DTMF input disabled (all DTMF is stubbed)
+		gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+	}
+	else
+	{	// with the F-key
+		gWasFKeyPressed = false;
+
+#ifdef ENABLE_NOAA
+		if (IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE)) {
+			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			return;
+		}
+#endif
+		// === VUURWERK v1.2.5 F+* FM-mode gate ===
+		// CSS scan reads BK4819 REG_68/69/6A populated only by the FM
+		// demodulator. With ENABLE_NO_CODE_SCAN_TIMEOUT=1 (Makefile),
+		// AM/SSB invocation loops forever. Mirrors the existing menu
+		// STAR gate at app/menu.c:1611-1615.
+		if (gTxVfo->Modulation != MODULATION_FM) {
+			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			TOAST_Show("FM ONLY");
+			return;
+		}
+		// === END VUURWERK ===
+		// scan the CTCSS/DCS code
+		gBackup_CROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
+		gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
+		SCANNER_Start();   // VUURWERK v1.3.0 (A1)
+		gRequestDisplayScreen = DISPLAY_SCANNER;
+	}
+	
+	gPttWasReleased = true;
+	gUpdateStatus   = true;
+}
+
+static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
+{
+	uint8_t Channel = gEeprom.ScreenChannel[gEeprom.TX_VFO];
+
+	if (bKeyHeld || !bKeyPressed) { // key held or released
+		if (gInputBoxIndex > 0)
+			return; // leave if input box active
+
+		if (!bKeyPressed) {
+			if (!bKeyHeld || IS_FREQ_CHANNEL(Channel))
+				return;
+			// if released long button press and not in freq mode
+#ifdef ENABLE_VOICE
+			AUDIO_SetDigitVoice(0, gTxVfo->CHANNEL_SAVE + 1); // say channel number
+			gAnotherVoiceID = (VOICE_ID_t)0xFE;
+#endif
+			return;
+		}
+	}
+	else { // short pressed
+		if (gInputBoxIndex > 0) {
+			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			return;
+		}
+		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+	}
+
+	if (gScanStateDir == SCAN_OFF) {
+#ifdef ENABLE_NOAA
+		if (!IS_NOAA_CHANNEL(Channel))
+#endif
+		{
+			uint8_t Next;
+			if (IS_FREQ_CHANNEL(Channel)) { // step/down in frequency
+				const uint32_t frequency = APP_SetFrequencyByStep(gTxVfo, Direction);
+
+				if (RX_freq_check(frequency) < 0) { // frequency not allowed
+					gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+					return;
+				}
+				gTxVfo->freq_config_RX.Frequency = frequency;
+				BK4819_SetFrequency(frequency);
+				BK4819_RX_TurnOn();
+				gRequestSaveChannel = 1;
+				return;
+			}
+
+			Next = RADIO_FindNextChannel(Channel + Direction, Direction, false, 0);
+			if (Next == 0xFF)
+				return;
+			if (Channel == Next)
+				return;
+			gEeprom.MrChannel[gEeprom.TX_VFO] = Next;
+			gEeprom.ScreenChannel[gEeprom.TX_VFO] = Next;
+
+			if (!bKeyHeld) {
+#ifdef ENABLE_VOICE
+				AUDIO_SetDigitVoice(0, Next + 1);
+				gAnotherVoiceID = (VOICE_ID_t)0xFE;
+#endif
+			}
+		}
+#ifdef ENABLE_NOAA
+		else {
+			Channel = NOAA_CHANNEL_FIRST + NUMBER_AddWithWraparound(gEeprom.ScreenChannel[gEeprom.TX_VFO] - NOAA_CHANNEL_FIRST, Direction, 0, 9);
+			gEeprom.NoaaChannel[gEeprom.TX_VFO] = Channel;
+			gEeprom.ScreenChannel[gEeprom.TX_VFO] = Channel;
+		}
+#endif
+
+		gRequestSaveVFO   = true;
+		gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+		return;
+	}
+
+	// jump to the next channel
+	CHFRSCANNER_Start(false, Direction);
+	gScanPauseDelayIn_10ms = 1;
+	gScheduleScanListen = false;
+
+	gPttWasReleased = true;
+}
+
+void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+{
+#ifdef ENABLE_FMRADIO
+	if (gFmRadioMode && Key != KEY_PTT && Key != KEY_EXIT) {
+		if (!bKeyHeld && bKeyPressed)
+			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		return;
+	}
+#endif
+
+	if (gDTMF_InputMode && bKeyPressed && !bKeyHeld) {
+		const char Character = DTMF_GetCharacter(Key);
+		if (Character != 0xFF)
+		{	// add key to DTMF string
+			DTMF_Append(Character);
+			gKeyInputCountdown    = key_input_timeout_500ms;
+			gRequestDisplayScreen = DISPLAY_MAIN;
+			gPttWasReleased       = true;
+			gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
+			return;
+		}
+	}
+
+	// TODO: ???
+//	if (Key > KEY_PTT)
+//	{
+//		Key = KEY_SIDE2;      // what's this doing ???
+//	}
+
+	switch (Key) {
+		case KEY_0...KEY_9:
+			MAIN_Key_DIGITS(Key, bKeyPressed, bKeyHeld);
+			break;
+		case KEY_MENU:
+			MAIN_Key_MENU(bKeyPressed, bKeyHeld);
+			break;
+		case KEY_UP:
+			MAIN_Key_UP_DOWN(bKeyPressed, bKeyHeld, 1);
+			break;
+		case KEY_DOWN:
+			MAIN_Key_UP_DOWN(bKeyPressed, bKeyHeld, -1);
+			break;
+		case KEY_EXIT:
+			MAIN_Key_EXIT(bKeyPressed, bKeyHeld);
+			break;
+		case KEY_STAR:
+			MAIN_Key_STAR(bKeyPressed, bKeyHeld);
+			break;
+		case KEY_F: {
+			// === VUURWERK v1.2.5 F-hold keypad lock toast ===
+			// GENERIC_Key_F (stock egzumer, byte-identical) toggles
+			// gEeprom.KEY_LOCK on long-press only when the radio is
+			// on the main display and not transmitting. Capture the
+			// lock state pre/post call and toast on change so the
+			// primary documented lock gesture matches the parity
+			// already established by side_toast.c for ACTION_OPT_KEYLOCK.
+			bool prev_lock = gEeprom.KEY_LOCK;
+			GENERIC_Key_F(bKeyPressed, bKeyHeld);
+			if (gEeprom.KEY_LOCK != prev_lock)
+				TOAST_Show(gEeprom.KEY_LOCK ? "LOCKED" : "UNLOCKED");
+			// === END VUURWERK ===
+			break;
+		}
+		case KEY_PTT:
+			GENERIC_Key_PTT(bKeyPressed);
+			break;
+		default:
+			if (!bKeyHeld && bKeyPressed)
+				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			break;
+	}
+}
