@@ -5,8 +5,6 @@ adapts, and responds like equipment ten times its price.**
 
 VUURWERK is Afrikaans for *fireworks*.
 
-**v1.5.0** | 61,396 of 61,440 bytes (44 free) | Zero warnings | GPL v3
-
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Tokeloshe-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/Tokeloshe)
 
 ---
