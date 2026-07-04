@@ -7,6 +7,8 @@ VUURWERK is Afrikaans for *fireworks*.
 
 **v1.5.0** | 61,396 of 61,440 bytes (44 free) | Zero warnings | GPL v3
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Tokeloshe-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/Tokeloshe)
+
 ---
 
 ## See It In Action
@@ -245,6 +247,31 @@ with credits to [DualTachyon](https://github.com/DualTachyon),
 
 See [LICENSE](LICENSE) for full attribution and the complete list of
 VUURWERK-original contributions.
+
+---
+
+## Support VUURWERK
+
+VUURWERK is free, GPL, and built nights and weekends by one operator on a $30
+radio. If the spectrum found you a conversation, or F+EXIT rescued a deaf VFO,
+you can keep the bench powered:
+
+<p align="center">
+  <a href="https://buymeacoffee.com/Tokeloshe">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://buymeacoffee.com/Tokeloshe">
+    <img src="buymeacoffee/qr-code.png" alt="Buy Me a Coffee QR code" width="160">
+  </a>
+  <br>
+  <em>Reading this on a desktop? Scan with your phone.</em>
+</p>
+
+Prefer crypto, or want to help without spending a cent? See
+[DONATE.md](DONATE.md) for XRP and the free ways to support the project.
 
 ---
 
