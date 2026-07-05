@@ -250,9 +250,9 @@ VUURWERK-original contributions.
 
 ## Support VUURWERK
 
-VUURWERK is free, GPL, and built nights and weekends by one operator on a $30
+VUURWERK is free and built nights and weekends by one operator on a $30
 radio. If the spectrum found you a conversation, or F+EXIT rescued a deaf VFO,
-you can keep the bench powered:
+you can keep the bench powered and keep going on this:
 
 <p align="center">
   <a href="https://buymeacoffee.com/Tokeloshe">
