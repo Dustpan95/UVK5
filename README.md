@@ -295,6 +295,12 @@ Prefer crypto, or want to help without spending a cent? See
 
 VUURWERK is dual-licensed.
 
+**Before you borrow code:** the VUURWERK-original features listed in
+[LICENSE](./LICENSE) are licensed as a package with the complete firmware.
+Taking an individual feature, algorithm, or module into another project or
+product requires written permission (a commercial license) from the author.
+Read the notice at the top of [LICENSE](./LICENSE) first.
+
 **The complete VUURWERK firmware** is distributed under the GNU General Public
 License v3. The upstream Egzumer / DualTachyon code it builds on is licensed
 under the Apache License 2.0, which is compatible with GPL v3; upstream files

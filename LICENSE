@@ -1,4 +1,28 @@
 ===========================================================================
+IMPORTANT -- READ THIS FIRST
+===========================================================================
+
+The VUURWERK-original features, algorithms, and modules enumerated in this
+document ("VUURWERK-original contributions", the list headed
+"VUURWERK-original contributions (designed and conceived by James
+Honiball)") are licensed AS A PACKAGE, solely as part of the complete
+VUURWERK firmware, under GPL v3.
+
+They are NOT individually free to take. Extracting any single
+VUURWERK-original contribution from this repository, porting it to another
+firmware, platform, or radio, incorporating it into a separate project
+(open source or otherwise), or using it in any commercial product is NOT
+licensed by this repository's public availability. Each of those uses
+requires a separate COMMERCIAL LICENSE granted in writing by James
+Honiball (KC3TFZ). See the Dual-Licensing Notice below for the full terms.
+
+Want to use a VUURWERK-original feature outside the complete VUURWERK
+firmware? Ask first: jhoniball4@gmail.com
+
+Forking, building, modifying, and redistributing the COMPLETE VUURWERK
+firmware under GPL v3 terms remains free, as stated below.
+
+===========================================================================
 VUURWERK Firmware — Copyright and Attribution Notice
 ===========================================================================
 
