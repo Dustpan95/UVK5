@@ -37,7 +37,15 @@ based on work by DualTachyon, OneOfEleven, and fagci. The upstream
 code base is licensed under the Apache License, Version 2.0, as
 marked in each inherited source file.
 
-VUURWERK-original contributions (designed and conceived by James Honiball):
+VUURWERK-original contributions (designed and conceived by James Honiball).
+
+  THE FOLLOWING ITEMS FALL UNDER COMMERCIAL LICENSING. Outside the
+  complete VUURWERK firmware package, no item on this list may be used,
+  copied, extracted, ported, re-implemented from this description, or
+  incorporated into any other project or product without a commercial
+  license granted in writing by James Honiball (KC3TFZ). Within the
+  complete VUURWERK firmware they are licensed under GPL v3 as a package.
+  See the Dual-Licensing Notice below for the full terms.
 
   - TX Audio Compressor: Real-time dynamic mic compression via REG_7D with
     RMS detection over 40ms window, envelope following with configurable
@@ -362,6 +370,12 @@ VUURWERK-original contributions (designed and conceived by James Honiball):
     bsp/dp32g030/pwmplus.h byte-identical with the egzumer parent.
     Acknowledged as a port of an existing technique with original
     integration.
+
+END OF THE COMMERCIAL-LICENSING LIST. Every item above is commercial-license
+subject matter as stated at the top of this document and in the
+Dual-Licensing Notice below. This list is maintained release by release;
+additions are commercial-license subject matter from the release that
+introduces them.
 
 ===========================================================================
 Dual-Licensing Notice
