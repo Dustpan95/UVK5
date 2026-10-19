@@ -10,7 +10,7 @@
 /* Capacities and multi-tap timing below are prototype values, not release limits. */
 typedef enum {
     MESSAGE_CLOSED, MESSAGE_RECIPIENT, MESSAGE_COMPOSE, MESSAGE_OPTIONS,
-    MESSAGE_QUICK, MESSAGE_REVIEW, MESSAGE_STATUS
+    MESSAGE_QUICK, MESSAGE_REVIEW, MESSAGE_STATUS, MESSAGE_CALLSIGN
 } MessagePage;
 typedef enum {
     MESSAGE_DRAFT, MESSAGE_TX_UNAVAILABLE, MESSAGE_WAIT_ACK,
@@ -18,15 +18,16 @@ typedef enum {
 } MessageDelivery;
 typedef enum { MESSAGE_OK, MESSAGE_BAD_CALL, MESSAGE_EMPTY, MESSAGE_FULL } MessageError;
 typedef struct {
-    char recipient[10], text[APRS_MESSAGE_MAX+1], sender[10], id[6];
+    char recipient[10], text[APRS_MESSAGE_MAX+1], sender[10], id[6], editCall[10];
     MessagePage page;
     MessageDelivery delivery;
     MessageError error;
     uint8_t selected, tapKey, tapIndex, tapTicks;
 } APRS_Message;
 extern APRS_Message gAPRS_Message;
-extern const char *const gAPRS_Quick[APRS_QUICK_COUNT];
+extern char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1];
 bool MESSAGE_ValidCall(const char *call);
+void MESSAGE_EditCall(void);
 void MESSAGE_Open(const char *replyTo);
 void MESSAGE_Key(KEY_Code_t key);
 void MESSAGE_Tick500ms(void);

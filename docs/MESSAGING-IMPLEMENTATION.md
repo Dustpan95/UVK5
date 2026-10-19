@@ -33,13 +33,13 @@ ARM GCC 10.3.1, same radio features and real 16 KiB SRAM layout:
 
 | Profile | Flash | Static RAM | Against 61,440-byte limit |
 |---|---:|---:|---:|
-| Existing receive/home prototype | 61,012 | 3,832 | 428 free |
-| With editor candidate | 62,872 | 3,948 | 1,432 over |
+| Existing receive/home prototype | 61,024 | 3,832 | 416 free |
+| With editor, session profile and separate inbox/monitor | 65,092 | 4,596 | 3,652 over |
 
-Delta: 1,860 flash bytes, 116 static RAM bytes. This measures the reachable
-editor and UI, not the complete TX service. LTO removes unused builder/ACK
+Delta: 4,068 flash bytes, 764 static RAM bytes. This measures the reachable
+editor, profile, inbox and UI, not the complete TX service. LTO removes unused builder/ACK
 helpers from this particular candidate, so their full retained firmware cost
-is still unmeasured. Persistent settings, inbox/directory replacement, modem,
+is still unmeasured. Position/quick-message editing screens, station directory, modem,
 relay configuration and ACK/retry processing require additional space.
 
 Diagnostic measurement enlarges FLASH to 128 KiB only in ignored copies to
@@ -55,8 +55,9 @@ These differ in spacing from concept mockups and are not hardware photographs.
 
 ## Outstanding
 
-- Operator settings, own-callsign validation, position and editable saved quick
-  messages; persistence and inbox behavior are awaiting design responses.
+- Numeric static-position editing and quick-message customization on the LCD.
+  Their validated RAM setters exist; their operator editing screens do not.
+  The own-callsign editor is implemented. No persistence is required.
 - Integrate message ID/ACK/rejection parsing, deduplication and address filtering.
 - Specify delivery timeout, retries/cancellation, busy-channel handling and relay
   routing before enabling an operational send action.
@@ -65,3 +66,38 @@ These differ in spacing from concept mockups and are not hardware photographs.
 - Resolve measured flash pressure through optimization and reviewed tradeoffs.
 
 No EEPROM writes, RF transmission or hardware flashing occur in this editor.
+
+## Session profile and separate inbox/monitor
+
+All APRS settings and quick-message changes are deliberately RAM-only. Profile
+callsign and coordinates start unset; example quick messages initialize at boot.
+No EEPROM address is claimed, read or written by the new profile code.
+
+The candidate APRS hub offers PERSONAL INBOX, ALL TRAFFIC, NEW MESSAGE and
+MY CALLSIGN. Callsign entry uses the same multi-tap editor, with save/cancel and
+format validation. Omitted SSID and `-0` refer to the same personal identity.
+Without a configured callsign, the inbox shows a setup prompt; the monitor and
+notifications still work.
+
+A separate four-message personal buffer tracks unread state. The existing
+four-packet all-traffic log includes messages for every addressee and positions.
+Unrelated traffic cannot evict personal messages. Both capacities are prototype
+values, not final limits. Each newly received personal message is appended;
+message-ID deduplication is not implemented yet.
+
+Changing the own callsign clears the old personal inbox and unread state,
+while leaving monitor traffic and the composition draft intact. Saving the same
+canonical callsign leaves the inbox intact. An arriving packet preserves the
+currently open personal message while it remains stored; if evicted, the UI
+returns to the list instead of silently replacing the displayed body.
+
+Quick-message lists show at most 16 preview characters while preserving all
+67 characters for insertion. Full-length custom-text rendering and insertion
+are sanitizer-tested.
+
+All APRS text messages, including those for other stations, trigger the brief
+banner and configured sound. General beep OFF still silences the sound.
+Tests exercise decoded FIFO delivery into the mailbox, other-address alerts,
+filtering, SSID-zero equivalence, unread state, bounded eviction, view stability,
+identity changes, save/cancel, full keypad callsign entry and setter validation.
+These are host simulations, not RF or physical power-cycle tests.

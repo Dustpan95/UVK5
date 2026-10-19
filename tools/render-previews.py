@@ -12,7 +12,7 @@ output.mkdir(parents=True, exist_ok=True)
 def chunk(kind, payload):
     return struct.pack('>I', len(payload)) + kind + payload + struct.pack('>I', binascii.crc32(kind + payload) & 0xffffffff)
 
-for name in ('aprs-position', 'aprs-message', 'home-memory', 'home-unnamed', 'home-vfo', 'message-compose', 'message-review', 'message-blocked'):
+for name in ('aprs-position', 'aprs-message', 'home-memory', 'home-unnamed', 'home-vfo', 'message-compose', 'message-review', 'message-blocked', 'personal-inbox', 'personal-message', 'personal-unconfigured'):
     fields = (root / 'build' / (name + '.pbm')).read_text().split()
     assert fields[:3] == ['P1', '128', '64']
     pixels = [int(x) for x in fields[3:]]

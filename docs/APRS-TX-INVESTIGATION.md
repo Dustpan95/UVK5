@@ -75,7 +75,7 @@ schedule each symbol. A dedicated timer or carefully bounded absolute-deadline
 loop needs evaluation, along with RF tone purity, phase behavior, deviation,
 radio timeout and restoration. Register values alone establish none of these.
 
-The approved home and alert build is now 61,012 bytes, leaving 428. The older
+The earlier approved home and alert build measured 61,012 bytes, leaving 428. The older
 1,436-byte beacon addition cannot simply be assumed to fit. See
 `FEATURE-COSTS.md` for independently measured options. No cuts have been selected.
 

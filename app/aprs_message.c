@@ -2,9 +2,12 @@
  * UVK5 standalone messaging draft/editor. No hardware TX or persistent writes.
  */
 #include "aprs_message.h"
+#ifdef ENABLE_APRS_MESSAGING
+#include "aprs_session.h"
+#endif
 #include <string.h>
 APRS_Message gAPRS_Message;
-const char *const gAPRS_Quick[APRS_QUICK_COUNT] = {
+char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1] = {
     "ARRIVED SAFELY", "NEED ASSISTANCE", "CAN YOU COPY?"
 };
 static const char *const keys[10] = {
@@ -46,6 +49,14 @@ static bool ValidId(const char *s)
     return !s[n];
 }
 static void Commit(void) { gAPRS_Message.tapTicks=0; }
+void MESSAGE_EditCall(void)
+{
+#ifdef ENABLE_APRS_MESSAGING
+    strcpy(gAPRS_Message.editCall,gAPRS_Profile.callsign);
+#endif
+    gAPRS_Message.page=MESSAGE_CALLSIGN;
+    gAPRS_Message.error=MESSAGE_OK;Commit();
+}
 void MESSAGE_Open(const char *replyTo)
 {
     /* Keep the existing draft when re-entering; never discard text on PTT. */
@@ -81,6 +92,7 @@ void MESSAGE_Key(KEY_Code_t key)
             if (m->page==MESSAGE_QUICK) {
                 /* Insertion preserves the draft and refuses partial/truncated text. */
                 unsigned n=strlen(m->text), add=strlen(gAPRS_Quick[m->selected]);
+                if (!add) { m->error=MESSAGE_EMPTY; return; }
                 if (n+add+(n!=0)<=APRS_MESSAGE_MAX) {
                     if (n) m->text[n++]=' ';
                     strcpy(m->text+n,gAPRS_Quick[m->selected]);
@@ -102,12 +114,18 @@ void MESSAGE_Key(KEY_Code_t key)
         return;
     }
     if (m->page==MESSAGE_STATUS || m->page==MESSAGE_CLOSED) return;
-    char *text=m->page==MESSAGE_RECIPIENT ? m->recipient : m->text;
-    const unsigned limit=m->page==MESSAGE_RECIPIENT ? 9 : APRS_MESSAGE_MAX;
+    const bool call=m->page==MESSAGE_RECIPIENT || m->page==MESSAGE_CALLSIGN;
+    char *text=m->page==MESSAGE_CALLSIGN ? m->editCall : call ? m->recipient : m->text;
+    const unsigned limit=call ? 9 : APRS_MESSAGE_MAX;
     unsigned n=strlen(text);
     if (key==KEY_MENU) {
         Commit();
-        if (m->page==MESSAGE_RECIPIENT) {
+        if (m->page==MESSAGE_CALLSIGN) {
+#ifdef ENABLE_APRS_MESSAGING
+            if (SESSION_SetCall(text)) m->page=MESSAGE_CLOSED;
+            else m->error=MESSAGE_BAD_CALL;
+#endif
+        } else if (m->page==MESSAGE_RECIPIENT) {
             if (MESSAGE_ValidCall(text)) { text[CallLength(text)]=0; m->page=MESSAGE_COMPOSE; }
             else m->error=MESSAGE_BAD_CALL;
         } else { m->page=MESSAGE_OPTIONS; m->selected=0; }

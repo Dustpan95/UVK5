@@ -20,6 +20,7 @@
 #include "aprs_rx.h"
 #ifdef ENABLE_APRS_MESSAGING
 #include "aprs_message.h"
+#include "aprs_session.h"
 #endif
 #include "audio.h"
 #include "app/chFrScanner.h"
@@ -114,6 +115,9 @@ static void Decode(void)
 {
     APRS_Record record;
     if (!APRS_DecodeBits(capture, captureCount, &record)) return;
+#ifdef ENABLE_APRS_MESSAGING
+    SESSION_Receive(&record);
+#endif
     memmove(gAPRS_Log + 1, gAPRS_Log, (APRS_LOG_CAPACITY - 1) * sizeof(record));
     gAPRS_Log[0] = record;
     if (record.kind == APRS_MESSAGE) {
@@ -175,7 +179,7 @@ void APRS_Tick500ms(void)
 void APRS_Open(void)
 {
 #ifdef ENABLE_APRS_MESSAGING
-    gAPRS_Message.page = MESSAGE_CLOSED;
+    SESSION_Open();
 #endif
     gAPRS_Browser = true;
     gAPRS_Selected = 0;
@@ -208,12 +212,9 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
         gUpdateDisplay = true;
         return true;
     }
-    if (key == KEY_MENU) {
-        MESSAGE_Open(gAPRS_Count && gAPRS_Log[gAPRS_Selected].kind == APRS_MESSAGE ?
-                     gAPRS_Log[gAPRS_Selected].source : 0);
-        gUpdateDisplay = true;
-        return true;
-    }
+    SESSION_Key(key);
+    gUpdateDisplay = true;
+    return true;
 #endif
     if (key == KEY_EXIT) gAPRS_Browser = false;
     else if (key == KEY_UP && gAPRS_Selected) --gAPRS_Selected;

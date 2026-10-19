@@ -31,16 +31,19 @@ does not establish the MCU revision.
   characters. Callsigns, positions and text appear on the radio's LCD. A phone,
   computer, external MCU or TNC is not required by the firmware's receive path.
 
-The approved [messaging editor](docs/MESSAGING-IMPLEMENTATION.md) is implemented
+The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md) is implemented
 as a separate candidate (`ENABLE_APRS_MESSAGING=1`), with multi-tap entry, quick
 messages, send review and truthful blocked-send status. It exceeds flash by
-1,432 bytes before adding a working transmitter, so it is not enabled in the
+3,652 bytes before adding a working transmitter, so it is not enabled in the
 fitting receive profile. No final feature cuts have been selected. The message
 codec/ACK helpers have host tests; on-radio transport remains unimplemented.
 
-The APRS setting and history are RAM-only and reset at power-off. This is a
-passive monitor: it displays messages addressed to any station, without an
-own-callsign filter. **Currently implemented on-radio: receive.** Standard-compatible transmit is
+All APRS settings, static position, quick-message edits and received history
+are session-only and reset at power-off. The fitting receive profile remains
+an all-traffic packet browser. The optional messaging candidate adds a separate
+personal inbox filtered by an operator-entered callsign/SSID, unread markers,
+and an all-traffic monitor. All received APRS messages still trigger brief
+banners and configured sound, regardless of addressee. **Currently implemented on-radio: receive.** Standard-compatible transmit is
 being investigated before publication, with messaging primary and a simple
 static-position beacon also requested. TX release scope is not yet fixed; see the measured
 [transmit investigation](docs/APRS-TX-INVESTIGATION.md).

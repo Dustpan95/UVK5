@@ -81,7 +81,7 @@ BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
 OBJS = app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
 ifeq ($(ENABLE_APRS_MESSAGING),1)
-OBJS += app/aprs_message.o ui/aprs_message.o
+OBJS += app/aprs_message.o app/aprs_session.o ui/aprs_message.o ui/aprs_session.o
 CFLAGS_MESSAGING = -DENABLE_APRS_MESSAGING
 endif
 # Startup files

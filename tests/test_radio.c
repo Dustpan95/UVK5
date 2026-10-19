@@ -9,6 +9,7 @@
 #include "audio.h"
 #ifdef ENABLE_APRS_MESSAGING
 #include "app/aprs_message.h"
+#include "app/aprs_session.h"
 #endif
 #include "app/chFrScanner.h"
 #include "driver/bk4819.h"
@@ -131,6 +132,10 @@ int main(int argc,char **argv) {
     puts("PASS simulated FSK FIFO -> HDLC -> position -> bounded four-packet history");
 
     assert(gAPRS_AlertSound);
+#ifdef ENABLE_APRS_MESSAGING
+    assert(!gAPRS_Profile.callsign[0] && !gAPRS_InboxCount);
+    assert(SESSION_SetCall("MYCALL"));
+#endif
     fifo_capture=message_fixture;
     for(unsigned round=0;round<3;round++) {
         gAPRS_AlertSound=round!=1;
@@ -141,6 +146,9 @@ int main(int argc,char **argv) {
         APRS_Interrupt(BK4819_REG_02_FSK_RX_FINISHED);
         fifo_active=false;
         assert(gAPRS_Log[0].kind==APRS_MESSAGE);
+#ifdef ENABLE_APRS_MESSAGING
+        assert(gAPRS_InboxCount==round+1);
+#endif
         assert(gAPRS_BannerTicks==10 && !gAPRS_Browser);
         assert(!strcmp(gAPRS_BannerSource,"N0CALL-15"));
         assert(!strncmp(gAPRS_BannerText,"MEET AT TRAILHEAD",16));
@@ -155,6 +163,18 @@ int main(int argc,char **argv) {
         gAPRS_Enabled=true;
     }
     puts("PASS message banner, sound default/mute, PTT cancellation, expiry and RX rearm");
+
+#ifdef ENABLE_APRS_MESSAGING
+    assert(SESSION_SetCall("OTHER"));
+    APRS_Tick500ms();fifo=0;fifo_active=true;
+    APRS_Interrupt(BK4819_REG_02_FSK_RX_SYNC);
+    while(fifo<224) APRS_Interrupt(BK4819_REG_02_FSK_FIFO_ALMOST_FULL);
+    APRS_Interrupt(BK4819_REG_02_FSK_RX_FINISHED);fifo_active=false;
+    assert(!gAPRS_InboxCount && gAPRS_BannerTicks==10);
+    unsigned previous_beeps=beeps;APRS_Tick500ms();assert(beeps==previous_beeps+1);
+    assert(SESSION_SetCall("MYCALL"));
+    puts("PASS other-station traffic still triggers banner/sound without entering personal inbox");
+#endif
 
     gRxVfo->pRX=&gRxVfo->freq_config_RX;
     gRxVfo->pRX->Frequency=14652000;
@@ -184,11 +204,22 @@ int main(int argc,char **argv) {
 
     APRS_Open();assert(gAPRS_Browser && gRequestDisplayScreen==DISPLAY_MAIN);
     gAPRS_Count=4;
+#ifdef ENABLE_APRS_MESSAGING
+    assert(gAPRS_View==APRS_HUB);
+    APRS_Key(KEY_DOWN,true,false);APRS_Key(KEY_MENU,true,false);
+    assert(gAPRS_View==APRS_MONITOR);
+#endif
     assert(APRS_Key(KEY_DOWN,true,false) && gAPRS_Selected==1);
     assert(APRS_Key(KEY_UP,true,false) && gAPRS_Selected==0);
+#ifdef ENABLE_APRS_MESSAGING
+    assert(APRS_Key(KEY_EXIT,true,false) && gAPRS_View==APRS_HUB);
+#endif
     assert(APRS_Key(KEY_EXIT,true,false) && !gAPRS_Browser);
     APRS_Open();assert(!APRS_Key(KEY_PTT,true,false) && !gAPRS_Browser);
     APRS_Open();
+#ifdef ENABLE_APRS_MESSAGING
+    gAPRS_View=APRS_MONITOR;
+#endif
     gAPRS_Log[0].kind=APRS_POSITION;
     strcpy(gAPRS_Log[0].source,"N0CALL-15");
     gAPRS_Log[0].latitude=49058333;gAPRS_Log[0].longitude=-72029166;
@@ -200,7 +231,7 @@ int main(int argc,char **argv) {
     memset(gAPRS_Log[0].text,'W',APRS_TEXT_MAX);gAPRS_Log[0].text[APRS_TEXT_MAX]=0;
     APRS_Draw();
 #ifdef ENABLE_APRS_MESSAGING
-    APRS_Open();
+    APRS_Open();gAPRS_View=APRS_MONITOR;
     assert(APRS_Key(KEY_MENU,true,false));
     assert(gAPRS_Message.page==MESSAGE_COMPOSE);
     assert(!strcmp(gAPRS_Message.recipient,"N0CALL-15"));
@@ -223,6 +254,67 @@ int main(int argc,char **argv) {
             gAPRS_Message.selected=selected; MESSAGE_Draw();
         }
     }
+    gAPRS_Message.page=MESSAGE_CLOSED;
+    assert(!SESSION_SetCall("BAD-CALL") && !strcmp(gAPRS_Profile.callsign,"MYCALL"));
+    unsigned monitor_count=gAPRS_Count;
+    assert(SESSION_SetCall("NEWCAL-0") && !strcmp(gAPRS_Profile.callsign,"NEWCAL"));
+    assert(!gAPRS_InboxCount && !gAPRS_Unread && gAPRS_Count==monitor_count);
+    APRS_Record personal={.kind=APRS_MESSAGE};
+    strcpy(personal.source,"N0CALL-7");strcpy(personal.destination,"NEWCAL-0");
+    strcpy(personal.text,"PERSONAL MESSAGE");
+    assert(SESSION_IsPersonal(&personal));
+    for(unsigned i=0;i<6;i++) SESSION_Receive(&personal);
+    assert(gAPRS_InboxCount==4 && gAPRS_Unread==15);
+    APRS_Record unrelated=personal;strcpy(unrelated.destination,"OTHER-7");
+    assert(!SESSION_IsPersonal(&unrelated));
+    for(unsigned i=0;i<20;i++) SESSION_Receive(&unrelated);
+    assert(gAPRS_InboxCount==4 && !strcmp(gAPRS_Inbox[0].text,"PERSONAL MESSAGE"));
+    SESSION_Open();SESSION_Key(KEY_MENU);assert(gAPRS_View==APRS_PERSONAL);
+    SESSION_Draw();snprintf(path,sizeof(path),"%s/personal-inbox.pbm",argv[1]);image(path);
+    SESSION_Key(KEY_MENU);assert(gAPRS_View==APRS_PERSONAL_DETAIL && gAPRS_Unread==14);
+    SESSION_Draw();snprintf(path,sizeof(path),"%s/personal-message.pbm",argv[1]);image(path);
+    SESSION_Receive(&personal);assert(gAPRS_InboxSelected==1 && !(gAPRS_Unread&2));
+    assert(gAPRS_View==APRS_PERSONAL_DETAIL);
+    gAPRS_InboxSelected=3;SESSION_Receive(&personal);assert(gAPRS_View==APRS_PERSONAL);
+    SESSION_Key(KEY_EXIT);assert(gAPRS_View==APRS_HUB);
+    MESSAGE_EditCall();strcpy(gAPRS_Message.editCall,"BAD-99");MESSAGE_Key(KEY_MENU);
+    assert(gAPRS_Message.error==MESSAGE_BAD_CALL && !strcmp(gAPRS_Profile.callsign,"NEWCAL"));
+    strcpy(gAPRS_Message.editCall,"OTHER-7");MESSAGE_Key(KEY_EXIT);
+    assert(!strcmp(gAPRS_Profile.callsign,"NEWCAL")); /* Cancel doesn't reclassify. */
+    MESSAGE_EditCall();strcpy(gAPRS_Message.editCall,"OTHER-7");MESSAGE_Key(KEY_MENU);
+    assert(!strcmp(gAPRS_Profile.callsign,"OTHER-7") && !gAPRS_InboxCount);
+    assert(gAPRS_Message.page==MESSAGE_CLOSED);
+    assert(SESSION_SetPosition(-90000000,180000000) && gAPRS_Profile.positionSet);
+    assert(!SESSION_SetPosition(90000001,0) && gAPRS_Profile.latitude==-90000000);
+    assert(SESSION_SetQuick(0,"BACK AT BASE") && !strcmp(gAPRS_Quick[0],"BACK AT BASE"));
+    assert(!SESSION_SetQuick(3,"BAD") && !SESSION_SetQuick(0,"BAD{TEXT"));
+    assert(!strcmp(gAPRS_Quick[0],"BACK AT BASE"));
+    char long_quick[69];memset(long_quick,'W',68);long_quick[68]=0;
+    assert(!SESSION_SetQuick(0,long_quick));long_quick[67]=0;
+    assert(SESSION_SetQuick(0,long_quick));
+    gAPRS_Message.page=MESSAGE_QUICK;gAPRS_Message.selected=0;
+    MESSAGE_Draw(); /* Full-length saved text must not overflow its list preview. */
+    gAPRS_Message.text[0]=0;MESSAGE_Key(KEY_MENU);
+    assert(gAPRS_Message.page==MESSAGE_COMPOSE && strlen(gAPRS_Message.text)==67);
+    gAPRS_Message.page=MESSAGE_CLOSED;
+    memset(&gAPRS_Profile,0,sizeof(gAPRS_Profile)); /* Simulate reboot BSS clearing. */
+    memset(gAPRS_Inbox,0,sizeof(gAPRS_Inbox));gAPRS_InboxCount=gAPRS_Unread=0;
+    SESSION_Open();SESSION_Key(KEY_MENU);SESSION_Draw();
+    snprintf(path,sizeof(path),"%s/personal-unconfigured.pbm",argv[1]);image(path);
+    assert(!SESSION_IsPersonal(&personal));
+    SESSION_Key(KEY_MENU);assert(gAPRS_Message.page==MESSAGE_CALLSIGN);
+    MESSAGE_Key(KEY_EXIT);
+    APRS_Open();APRS_Key(KEY_MENU,true,false);APRS_Key(KEY_MENU,true,false);
+    assert(gAPRS_Message.page==MESSAGE_CALLSIGN);
+    const KEY_Code_t call_keys[]={KEY_6,KEY_F,KEY_9,KEY_9,KEY_9,KEY_F,
+        KEY_2,KEY_2,KEY_2,KEY_F,KEY_2,KEY_F,KEY_5,KEY_5,KEY_5,KEY_F,KEY_5,KEY_5,KEY_5};
+    unsigned config_writes=writes;
+    for(unsigned i=0;i<sizeof(call_keys)/sizeof(*call_keys);i++) APRS_Key(call_keys[i],true,false);
+    APRS_Key(KEY_MENU,true,false);
+    assert(!strcmp(gAPRS_Profile.callsign,"MYCALL") && gAPRS_Message.page==MESSAGE_CLOSED);
+    assert(writes==config_writes);
+
+    puts("PASS session profile validation, personal filtering/unread/eviction, monitor isolation, callsign editing");
     gAPRS_Message.page=MESSAGE_CLOSED;
     puts("PASS integrated editor keys/held-repeat/PTT, draft preservation, candidate LCD bounds");
 #endif

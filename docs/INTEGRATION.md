@@ -32,8 +32,11 @@ are not simultaneous operations.
 
 RX capture is bounded to 240 raw bytes / 192 decoded frame bytes. One valid
 frame is returned per capture. The history holds recent packets, not a deduplicated
-station directory. All message addressees are visible; there is no own-callsign
-filter or persistent inbox. APRS transmit, beaconing and ACK handling are
+station directory. The fitting receive profile exposes all addressees in one
+packet browser. The optional messaging candidate adds a separate RAM-only
+personal inbox and all-traffic monitor with an own-callsign editor; see
+`MESSAGING-IMPLEMENTATION.md`. Received history, callsign, position and quick
+messages are session-only; no power-off persistence is required. APRS transmit, beaconing and ACK handling are
 future integration goals; see `APRS-TX-INVESTIGATION.md` for the prototype
 measurement and known upstream interoperability issue. Position ambiguity,
 objects/items and specialized weather/telemetry fields remain future work.

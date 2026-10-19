@@ -18,6 +18,6 @@ build/test_radio build
 build/test_message
 
 "$compiler" "${flags[@]}" -DENABLE_APRS_MESSAGING -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
-    app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c tx_compressor.c smart_squelch.c \
-    ui/aprs.c ui/aprs_message.c ui/home.c ui/helper.c font.c external/printf/printf.c -o build/test_radio_messaging
+    app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
+    ui/aprs.c ui/aprs_message.c ui/aprs_session.c ui/home.c ui/helper.c font.c external/printf/printf.c -o build/test_radio_messaging
 build/test_radio_messaging build

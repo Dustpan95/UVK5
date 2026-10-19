@@ -12,7 +12,7 @@ physical radio revision was not established.
 - Toolchain setup from the pinned Ubuntu image with signed packages: ARM GCC
   10.3.1, ARM binutils 2.38 and newlib 3.3.0. Cached setup was reused successfully.
 - Clean default-profile build with the existing warning-as-error flags and LTO.
-- Raw flash image **61,012 / 61,440 bytes**, leaving **428 bytes**.
+- Raw flash image **61,024 / 61,440 bytes**, leaving **416 bytes**.
 - Static `.data` + `.bss`: **3,832 bytes**. Linker stack reservation: **2,048
   bytes**. The startup vector sets SP to **0x20003ff0**, preserving upstream's
   16-byte top-of-SRAM reserve. 12,536 bytes lie between static data and that SP;
@@ -96,4 +96,12 @@ callsign/SSID/ID validation, message construction, receive-parser roundtrip and
 ACK/rejection correlation including SSID zero. The independent audio test's
 ordinary message is built with the actual C message builder before encoding.
 These are software checks, not successful radio messages. The current candidate
-is 62,872 bytes (1,432 over flash); see `MESSAGING-IMPLEMENTATION.md`.
+with session inbox/monitor is 65,092 bytes (3,652 over flash); see `MESSAGING-IMPLEMENTATION.md`.
+
+The session-profile/inbox candidate additionally passes own-call keypad entry,
+validation/save/cancel, own-address filtering, SSID-zero normalization, unread
+tracking and bounded eviction. Unrelated traffic leaves personal storage intact
+and still triggers banner/sound. New arrivals preserve an open message until
+its eviction, then return to the list. Position and quick-message RAM setters
+reject invalid input without partial changes. No hardware power-cycle claim is
+made; the profile code contains no EEPROM accesses.

@@ -13,7 +13,11 @@
 - Retain the APRS station and message screen layouts the user liked.
 - APRS message sound is configurable and defaults ON. General key-beep OFF
   also silences APRS notifications.
-- Received history is session-only; power-off persistence is not required.
+- Everything APRS is session-only for now: callsign, static position,
+  quick-message edits and received history reset on power-off.
+- Separate personal inbox and all-traffic monitor.
+- All received APRS messages trigger the brief banner and configured sound,
+  including those addressed to other stations.
 - The revised home mockups were explicitly approved ("Yes. Perfect.").
 - Investigate standard-compatible APRS transmit, even if release takes longer.
 - Use phone-style multi-tap typing plus saved quick messages for composition.
@@ -50,7 +54,7 @@ implemented packet browser. Example traffic and 76% mockup battery are synthetic
 
 - Exact home-screen fields and status icons.
 - Banner duration and dismissal rules; sound ON by default is approved.
-- APRS directory/history/inbox depth and duplicate handling (session-only approved).
+- APRS directory/history/inbox depth and duplicate handling (all session-only approved).
 - Callsign/SSID/position entry and on-radio text entry/composition.
 - Menu grouping and short/long-press behavior for the physical keys.
 - Beacon/message send confirmation, scheduling and ACK/retry presentation.
@@ -80,6 +84,13 @@ handoff or acknowledgment occurred. The tested message builder and ACK matching
 APIs are not yet connected to a working TX/RX message service. There is no
 automatic ACK generation, retry scheduling or operational transport yet.
 
-The measured editor candidate exceeds application flash by 1,432 bytes. It is
+The measured editor candidate with the separate inbox/monitor exceeds application flash by 3,652 bytes. It is
 not enabled in the fitting receive prototype and is not a flashable release.
 See `MESSAGING-IMPLEMENTATION.md` one directory above for costs and test limits.
+
+The local candidate now implements the separate personal inbox and monitor,
+including own-callsign entry and unread tracking. All APRS text messages still
+produce notifications regardless of addressee. Four personal entries and four
+monitor packets are provisional capacities. Static-position and quick-message
+RAM setters exist; their configuration screens remain future work. No EEPROM
+storage is used for APRS.

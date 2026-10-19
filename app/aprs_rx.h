@@ -15,4 +15,5 @@ void APRS_Interrupt(uint16_t bits);
 void APRS_Open(void);
 bool APRS_Key(KEY_Code_t key, bool pressed, bool held);
 void APRS_Draw(void);
+void APRS_DrawRecord(const APRS_Record *record);
 #endif

@@ -2,7 +2,7 @@
 
 These isolated diagnostic builds use ARM GCC 10.3.1 and source fingerprint
 `1aee4bcb432eb52b2c461ae9fed53f672734e8e784ca58922a5f6a6817db5722`.
-Baseline: **61,012 / 61,440 bytes**, 428 free, 3,832 bytes static RAM.
+Earlier measurement baseline: **61,012 / 61,440 bytes**, 428 free, 3,832 bytes static RAM.
 This baseline includes the approved custom home renderer and APRS message alerts.
 
 No feature cuts have been selected. Results are comparisons, not release profiles.
@@ -44,3 +44,8 @@ assigned to them. They need repair before they are selectable options.
 Reproduce with `python3 tools/measure-features.py`. Machine-readable results:
 `feature-costs.json`. Any subsequent source changes require new measurements
 before relying on exact byte counts for a release.
+
+The later inbox/monitor checkpoint measures 61,024 bytes for the fitting profile
+and 65,092 for the candidate. See `MESSAGING-IMPLEMENTATION.md` and
+`messaging-costs.json` for current candidate totals; this table retains its
+original source fingerprint so historical feature deltas are not misrepresented.

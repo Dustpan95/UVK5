@@ -22,12 +22,13 @@ void MESSAGE_Draw(void)
     char line[22];
     UI_DisplayClear();
     const char *footer="MENU:NEXT  EXIT:BACK";
-    if(m->page==MESSAGE_RECIPIENT) {
-        UI_PrintStringSmallNormal("RECIPIENT",0,0,0);
-        UI_PrintStringSmallNormal(m->recipient,0,0,2);
+    if(m->page==MESSAGE_RECIPIENT || m->page==MESSAGE_CALLSIGN) {
+        UI_PrintStringSmallNormal(m->page==MESSAGE_CALLSIGN ? "MY CALLSIGN" : "RECIPIENT",0,0,0);
+        UI_PrintStringSmallNormal(m->page==MESSAGE_CALLSIGN ? m->editCall : m->recipient,0,0,2);
         UI_PrintStringSmallNormal("MULTI-TAP ABC/123",0,0,3);
         UI_PrintStringSmallNormal("1:.-/  #:NEXT",0,0,4);
         UI_PrintStringSmallNormal("*:DELETE",0,0,5);
+        if(m->page==MESSAGE_CALLSIGN) footer="MENU:SAVE  EXIT:CANCEL";
     } else if(m->page==MESSAGE_COMPOSE || m->page==MESSAGE_REVIEW) {
         sprintf(line,"%s %s",m->page==MESSAGE_REVIEW ? "SEND" : "TO",m->recipient);
         UI_PrintStringSmallNormal(line,0,0,0);
@@ -40,7 +41,7 @@ void MESSAGE_Draw(void)
         UI_PrintStringSmallNormal(quick ? "QUICK MESSAGES" : "MESSAGE OPTIONS",0,0,0);
         const char *const options[]={"QUICK MESSAGE","REVIEW AND SEND","EDIT RECIPIENT"};
         for(unsigned i=0;i<3;i++) {
-            sprintf(line,"%c%s",i==m->selected ? '>' : ' ',quick ? gAPRS_Quick[i] : options[i]);
+            sprintf(line,"%c%.16s",i==m->selected ? '>' : ' ',quick ? gAPRS_Quick[i] : options[i]);
             UI_PrintStringSmallNormal(line,0,0,2+i);
         }
         footer="MENU:SELECT  EXIT:BODY";
