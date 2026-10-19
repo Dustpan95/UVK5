@@ -5,14 +5,18 @@ The firmware format and decoder are unchanged. Only the build-time parser varies
 """
 def pack(data):
  n=len(data)
- lengths=[0]*n;distances=[0]*n
+ lengths=[0]*n;distances=[0]*n;history={}
  for i in range(n):
+  if i+3>n:continue
+  prefix=bytes(data[i:i+3])
   limit=min(18,n-i)
-  for j in range(i-1,max(-1,i-4097),-1):
-   count=0
+  for j in reversed(history.get(prefix,())):
+   if i-j>4096:break
+   count=3
    while count<limit and data[j+count]==data[i+count]:count+=1
    if count>lengths[i]:lengths[i]=count;distances[i]=i-j
    if count==limit:break
+  history.setdefault(prefix,[]).append(i)
  # Phase zero pays for the next flag byte; a partial final group needs no pad.
  costs=[[0]*8 for _ in range(n+1)]
  choices=[[1]*8 for _ in range(n)]
