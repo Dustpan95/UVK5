@@ -83,7 +83,7 @@ handoff or acknowledgment occurred. The tested message builder and ACK matching
 APIs are not yet connected to a working TX/RX message service. There is no
 automatic ACK generation, retry scheduling or operational transport yet.
 
-The measured editor candidate with the separate inbox/monitor exceeds application flash by 1,544 bytes. It is
+The measured editor candidate with the separate inbox/monitor exceeds application flash by 1,580 bytes. It is
 not enabled in the fitting receive prototype and is not a flashable release.
 See `MESSAGING-IMPLEMENTATION.md` one directory above for costs and test limits.
 
@@ -107,3 +107,16 @@ A separate receive-session bench profile now contains the approved station/inbox
 screens and callsign entry, without unfinished composition controls. The full
 messaging candidate retains the approved flow. `screenshots/receiver-bench/`
 one directory above contains actual host-rendered receive-profile examples.
+
+## Setup proposals awaiting review
+
+`setup-entry-review.png` compares decimal-degree and degrees/minutes entry and
+proposes setup/position review/quick-message customization screens. These screens
+are not implemented or approved yet. They retain session-only configuration.
+Saving a position is distinct from sending a beacon; editing a quick message
+would leave both the saved value and composition draft intact until Save.
+
+The owner is also reviewing active-VFO versus separate-frequency APRS routing.
+Core prototypes freeze requested frequency, which supports enforcing either
+policy later without silently sending queued frames on a changed channel.
+Retry and automatic-ACK policies remain open. No final feature cuts are chosen.

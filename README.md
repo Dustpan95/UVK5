@@ -36,12 +36,12 @@ does not establish the MCU revision.
 The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md) is implemented
 as a separate candidate (`ENABLE_APRS_MESSAGING=1`), with multi-tap entry, quick
 messages, send review and truthful blocked-send status. It exceeds flash by
-1,544 bytes before adding a working transmitter, so it is not enabled in the
+1,580 bytes before adding a working transmitter, so it is not enabled in the
 minimal default receive profile. No final feature cuts have been selected. See the [flash feasibility work](docs/FLASH-FEASIBILITY.md). The message
 codec/ACK helpers have host tests. Experimental tone, radio-control and outbox
 modules also pass register/model tests, but normal on-radio send/configuration
 integration and RF validation remain unfinished; retaining those parts measures
-66,644 bytes, still 5,204 over flash.
+67,760 bytes, still 6,320 over flash.
 
 All APRS settings, static position, quick-message edits and received history
 are session-only and reset at power-off. The minimal default receive profile remains
