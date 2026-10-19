@@ -18,9 +18,15 @@
 #define DRIVER_SYSTICK_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 void SYSTICK_Init(void);
 void SYSTICK_DelayUs(uint32_t Delay);
+/* Experimental modem backend: wrapping 48 MHz cycles; foreground use only.
+ * Requires the normal 480000-cycle SysTick period and enabled tick interrupts.
+ */
+uint32_t SYSTICK_Cycles(void);
+bool SYSTICK_CanCountCycles(void);
 
 #endif
 

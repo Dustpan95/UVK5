@@ -145,9 +145,8 @@ OBJS += app/scanner.o
 ifeq ($(ENABLE_UART),1)
 	OBJS += app/uart.o
 endif
-ifeq ($(ENABLE_AM_FIX), 1)
-	OBJS += am_fix.o
-endif
+# The gain table is shared by FM gain staging even when AM-fix is disabled.
+OBJS += am_fix.o
 OBJS += audio.o
 OBJS += bitmaps.o
 OBJS += board.o

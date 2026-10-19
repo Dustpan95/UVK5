@@ -33,3 +33,11 @@ health of an individual radio.
 Record MCU marking, board revision, firmware commit and artifact hashes,
 measurement setup, expected/observed outcomes and failures. Do not promote this
 experimental build to a hardware-validated release until those results exist.
+
+For a future TX bench image, additionally measure actual 1200/2200 Hz tones,
+1200-baud edge timing across SysTick reloads, write/interrupt jitter, tone phase
+continuity and FM deviation at both frequencies. Decode real output with an
+independent TNC; verify messages, ACK/rejects and beacons, busy-channel behavior,
+PA ramp, timeout/PTT abort and receive restoration. Start with explicit TX enable
+and a calibrated tone gain. The current normal build does not contain the
+experimental transport and cannot perform these tests.

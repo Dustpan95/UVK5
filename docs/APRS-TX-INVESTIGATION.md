@@ -1,6 +1,6 @@
 # APRS transmit investigation
 
-Standard-compatible APRS transmit is being investigated before publication,
+Standard-compatible APRS transmit is being investigated before release,
 including the first release. No TX release scope has been fixed. The local
 firmware currently implements receive only; usable TX and RF validation remain
 outstanding.
@@ -93,3 +93,46 @@ The user selected messaging as the primary TX workflow, alongside a generic
 static-position beacon. Message editing, addressing, ACK/retry limits and beacon
 configuration are still being designed. The global key-beep setting must also
 silence APRS sound; the independent APRS sound toggle defaults ON.
+
+## Experimental original-MCU tone backend and radio owner
+
+`experiments/bell202_radio.c` drives the ordinary BK4819 tone generator with
+12389/22714 frequency words for nominal 1200/2200 Hz. `driver/systick.c` combines
+the software 10 ms epoch with the downcounter and pending-interrupt state to
+supply a wrapping 48 MHz cycle clock. Interrupt-mask restoration, epoch/pending
+cases and clock wrap have host register-model tests. A disabled tick interrupt,
+wrong period or masked interrupts prevents the tone backend from starting.
+
+`experiments/aprs_radio_owner.c` is the bench transport wrapper. Explicit enable
+and an explicitly supplied uncalibrated tone gain are required. It accepts only
+stationary simplex FM with no TX code, scrambler or PTT ID and no dual/crossband,
+scan or split operation. Active receive, open squelch, a held PTT or a pending
+receive interrupt defers transmission. The normal radio TX preparation retains
+its frequency, battery and timeout checks; audio remains muted during the
+existing PA soft-start. Every acquired-TX return drops PA and restores RX without
+roger/DTMF/tail audio. Actual owner tests exercise ramp/cleanup on completion,
+PTT interruption and modem timing faults. No RF or hardware is present in these
+tests. This conservative admission is not validated carrier sense; open-squelch
+APRS use and collision avoidance still need design and bench work.
+
+`app/aprs_tx.c` implements a frozen session-only outbox behind an injected link.
+Draft changes cannot mutate the stored frame or ACK identity. Explicit policy
+supports one or up to three attempts, busy deferral, bounded lifetime, cancellation,
+ACK/reject matching and wrap-safe deadlines. ACK waiting begins after successful
+handoff. Policy selection and automatic ACK behavior remain pending user choices.
+Failure/cancellation can follow an earlier successful attempt; attempts remain
+recorded and must be shown honestly by the future UI.
+
+These modules are deliberately absent from the normal Makefile/send action.
+They are host-tested and cross-compiled, not an operational or RF-validated
+transmitter. Missing integration includes configuration screens, actual send
+binding, automatic ACK dispatch and relay routing. Tone phase continuity, real
+frequency/baud accuracy, SPI/interrupt jitter, deviation, decoding by independent
+hardware and TX/RX recovery remain unmeasured. No claim of standard-compatible
+RF follows from software tests or nominal frequency words.
+
+The actual C scheduler's tone transitions were also resampled into audio with
+synthetic +/-6.7 us SPI-duration variation and periodic simulated interrupt
+latency. Independent Dire Wolf decoded message, beacon, ACK and reject fixtures
+with bit repair disabled. `tools/test-bell202-timing.py` reproduces this optional
+test. It tests the chosen software timing budget, not a physical SPI bus or RF.

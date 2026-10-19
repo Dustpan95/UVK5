@@ -63,3 +63,39 @@ report={'source_fingerprint':fingerprint.hexdigest(),'compiler':'ARM GCC 10.3.1'
  'not_included':['radio tone output and MCU clock backend','TX limits/arbitration','busy-channel handling',
  'automatic ACK dispatch','retry service','position and saved-message editing UI']}
 (work/'results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
+
+# Separately retain the new frozen-outbox model, actual cycle counter and tone
+# backend. This oversized diagnostic is measured, never executed on hardware.
+p=work/'Makefile';p.write_text(p.read_text().replace('OBJS += app/protocol_probe.o',
+ 'OBJS += app/aprs_tx.o experiments/bell202_radio.o experiments/aprs_radio_owner.o app/protocol_probe.o'))
+p=work/'app/protocol_probe.c';s=p.read_text()
+s=s.replace('#include "experiments/bell202_timing.h"', '''#include "experiments/bell202_timing.h"
+#include "experiments/bell202_radio.h"
+#include "experiments/aprs_radio_owner.h"
+#include "app/aprs_tx.h"
+extern uint32_t SCHEDULER_GetTicks10ms(void);
+static uint32_t LinkNow(void *ctx) { (void)ctx;return SCHEDULER_GetTicks10ms(); }
+static APRS_LinkResult SendRadio(const uint8_t *frame,size_t length,void *ctx) {
+ (void)ctx;
+ const APRS_RadioConfig config={gProbeMode&128,gProbeMode&127};
+ return APRS_RadioSend(frame,length,(void *)&config);
+}''')
+# The injected callbacks need the volatile input declaration above them.
+s=s.replace('static APRS_LinkResult SendRadio(', 'extern volatile unsigned gProbeMode;\nstatic APRS_LinkResult SendRadio(')
+s=s.replace(' gProbeAccepted=BELL202_Transmit(frame,n,&output);',''' gProbeAccepted=BELL202_Transmit(frame,n,&output);
+ if(gProbeMode&64) {
+  const uint32_t now=SCHEDULER_GetTicks10ms();
+  if(gProbeMode&8) gProbeAccepted=TX_QueueControl(gAPRS_Profile.callsign,gAPRS_Message.recipient,id,gProbeMode&32,1000,now);
+  else if(gProbeMode&1) gProbeAccepted=TX_QueueBeacon(gAPRS_Profile.callsign,gProbeLatitude,gProbeLongitude,1000,now);
+  else gProbeAccepted=TX_QueueMessage(gAPRS_Profile.callsign,gAPRS_Message.recipient,gAPRS_Message.text,id,(APRS_TX_Policy){1000,20000,3},now);
+  const APRS_TX_Link link={LinkNow,SendRadio,0};TX_Process(&link);
+  if(gProbeMode&2) gProbeAccepted=TX_Acknowledge(source,gAPRS_Profile.callsign,id,gProbeMode&4);
+  if(gProbeMode&16) TX_Cancel();
+ }''')
+p.write_text(s)
+transport,log=build();(work/'transport.log').write_text(log)
+report['with_tone_backend_and_outbox_bytes']=transport
+report['transport_increment_bytes']=transport-size
+report['transport_still_excludes']=['normal UI send integration','automatic ACK dispatch',
+ 'position/quick-message configuration UI','relay path configuration','hardware carrier-sense/RF validation']
+(work/'results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))

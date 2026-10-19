@@ -1,0 +1,33 @@
+{
+  "source_fingerprint": "09ad4637b8942476e9b4f52f65b99a458f7b7c1ccb3a078519106e71a2c25374",
+  "compiler": "ARM GCC 10.3.1",
+  "diagnostic_flash_limit": 131072,
+  "real_flash_limit": 61440,
+  "profiles": [
+    {
+      "profile": "baseline",
+      "flags": [],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 58056,
+      "static_ram_bytes": 7188,
+      "fits_60k": true,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "without_am_fix",
+      "flags": [
+        "ENABLE_AM_FIX=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 2,
+      "errors": [
+        "gain_staging.c:64:49: error: 'gain_table' undeclared (first use in this function)",
+        "gain_staging.c:121:33: error: 'GAIN_TABLE_RUNG_ABOVE_STOCK' undeclared (first use in this function)",
+        "gain_staging.c:166:22: error: 'gain_table_size' undeclared (first use in this function)",
+        "gain_staging.c:185:12: error: 'gain_table' undeclared (first use in this function)",
+        "gain_staging.c:186:1: error: control reaches end of non-void function [-Werror=return-type]"
+      ]
+    }
+  ]
+}

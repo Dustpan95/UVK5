@@ -1,5 +1,5 @@
 {
-  "source_fingerprint": "1aee4bcb432eb52b2c461ae9fed53f672734e8e784ca58922a5f6a6817db5722",
+  "source_fingerprint": "5f8206dcfacf2a37ada85440024afd77e62693ccbd091479105ad3f893f80611",
   "compiler": "ARM GCC 10.3.1",
   "diagnostic_flash_limit": 131072,
   "real_flash_limit": 61440,
@@ -9,10 +9,46 @@
       "flags": [],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 61012,
-      "static_ram_bytes": 3832,
+      "flash_bytes": 58056,
+      "static_ram_bytes": 7188,
       "fits_60k": true,
       "delta_flash_bytes": 0
+    },
+    {
+      "profile": "messaging_editor",
+      "flags": [
+        "ENABLE_APRS_MESSAGING=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 62984,
+      "static_ram_bytes": 8200,
+      "fits_60k": false,
+      "delta_flash_bytes": 4928
+    },
+    {
+      "profile": "font_packing",
+      "flags": [
+        "ENABLE_FONT_PACKING=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 58056,
+      "static_ram_bytes": 7188,
+      "fits_60k": true,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "font_unpacked",
+      "flags": [
+        "ENABLE_FONT_PACKING=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 58620,
+      "static_ram_bytes": 4800,
+      "fits_60k": true,
+      "delta_flash_bytes": 564
     },
     {
       "profile": "spectrum",
@@ -21,10 +57,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 68128,
-      "static_ram_bytes": 4700,
+      "flash_bytes": 65336,
+      "static_ram_bytes": 8040,
       "fits_60k": false,
-      "delta_flash_bytes": 7116
+      "delta_flash_bytes": 7280
     },
     {
       "profile": "fm_broadcast",
@@ -33,10 +69,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 65340,
-      "static_ram_bytes": 3908,
+      "flash_bytes": 62236,
+      "static_ram_bytes": 7252,
       "fits_60k": false,
-      "delta_flash_bytes": 4328
+      "delta_flash_bytes": 4180
     },
     {
       "profile": "vox",
@@ -45,10 +81,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 61728,
-      "static_ram_bytes": 3840,
-      "fits_60k": false,
-      "delta_flash_bytes": 716
+      "flash_bytes": 58832,
+      "static_ram_bytes": 7196,
+      "fits_60k": true,
+      "delta_flash_bytes": 776
     },
     {
       "profile": "voice_prompts",
@@ -57,10 +93,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 62372,
-      "static_ram_bytes": 3860,
-      "fits_60k": false,
-      "delta_flash_bytes": 1360
+      "flash_bytes": 59484,
+      "static_ram_bytes": 7204,
+      "fits_60k": true,
+      "delta_flash_bytes": 1428
     },
     {
       "profile": "noaa",
@@ -69,10 +105,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 62280,
-      "static_ram_bytes": 3860,
-      "fits_60k": false,
-      "delta_flash_bytes": 1268
+      "flash_bytes": 59032,
+      "static_ram_bytes": 7200,
+      "fits_60k": true,
+      "delta_flash_bytes": 976
     },
     {
       "profile": "dtmf_calling",
@@ -97,10 +133,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 61316,
-      "static_ram_bytes": 3836,
+      "flash_bytes": 58292,
+      "static_ram_bytes": 7188,
       "fits_60k": true,
-      "delta_flash_bytes": 304
+      "delta_flash_bytes": 236
     },
     {
       "profile": "bold_small_font",
@@ -109,10 +145,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 61640,
-      "static_ram_bytes": 3828,
-      "fits_60k": false,
-      "delta_flash_bytes": 628
+      "flash_bytes": 58556,
+      "static_ram_bytes": 7752,
+      "fits_60k": true,
+      "delta_flash_bytes": 500
     },
     {
       "profile": "1750hz",
@@ -121,10 +157,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 61208,
-      "static_ram_bytes": 3836,
+      "flash_bytes": 58196,
+      "static_ram_bytes": 7184,
       "fits_60k": true,
-      "delta_flash_bytes": 196
+      "delta_flash_bytes": 140
     },
     {
       "profile": "without_am_fix",
@@ -134,7 +170,7 @@
       "kind": "build flag",
       "exit_code": 2,
       "errors": [
-        "ui/vuurwerk_menu.c:109:19: error: 'MENU_AM_FIX' undeclared here (not in a function); did you mean 'MENU_AM'?"
+        "ui/vuurwerk_menu.c:71:19: error: 'MENU_AM_FIX' undeclared here (not in a function); did you mean 'MENU_AM'?"
       ]
     },
     {
@@ -144,8 +180,8 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 60904,
-      "static_ram_bytes": 3832,
+      "flash_bytes": 57948,
+      "static_ram_bytes": 7188,
       "fits_60k": true,
       "delta_flash_bytes": -108
     },
@@ -156,10 +192,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 60624,
-      "static_ram_bytes": 3828,
+      "flash_bytes": 57760,
+      "static_ram_bytes": 7180,
       "fits_60k": true,
-      "delta_flash_bytes": -388
+      "delta_flash_bytes": -296
     },
     {
       "profile": "without_flashlight",
@@ -168,60 +204,73 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 60612,
-      "static_ram_bytes": 3824,
+      "flash_bytes": 57524,
+      "static_ram_bytes": 7172,
       "fits_60k": true,
-      "delta_flash_bytes": -400
+      "delta_flash_bytes": -532
+    },
+    {
+      "profile": "messaging_packed",
+      "flags": [
+        "ENABLE_APRS_MESSAGING=1",
+        "ENABLE_FONT_PACKING=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 62984,
+      "static_ram_bytes": 8200,
+      "fits_60k": false,
+      "delta_flash_bytes": 4928
     },
     {
       "profile": "stub_compressor",
       "flags": [],
       "kind": "module-body diagnostic stub",
       "exit_code": 0,
-      "flash_bytes": 60608,
-      "static_ram_bytes": 3816,
+      "flash_bytes": 57580,
+      "static_ram_bytes": 7168,
       "fits_60k": true,
-      "delta_flash_bytes": -404
+      "delta_flash_bytes": -476
     },
     {
       "profile": "stub_adaptive_squelch",
       "flags": [],
       "kind": "module-body diagnostic stub",
       "exit_code": 0,
-      "flash_bytes": 60012,
-      "static_ram_bytes": 3820,
+      "flash_bytes": 57112,
+      "static_ram_bytes": 7156,
       "fits_60k": true,
-      "delta_flash_bytes": -1000
+      "delta_flash_bytes": -944
     },
     {
       "profile": "stub_scanwatch",
       "flags": [],
       "kind": "module-body diagnostic stub",
       "exit_code": 0,
-      "flash_bytes": 60628,
-      "static_ram_bytes": 3824,
+      "flash_bytes": 57692,
+      "static_ram_bytes": 7184,
       "fits_60k": true,
-      "delta_flash_bytes": -384
+      "delta_flash_bytes": -364
     },
     {
       "profile": "stub_vfo_split",
       "flags": [],
       "kind": "module-body diagnostic stub",
       "exit_code": 0,
-      "flash_bytes": 60384,
-      "static_ram_bytes": 3832,
+      "flash_bytes": 57472,
+      "static_ram_bytes": 7180,
       "fits_60k": true,
-      "delta_flash_bytes": -628
+      "delta_flash_bytes": -584
     },
     {
       "profile": "stub_about",
       "flags": [],
       "kind": "module-body diagnostic stub",
       "exit_code": 0,
-      "flash_bytes": 60688,
-      "static_ram_bytes": 3828,
+      "flash_bytes": 57764,
+      "static_ram_bytes": 7184,
       "fits_60k": true,
-      "delta_flash_bytes": -324
+      "delta_flash_bytes": -292
     }
   ]
 }

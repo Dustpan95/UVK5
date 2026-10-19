@@ -16,7 +16,7 @@ typedef struct {
 } BELL202_Output;
 typedef enum {
     BELL202_SENT, BELL202_INVALID, BELL202_CANCELLED, BELL202_LATE,
-    BELL202_WRITE_SLOW, BELL202_WRITE_JITTER, BELL202_TOO_LONG
+    BELL202_WRITE_SLOW, BELL202_WRITE_JITTER, BELL202_TOO_LONG, BELL202_NOT_READY
 } BELL202_Result;
 BELL202_Result BELL202_Transmit(const uint8_t *frame, size_t length,
                                 const BELL202_Output *output);

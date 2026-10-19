@@ -27,6 +27,34 @@ void SYSTICK_Init(void)
 	gTickMultiplier = 48;
 }
 
+uint32_t SYSTICK_Cycles(void)
+{
+	extern uint32_t SCHEDULER_GetTicks10ms(void);
+	const uint32_t mask=__get_PRIMASK();
+	__disable_irq();
+	uint32_t epoch=SCHEDULER_GetTicks10ms();
+	const uint32_t before=SCB->ICSR & SCB_ICSR_PENDSTSET_Msk;
+	uint32_t value=SysTick->VAL;
+	const uint32_t after=SCB->ICSR & SCB_ICSR_PENDSTSET_Msk;
+	/* A reload between the first pending read and VAL requires a fresh VAL.
+	 * A pending interrupt has not incremented the software epoch yet. This
+	 * critical section is only a handful of register reads, far below 10 ms.
+	 */
+	if(after) {
+		++epoch;
+		if(!before) value=SysTick->VAL;
+	}
+	__set_PRIMASK(mask);
+	return epoch*480000u + (479999u-value);
+}
+
+bool SYSTICK_CanCountCycles(void)
+{
+	const uint32_t required=SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_TICKINT_Msk;
+	return !__get_PRIMASK() && SysTick->LOAD==479999u &&
+		(SysTick->CTRL & required)==required;
+}
+
 void SYSTICK_DelayUs(uint32_t Delay)
 {
 	const uint32_t ticks = Delay * gTickMultiplier;

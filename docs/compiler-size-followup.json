@@ -1,0 +1,90 @@
+{
+  "source_fingerprint": "d2f9192b7853659d49c2bf483e7f931665b0a26958fa25fc63ce323db8544eec",
+  "compiler": "ARM GCC 10.3.1",
+  "feature_flags": [
+    "ENABLE_APRS_MESSAGING=1"
+  ],
+  "real_flash_limit": 61440,
+  "diagnostic_flash_limit": 131072,
+  "profiles": [
+    {
+      "profile": "unchanged",
+      "flags": [],
+      "exit_code": 0,
+      "flash_bytes": 62984,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "one_partition",
+      "flags": [
+        "-flto-partition=one"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 62984,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "no_partition",
+      "flags": [
+        "-flto-partition=none"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 62984,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "merge_constants",
+      "flags": [
+        "-fmerge-all-constants"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 62952,
+      "delta_bytes": -32
+    },
+    {
+      "profile": "no_ipa_sra",
+      "flags": [
+        "-fno-ipa-sra"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 62984,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "no_jump_tables",
+      "flags": [
+        "-fno-jump-tables"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63968,
+      "delta_bytes": 984
+    },
+    {
+      "profile": "inline_limit_0",
+      "flags": [
+        "-finline-limit=0"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63236,
+      "delta_bytes": 252
+    },
+    {
+      "profile": "no_partial_inline",
+      "flags": [
+        "-fno-partial-inlining"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 62996,
+      "delta_bytes": 12
+    },
+    {
+      "profile": "ipa_pta",
+      "flags": [
+        "-fipa-pta"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 62984,
+      "delta_bytes": 0
+    }
+  ]
+}

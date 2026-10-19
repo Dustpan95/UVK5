@@ -17,8 +17,20 @@ build/test_radio build
 "$compiler" "${flags[@]}" tests/test_message.c app/aprs_message.c app/aprs_decode.c app/aprs_position.c -o build/test_message
 build/test_message
 
+"$compiler" "${flags[@]}" tests/test_tx.c app/aprs_tx.c app/aprs_message.c app/aprs_decode.c app/aprs_position.c -o build/test_tx
+build/test_tx
+
 "$compiler" "${flags[@]}" tests/test_bell202_timing.c experiments/bell202_symbols.c experiments/bell202_timing.c -o build/test_bell202_timing
 build/test_bell202_timing
+
+"$compiler" "${flags[@]}" -I tests/clock_mock tests/test_clock.c driver/systick.c -o build/test_clock
+build/test_clock
+
+"$compiler" -I tests/radio_mock "${flags[@]}" tests/test_bell202_radio.c experiments/bell202_radio.c experiments/bell202_symbols.c experiments/bell202_timing.c -o build/test_bell202_radio
+build/test_bell202_radio
+
+"$compiler" -O1 -I tests/radio_mock "${flags[@]}" tests/test_radio_owner.c experiments/aprs_radio_owner.c -o build/test_radio_owner
+build/test_radio_owner
 
 "$compiler" "${flags[@]}" -DENABLE_APRS_MESSAGING -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
     app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
@@ -45,6 +57,11 @@ printf '%s\n' 'PASS packed-font framebuffers identical in 11 radio/APRS/editor s
 python3 tools/pack-menu-hints.py --check
 "$compiler" "${flags[@]}" tests/test_hints.c helper/packed.c -o build/test_hints
 build/test_hints
+for am_flag in '' '-DENABLE_AM_FIX'; do
+    "$compiler" "${flags[@]}" ${am_flag:+$am_flag} -DTEST_HINT_LOOKUP -ffunction-sections -fdata-sections \
+        tests/test_hints.c helper/packed.c ui/vuurwerk_menu.c -Wl,--gc-sections -o build/test_hint_lookup
+    build/test_hint_lookup
+done
 
 "$compiler" "${flags[@]}" -DENABLE_RSSI_BAR -DPRINTF_INCLUDE_CONFIG_H tests/test_ui_main.c ui/main.c -o build/test_ui_main
 build/test_ui_main

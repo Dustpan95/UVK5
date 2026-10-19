@@ -1,0 +1,88 @@
+{
+  "source_fingerprint": "9e88b0bdc47ccff29f69f79553a1ef2d177c2c743d34782938d52b8ade3dc111",
+  "real_flash_limit": 61440,
+  "diagnostic_flash_limit": 131072,
+  "profiles": [
+    {
+      "profile": "baseline",
+      "functions": {},
+      "exit_code": 0,
+      "flash_bytes": 62984
+    },
+    {
+      "profile": "home_public",
+      "functions": {
+        "ui/home.c": [
+          "UI_HomeDraw",
+          "UI_HomeStatus"
+        ]
+      },
+      "exit_code": 0,
+      "flash_bytes": 63056
+    },
+    {
+      "profile": "home_primitives",
+      "functions": {
+        "ui/home.c": [
+          "Text",
+          "Rect",
+          "Pixel",
+          "Center",
+          "Banner",
+          "Frequency"
+        ]
+      },
+      "exit_code": 0,
+      "flash_bytes": 63020
+    },
+    {
+      "profile": "messaging",
+      "functions": {
+        "ui/aprs_message.c": [
+          "MESSAGE_Draw"
+        ],
+        "ui/aprs_session.c": [
+          "SESSION_Draw"
+        ],
+        "app/aprs_message.c": [
+          "MESSAGE_Key"
+        ],
+        "app/aprs_session.c": [
+          "SESSION_Key",
+          "SESSION_Receive"
+        ]
+      },
+      "exit_code": 0,
+      "flash_bytes": 63176
+    },
+    {
+      "profile": "receiver",
+      "functions": {
+        "app/aprs_rx.c": [
+          "APRS_Tick500ms",
+          "APRS_Interrupt",
+          "APRS_CanListen",
+          "APRS_Key"
+        ]
+      },
+      "exit_code": 0,
+      "flash_bytes": 63096
+    },
+    {
+      "profile": "menu",
+      "functions": {
+        "app/menu.c": [
+          "MENU_ShowCurrentSetting",
+          "MENU_AcceptSetting",
+          "MENU_Key_MENU",
+          "MENU_Key_UP_DOWN"
+        ],
+        "ui/menu.c": [
+          "UI_DisplayMenu"
+        ]
+      },
+      "exit_code": 0,
+      "flash_bytes": 62980
+    }
+  ]
+}

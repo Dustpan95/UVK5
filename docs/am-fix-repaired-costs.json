@@ -1,0 +1,30 @@
+{
+  "source_fingerprint": "516a1178920b8e4ad8c0b50caeb240f1bff0c7ea736089cd8277f87de3ec69ff",
+  "compiler": "ARM GCC 10.3.1",
+  "diagnostic_flash_limit": 131072,
+  "real_flash_limit": 61440,
+  "profiles": [
+    {
+      "profile": "baseline",
+      "flags": [],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 58056,
+      "static_ram_bytes": 7188,
+      "fits_60k": true,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "without_am_fix",
+      "flags": [
+        "ENABLE_AM_FIX=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 57500,
+      "static_ram_bytes": 7152,
+      "fits_60k": true,
+      "delta_flash_bytes": -556
+    }
+  ]
+}

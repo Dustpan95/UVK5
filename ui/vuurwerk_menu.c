@@ -68,7 +68,14 @@ static const uint8_t sHintIds[] = {
 	MENU_MDF,     MENU_PONMSG,  MENU_BAT_TXT, MENU_ABR,     MENU_ABR_MIN,
 	MENU_ABR_MAX, MENU_ABR_ON_TX_RX, MENU_STE, MENU_RP_STE, MENU_1_CALL,
 	MENU_UPCODE,  MENU_DWCODE,  MENU_PTT_ID,  MENU_D_ST,    MENU_D_PRE,
-	MENU_D_LIVE_DEC, MENU_AM_FIX, MENU_VOL,   MENU_TDR,     MENU_SCANWATCH,
+	MENU_D_LIVE_DEC,
+#ifdef ENABLE_AM_FIX
+    MENU_AM_FIX,
+#else
+    /* Keep the matching hint-pool slot so later IDs retain their own text. */
+    0xff,
+#endif
+    MENU_VOL,   MENU_TDR,     MENU_SCANWATCH,
 };
 
 // VUURWERK v1.3.3 reclamation: the 80-byte sHintOffsets table was removable

@@ -21,8 +21,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef ENABLE_AM_FIX
-
 	typedef struct
 	{
 		uint16_t reg_val;
@@ -40,6 +38,7 @@
 	 * stock reference. Guarded by a _Static_assert in am_fix.c. */
 	#define GAIN_TABLE_RUNG_ABOVE_STOCK 39
 
+#ifdef ENABLE_AM_FIX
 	void AM_fix_init(void);
 	void AM_fix_reset(const unsigned vfo);
 	void AM_fix_10ms(const unsigned vfo);

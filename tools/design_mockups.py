@@ -204,7 +204,7 @@ s.footer('MENU:REVIEW  EXIT:APRS');s.save('beacon-static')
 
 # Proposals for unifying mode feedback with the approved home layout.
 s=home('hybrid-vfo');s.rect(0,47,128,17,0);s.line(47)
-s.centered('SCAN UP  18 CH/s',49);s.footer('MENU:HOLD  EXIT:STOP');s.save('overlay-scan')
+s.centered('SCAN UP  18 CH/s',49);s.footer('MENU/EXIT:STOP  UP/DN:DIR');s.save('overlay-scan')
 s=home('hybrid-vfo');s.rect(0,16,128,31,0);s.centered('146.---',19,'big')
 s.centered('FREQUENCY ENTRY',39,'mini');s.save('overlay-entry')
 s=home('hybrid-memory');s.rect(0,47,128,17,0);s.line(47)

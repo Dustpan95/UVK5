@@ -148,3 +148,22 @@ The separate experimental timing scheduler uses absolute 40,000-cycle deadlines
 at an assumed 48 MHz. Host tests cover maximum stuffed frames, 32-bit clock wrap,
 cancellation and excessive latency/jitter. This scheduler is not linked to radio
 output; simulated timing is not hardware timing validation.
+
+## Experimental radio handoff and frozen outbox
+
+The actual experimental modules pass sanitizer tests for tone selection, shared
+register/mute restoration, TX prerequisites, disabled/wrong-period clock rejection,
+physical-PTT/timeout/timing-fault cancellation, explicit enable, stationary
+simplex admission and complete PA-ramp/RX cleanup. These tests replace hardware
+registers/radio entry points; they do not establish analog behavior or real RF.
+The C backend and owner also cross-compile for ARMv6S-M/Thumb-1.
+
+The frozen outbox passes one/three-attempt policies, busy deferral, sender/peer/ID
+matching, cancellation, expiry and tick wrap. No new draft can overwrite an active
+job. ACK deadlines begin after successful simulated handoff. Retry selection and
+automatic ACK policy are not inferred from these tests; the operator flow remains
+unconnected and the modules are absent from the default image.
+
+The retained owner/transport diagnostic is 66,628 bytes, 5,188 over the physical
+application limit, and still misses remaining configuration/send integration.
+The default receive binary is unchanged at 58,056 bytes with the recorded hashes.

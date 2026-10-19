@@ -35,8 +35,6 @@
 #include "ui/main.h"
 #endif
 
-#ifdef ENABLE_AM_FIX
-
 // REG_10 AGC gain table
 //
 // <15:10> ???
@@ -210,6 +208,9 @@ typedef union  {
 #endif
 
 
+/* FM gain staging always needs the table above. Only AM processing and its
+ * state below are conditional; no table/register values change here. */
+#ifdef ENABLE_AM_FIX
 #ifdef ENABLE_AM_FIX_SHOW_DATA
 	// display update rate
 	static const unsigned int display_update_rate = 250 / 10;   // max 250ms display update rate

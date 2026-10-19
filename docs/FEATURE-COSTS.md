@@ -1,62 +1,54 @@
 # Measured feature costs
 
-These isolated diagnostic builds use ARM GCC 10.3.1 and source fingerprint
-`1aee4bcb432eb52b2c461ae9fed53f672734e8e784ca58922a5f6a6817db5722`.
-Earlier measurement baseline: **61,012 / 61,440 bytes**, 428 free, 3,832 bytes static RAM.
-This baseline includes the approved custom home renderer and APRS message alerts.
+Current whole-profile measurements use source fingerprint `5f8206dcfacf2a37ada85440024afd77e62693ccbd091479105ad3f893f80611`.
+ARM GCC 10.3.1, identical current radio features except the stated variant.
+Baseline: **58,056 / 61,440 flash bytes**, 7,188 static RAM bytes.
+No feature cuts are selected. Standalone receive-profile fits do not establish
+fit with the full messaging/transmit service. Deltas are not additive.
 
-No feature cuts have been selected. Results are comparisons, not release profiles.
+| Variant | Flash change | Flash bytes |
+|---|---:|---:|
+| messaging_editor | +4,928 | 62,984 |
+| font_unpacked | +564 | 58,620 |
+| spectrum | +7,280 | 65,336 |
+| fm_broadcast | +4,180 | 62,236 |
+| vox | +776 | 58,832 |
+| voice_prompts | +1,428 | 59,484 |
+| noaa | +976 | 59,032 |
+| dtmf_calling | Compile failure | Unmeasured |
+| mic_audio_bar | +236 | 58,292 |
+| bold_small_font | +500 | 58,556 |
+| 1750hz | +140 | 58,196 |
+| without_am_fix (repaired follow-up) | -556 | 57,500 |
+| without_adaptive_scan | -108 | 57,948 |
+| without_scan_ranges | -296 | 57,760 |
+| without_flashlight | -532 | 57,524 |
+| stub_compressor | -476 | 57,580 |
+| stub_adaptive_squelch | -944 | 57,112 |
+| stub_scanwatch | -364 | 57,692 |
+| stub_vfo_split | -584 | 57,472 |
+| stub_about | -292 | 57,764 |
 
-| Profile | Flash delta | Result |
-|---|---:|---|
-| spectrum | +7,116 bytes | Exceeds 60 KiB |
-| fm_broadcast | +4,328 bytes | Exceeds 60 KiB |
-| vox | +716 bytes | Exceeds 60 KiB |
-| voice_prompts | +1,360 bytes | Exceeds 60 KiB |
-| noaa | +1,268 bytes | Exceeds 60 KiB |
-| dtmf_calling | Unmeasured | Compile error (see JSON) |
-| mic_audio_bar | +304 bytes | Fits |
-| bold_small_font | +628 bytes | Exceeds 60 KiB |
-| 1750hz | +196 bytes | Fits |
-| without_am_fix | Unmeasured | Compile error (see JSON) |
-| without_adaptive_scan | -108 bytes | Fits |
-| without_scan_ranges | -388 bytes | Fits |
-| without_flashlight | -400 bytes | Fits |
-| stub_compressor | -404 bytes | Fits |
-| stub_adaptive_squelch | -1,000 bytes | Fits |
-| stub_scanwatch | -384 bytes | Fits |
-| stub_vfo_split | -628 bytes | Fits |
-| stub_about | -324 bytes | Fits |
+Module-body stub rows measure counterfactual processing cost while retaining
+menus/hooks. They are not working feature-removal configurations and must not
+be offered as release builds. The compressor, squelch, split and scan features
+remain enabled in the normal source and build.
 
-Module-body stub rows retain menus and hooks. Their deltas estimate only the
-removed processing bodies; they are not working feature-removal configurations.
-LTO means deltas are not additive. Full logs and isolated source copies remain
-in ignored `build/feature-costs/`. Diagnostic linker regions are deliberately
-128 KiB so oversized variants can be measured: **never flash these images**.
-The production linker and verifier still enforce the real 60 KiB application
-limit. No diagnostic binary is a release asset.
+The inherited optional DTMF calling configuration references missing upstream
+symbols and remains unmeasured. AM-fix-off is now repaired: the shared front-end
+gain table is always compiled for FM gain staging, while AM processing remains
+conditional. The default AM-fix-enabled raw/packed images are byte-identical to
+the prior checkpoint. The repaired optional configuration uses 57,500 bytes,
+saving 556 against its same-source 58,056 baseline. This is an option measurement;
+AM fix remains enabled in the normal firmware. `am-fix-repaired-costs.json`
+records the follow-up fingerprint. `am-fix-cost-blocker.json` retains the earlier
+failure for diagnosis, and the main JSON table retains its original fingerprint.
 
-Two inherited compile-time configurations fail: DTMF calling references missing
-upstream symbols, and disabling AM-fix leaves an unguarded menu identifier.
-These failures do not affect the current baseline, and no size estimate is
-assigned to them. They need repair before they are selectable options.
+Diagnostic builds enlarge FLASH to 128 KiB only in ignored copies under
+`build/feature-costs/`, so overflow can be measured. **Never flash these images**.
+The production linker/verifier retain 61,440 bytes and 16 KiB SRAM.
 
-Reproduce with `python3 tools/measure-features.py`. Machine-readable results:
-`feature-costs.json`. Any subsequent source changes require new measurements
-before relying on exact byte counts for a release.
-
-The later inbox/monitor checkpoint measures 61,024 bytes for the fitting profile
-and 65,092 for the candidate. See `MESSAGING-IMPLEMENTATION.md` and
-`messaging-costs.json` for current candidate totals; this table retains its
-original source fingerprint so historical feature deltas are not misrepresented.
-
-A subsequent exact-arithmetic optimization reduces the fitting profile to
-60,412 bytes and the messaging candidate to 64,480. The retained TX protocol
-probe is 65,884, still incomplete. Current measurements and next priorities
-are in `FLASH-FEASIBILITY.md`; earlier tables remain historical measurements.
-
-The shared-display/lossless-resource checkpoint now measures **58,056 bytes**
-for receive/home, **62,984** for the editor/inbox/stations/received-control
-candidate, and **65,012** with retained TX protocol/timing helpers. These are
-new whole-profile measurements, not sums of the historical deltas above. See
-`FLASH-FEASIBILITY.md` and its fingerprinted reports. No feature cuts were made.
+Reproduce with `python3 tools/measure-features.py`; `--profile NAME` selects
+a subset plus baseline. JSON records the measured source fingerprint. Later
+source changes require new measurements before assigning exact release costs.
+See `FLASH-FEASIBILITY.md` for the current complete-profile problem.

@@ -1,0 +1,9 @@
+{
+  "source_fingerprint": "5a1b53a86ac205f310ef5077b06d5349f5365b58328a77ba939cfc74a8af200f",
+  "compiler": "Ubuntu clang version 14.0.0-1ubuntu1.1",
+  "exit_code": 0,
+  "real_flash_limit": 61440,
+  "diagnostic_flash_limit": 131072,
+  "flash_bytes": 64340,
+  "cpu_attributes": "Attribute Section: aeabi\nFile Attributes\n  Tag_CPU_name: \"Cortex-M0\"\n  Tag_CPU_arch: v6S-M\n  Tag_CPU_arch_profile: Microcontroller\n  Tag_THUMB_ISA_use: Thumb-1\nuvk6-experimental  :\nsection              size        addr\n.text               64288           0\n.ARM.exidx             16       64288\n.data                  36   536870912\n.bss                 8060   536870948\n._user_heap_stack    2048   536879008\n.ARM.attributes        33           0\n.debug_info          3082           0\n.debug_abbrev        1955           0\n.debug_loc           4656           0\n.debug_aranges        480           0\n.debug_line          3895           0\n.debug_str           1639           0\n.comment              117           0\n.debug_frame          560           0\n.debug_ranges          16           0\nTotal               90881\n\n\n"
+}

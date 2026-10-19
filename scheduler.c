@@ -44,6 +44,15 @@
 
 static volatile uint32_t gGlobalSysTickCounter;
 
+/* Monotonic epoch for the experimental modem's absolute symbol clock. The
+ * caller masks interrupts while sampling this with SysTick VAL/pending state.
+ * Existing foreground timeslice flags can coalesce during a packet burst.
+ */
+uint32_t SCHEDULER_GetTicks10ms(void)
+{
+	return gGlobalSysTickCounter;
+}
+
 void SystickHandler(void);
 
 // we come here every 10ms

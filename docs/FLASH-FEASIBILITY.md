@@ -62,6 +62,7 @@ included in the totals below.
 | Receive and approved home overlays | 58,056 | 7,188 | 3,384 free |
 | Editor, profile, inbox, stations, received ACK handling | 62,984 | 8,200 | 1,544 over |
 | Same plus retained TX protocol and timing helpers | 65,012 | diagnostic | 3,572 over |
+| Same plus frozen outbox, tone backend and radio owner | 66,628 | diagnostic | 5,188 over |
 
 The receive profile passes the real 60 KiB linker, ARMv6S-M/Thumb-1 vector and
 packed updater/CRC checks. `receive-build-verification.json` records hashes and
@@ -102,3 +103,36 @@ Review flash and RAM together. If optimization cannot fund all requested
 features, present measured combinations for the owner's decision before any
 radio-feature cuts. Publishing source checkpoints does not establish that the
 complete original-MCU release fits or works on hardware.
+
+## Further compiler/code-boundary experiments
+
+Eight additional same-source GCC option changes did not close the gap. Constant
+merging saved 32 bytes; most options saved nothing, disabling jump tables added
+984 bytes, and zero inline-limit added 252. No option was adopted. Selective
+noinline boundaries saved at most four bytes (menu group); the other groups
+increased size. Reports are `compiler-size-followup.json` and
+`inlining-size-results.json`.
+
+LLVM 14 with -Oz, full LTO, lld and the same newlib/GCC runtime produced a
+64,340-byte messaging candidate versus GCC's 62,984. The diagnostic LLVM linker
+uses explicit NOLOAD RAM sections and LOADADDR for initialized data because lld
+handles those differently from GNU ld. The production linker/toolchain are
+unchanged. `llvm-size-results.json` records the experiment and fingerprint.
+A larger or different compiler alone has not solved the original-MCU budget.
+
+## Radio/transport checkpoint
+
+The final phase of `tools/measure-protocol.py` also retains the actual original-MCU
+clock, BK4819 tone backend, radio admission/muted PA ramp/RX restoration wrapper,
+and frozen outbox. It measures **66,628 bytes**, 5,188 over physical flash. These
+modules pass host model tests and cross-compile, but are outside the normal
+Makefile and are never executed on hardware here. The probe still excludes normal
+send/configuration integration, automatic ACK dispatch, custom quick-message and
+position editing screens, and relay-path configuration. Hardware validation
+adds no compile bytes but remains a separate essential limitation. This is still
+an incomplete total; no compiler change or final radio-feature cut is adopted.
+
+AM-fix-off now builds while retaining the shared table used by FM gain staging;
+it saves 556 bytes in a separate receive-profile comparison. Default AM fix
+remains on, and both default image hashes are byte-identical after the repair.
+This option alone does not fund the remaining transport budget.

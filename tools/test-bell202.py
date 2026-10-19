@@ -12,7 +12,7 @@ import wave
 root=Path(__file__).resolve().parents[1]
 out=root/'build/bell202';out.mkdir(parents=True,exist_ok=True)
 subprocess.run(['gcc','-std=c11','-Wall','-Wextra','-Werror','-I',str(root),
-                str(root/'tests/bell202_dump.c'),str(root/'experiments/bell202_symbols.c'),str(root/'app/aprs_message.c'),
+                str(root/'tests/bell202_dump.c'),str(root/'experiments/bell202_symbols.c'),str(root/'experiments/bell202_timing.c'),str(root/'app/aprs_message.c'),
                 '-o',str(out/'encode')],check=True)
 def address(call,ssid,last):
     return bytes(ord(c)<<1 for c in call.ljust(6))+bytes([0x60|ssid<<1|last])

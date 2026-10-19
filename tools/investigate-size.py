@@ -5,6 +5,7 @@ Only ignored diagnostic copies use a larger flash region. Never flash outputs.
 This measures size, not behavioral correctness of alternate compiler options.
 """
 import concurrent.futures
+import argparse
 import hashlib
 import json
 import os
@@ -30,7 +31,22 @@ profiles={
  'no_caller_saves':['-fno-caller-saves'],
  'no_split_wide':['-fno-split-wide-types'],
  'no_ipa_cp':['-fno-ipa-cp'],
+ 'one_partition':['-flto-partition=one'],
+ 'no_partition':['-flto-partition=none'],
+ 'merge_constants':['-fmerge-all-constants'],
+ 'no_ipa_sra':['-fno-ipa-sra'],
+ 'no_jump_tables':['-fno-jump-tables'],
+ 'inline_limit_0':['-finline-limit=0'],
+ 'no_partial_inline':['-fno-partial-inlining'],
+ 'ipa_pta':['-fipa-pta'],
 }
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--profile',action='append',help='Measure only named profiles plus baseline')
+args=parser.parse_args()
+if args.profile:
+ unknown=set(args.profile)-set(profiles)
+ if unknown:parser.error('Unknown profiles: '+', '.join(sorted(unknown)))
+ profiles={name:flags for name,flags in profiles.items() if name=='unchanged' or name in args.profile}
 fingerprint=hashlib.sha256()
 for p in sorted(SOURCE.rglob('*')):
  if p.is_file() and (p.suffix in {'.c','.h','.ld','.inc'} or p.name=='Makefile'):

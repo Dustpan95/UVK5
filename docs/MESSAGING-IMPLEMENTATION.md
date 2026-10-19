@@ -123,3 +123,10 @@ includes message/beacon/control builders, FCS/HDLC/NRZI and the experimental
 absolute-deadline scheduler, with a RAM-only callback. It excludes actual radio
 output, MCU clock backend, arbitration, automatic ACK dispatch and retries.
 ACK/reject builder output independently decodes as ideal audio in Dire Wolf.
+
+The further frozen-outbox/tone/owner diagnostic uses 66,628 bytes (5,188 over).
+It adds tested policy-driven retries, immutable pending frames, conservative
+radio admission, muted PA soft-start and RX restoration. These parts are not
+connected to the normal editor or default firmware. User policy choices,
+automatic ACK dispatch (including a separate pending control queue), settings
+screens and relay routing remain to be integrated. No RF success is claimed.
