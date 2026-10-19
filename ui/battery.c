@@ -14,6 +14,8 @@
  *     limitations under the License.
  */
 
+/* Modified for UVK5: refresh the percentage status instead of repainting bars. */
+#include "ui/status.h"
 #include <stddef.h>
 #include <string.h>
 
@@ -49,7 +51,7 @@ void UI_DrawBattery(uint8_t* bitmap, uint8_t level, uint8_t blink)
 
 void UI_DisplayBattery(uint8_t level, uint8_t blink)
 {
-	uint8_t bitmap[sizeof(BITMAP_BatteryLevel1)];
-	UI_DrawBattery(bitmap, level, blink);
-	ST7565_DrawLine(LCD_WIDTH - sizeof(bitmap), 0, bitmap, sizeof(bitmap));
+    (void)level;
+    (void)blink;
+    UI_DisplayStatus();
 }

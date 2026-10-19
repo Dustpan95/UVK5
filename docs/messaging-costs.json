@@ -1,0 +1,30 @@
+{
+  "source_fingerprint": "a6209e0ef5ad6646eec28a6c42628116561fdb3a9f3bf3c74bdce21526ca4015",
+  "compiler": "ARM GCC 10.3.1",
+  "diagnostic_flash_limit": 131072,
+  "real_flash_limit": 61440,
+  "profiles": [
+    {
+      "profile": "baseline",
+      "flags": [],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 61012,
+      "static_ram_bytes": 3832,
+      "fits_60k": true,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "messaging_editor",
+      "flags": [
+        "ENABLE_APRS_MESSAGING=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 62872,
+      "static_ram_bytes": 3948,
+      "fits_60k": false,
+      "delta_flash_bytes": 1860
+    }
+  ]
+}

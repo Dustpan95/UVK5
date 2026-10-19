@@ -1,328 +1,124 @@
-# VUURWERK
+# VUURWERK UV-K6 APRS — experimental UVK5 fork
 
-**Custom firmware that turns a $30 Quansheng UV-K5 into a radio that listens,
-adapts, and responds like equipment ten times its price.**
+**Local experimental prototype:** the custom home layout is approved. APRS
+message composition, transmit implementation and feature tradeoffs are still
+in development. No flashable project release has been published. This repository is a
+development checkpoint, not a completed firmware release.
+See the [custom interface review](docs/design/DECISIONS.md) and
+[interactive mockup](docs/design/review.html).
 
-VUURWERK is Afrikaans for *fireworks*.
+Custom firmware for the **original Quansheng UV-K6 / UV-K5 with the DP32G030 MCU**,
+maintained in [Dustpan95/UVK5](https://github.com/Dustpan95/UVK5).
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Tokeloshe-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/Tokeloshe)
+This is a complete modified VUURWERK firmware fork, with an approved custom home
+layout influenced by F4HWN and standalone APRS receive adapted from TA1JS. It builds within the
+original radio's 60 KiB application flash. **It has not been flashed or RF-tested
+on a physical radio.** A UV-K6 model label or an Egzumer v0.21 boot screen alone
+does not establish the MCU revision.
 
----
+## Included in this experimental build
 
-## See It In Action
+- VUURWERK's FM TX compressor, adaptive squelch, adaptive channel scanning,
+  Scan+Watch, VFO split, and existing radio functions remain in the source/build.
+- Approved custom home: large channel name for named memories, large frequency
+  for VFOs and unnamed memories, smaller secondary VFO and battery percentage.
+  Existing scan, input, warning and toast displays remain for those states.
+- Brief incoming-message banners, plus a configurable sound defaulting ON;
+  general beep OFF also silences APRS. Five-second timing is provisional.
+- On-radio APRS receiver: source callsign/SSID, uncompressed, timestamped,
+  compressed and Mic-E positions; addressed text messages and other packet text.
+- A browser for the **four most recent packets**, including up to 67 message
+  characters. Callsigns, positions and text appear on the radio's LCD. A phone,
+  computer, external MCU or TNC is not required by the firmware's receive path.
 
-Power on a VUURWERK radio and, after the boot banner, this is your home screen:
+The approved [messaging editor](docs/MESSAGING-IMPLEMENTATION.md) is implemented
+as a separate candidate (`ENABLE_APRS_MESSAGING=1`), with multi-tap entry, quick
+messages, send review and truthful blocked-send status. It exceeds flash by
+1,432 bytes before adding a working transmitter, so it is not enabled in the
+fitting receive profile. No final feature cuts have been selected. The message
+codec/ACK helpers have host tests; on-radio transport remains unimplemented.
 
-```
-+--------------------------------+
-| [Q|||]           [F]  [BATT##] |  <- status bar: signal quality, F key,
-|                                |     battery (live even during TX)
-| A  146.520.00       FM   H  N  |  <- VFO A: frequency, modulation,
-|                                |     TX power, narrow/wide
-| .:|.||:..|,.:|||,.:.|..:||:.,  |  <- bandscope: live RF activity
-|                                |     on your frequency (F+7)
-| B  446.000.00       FM   M     |  <- VFO B
-|                                |
-| 12.5kHz N FM                   |  <- context line: step, bandwidth, mode
-+--------------------------------+
-```
+The APRS setting and history are RAM-only and reset at power-off. This is a
+passive monitor: it displays messages addressed to any station, without an
+own-callsign filter. **Currently implemented on-radio: receive.** Standard-compatible transmit is
+being investigated before publication, with messaging primary and a simple
+static-position beacon also requested. TX release scope is not yet fixed; see the measured
+[transmit investigation](docs/APRS-TX-INVESTIGATION.md).
 
-Stock firmware shows two frequencies and a battery icon. VUURWERK adds a live
-bandscope showing who is transmitting nearby, a signal-quality meter, and a
-context-aware bottom line that changes with what the radio is doing. When a
-signal comes in:
+The provisional prototype disables the spectrum analyzer to measure APRS fit;
+final feature cuts have not been approved. See [measured options](docs/FEATURE-COSTS.md). FM broadcast, VOX,
+voice prompts, NOAA and several other optional features were already disabled
+in the selected VUURWERK configuration and remain disabled. No claim is made
+that every feature in all three upstream projects fits simultaneously.
 
-```
-| RX S7 -65dBm Q:3 F             |  <- S-level, strength, quality, classifier
-```
+## APRS on the radio
 
-That trailing `F` is the signal classifier telling you this is a fast-rise FM
-signal (`N` = SSB, `S` = carrier, `~` = noise). The radio worked that out by
-measuring how quickly the signal appeared.
+1. Confirm the radio has the supported MCU before considering installation.
+   Back up your current firmware, EEPROM, channel data and calibration first.
+2. Tune the active VFO to your local APRS frequency in FM. Turn off dual watch,
+   cross-band receive, channel/CSS scanning and VFO split for continuous receive.
+3. In **MENU → RECEIVE → APRS**, choose **ON**. Enable it again after power-off.
+4. Use **F + 5**, or **MENU → RECEIVE → RxLog**, to open packet history.
+5. Use **UP/DOWN** to browse, and **EXIT** to return to the radio. PTT closes the
+   browser and follows the existing voice-transmit path.
 
-And this is the headline instrument -- the Voice-Seeking Spectrum (F+5, then
-STAR until the corner reads `VOX`):
+`APRS RX` means the firmware permits listening; it does not prove an RF packet
+was received. `APRS PAUSE` means another mode owns the receiver. Scanning,
+transmission, dual watch, cross-band receive, power save, serial programming and
+non-FM modes exclude APRS capture. Beeps temporarily release the modem. Battery
+save is suppressed while APRS is enabled, so power use increases.
 
-```
-+--------------------------------+
-| -130/-50              [BATT##] |  <- status bar: dB range, battery
-| 146.552.50        FM     VOX   |  <- listening frequency + mode label
-|  .    .   .       .    .       |  <- top ticks: every hop-eligible bin
-|           #            |       |
-|      +--------------+  |       |     full bar  = strong voice (75+)
-|  _.__|    LOCKED    |__|_,____ |  <- LOCKED banner flashes on PTT
-|      +--------------+          |
-| ...:....|....:...^,:....|....: |  <- tick rail + peak arrow (^)
-| 145.760        >80.0k  148.960 |  <- span start, step, span end
-+--------------------------------+
-```
+Packets must fit a 240-byte raw-bit capture and a 192-byte AX.25 frame. The
+capture decoder records the first valid packet per capture. Position-ambiguity
+encodings, objects/items, weather decoding and a power-off inbox persistence are not implemented (session-only history is the
+approved requirement). APRS RF decoding sensitivity and interoperability still need
+physical testing.
 
-Only bins that score as *human voice* draw bars. UP/DOWN hops between them.
-PTT locks on. EXIT carries the frequency home to your VFO. No other UV-K5
-firmware does this.
+## Build and validate
 
----
+Requires Linux, Docker, and host GCC for the sanitizer tests. A direct ARM GCC
+10.3.1 toolchain plus Python 3 / `crcmod` is also supported.
 
-## What Changes When You Flash This
-
-### You'll find voices, not just signals
-
-**VOX Voice-Seeking Spectrum** scores every frequency bin for voice
-probability instead of raw strength, so carriers and birdies stay flat while
-conversations light up. The full hunt loop:
-
-```
-  SWEEP ----> voice found ----> LISTEN ----> UP/DOWN  seek next voice
-    ^                             |            |
-    |   voice gone (2 strikes)    |           PTT --> LOCKED (stay put)
-    +-----------------------------+            |         |
-                                               |       UP/DOWN releases
-                                          EXIT +- LOCKED? -+
-                                               |           |
-                                          back on your     frequency CARRIES
-                                          VFO, as it was   to your VFO
-```
-
-- **Seek**: UP walks to the next voice above the cursor, DOWN below. No voice
-  that way? The keys fall through to normal band navigation, so they always
-  move you. Hold a key and the radio patrols the band, auto-stopping on voice.
-- **Lock**: tap PTT while listening -- a `LOCKED` banner flashes and the radio
-  parks there through any pause in the conversation, squelch open.
-- **Carry-over**: exit while locked (in frequency mode) and the locked
-  frequency becomes your VFO frequency. You leave the spectrum already tuned,
-  ready to answer.
-
-**Deterministic spectrum exit.** Leaving the spectrum always lands you back on
-your own VFO, on your own frequency, hearing normally -- lock or no lock, dual
-watch or not.
-
-**Adaptive scan** pre-checks each channel in ~30 ms and only dwells on
-channels showing energy, so scanning an empty band runs 2-3x faster with
-weak-signal sensitivity unchanged. Tone-coded memory channels get a longer
-dwell so the decoder actually has time to confirm the tone.
-
-**Bandscope** (F+7) keeps a live RF activity strip on the main screen, with
-peak dots and a noise-floor line, without interrupting audio.
-
-### You'll sound better to everyone listening
-
-**TX Compressor** rides your mic gain in real time -- transparent at normal
-speaking level, smoothly catching shouts and close talking.
-
-**CTCSS Lead-In** mutes the mic for the first 150 ms of every transmission so
-the repeater decodes your tone before your first syllable. No more clipped
-words.
-
-**TX Soft Start** ramps power on an S-curve over 60 ms, killing the key-up
-click other radios hear.
-
-### You'll get out of trouble with one gesture
-
-**F+EXIT = reset to simplex.** A VFO that lights the green RX light but stays
-silent almost always has a leftover setting: an RX tone waiting for a match, a
-repeater offset, reverse, a scrambler. F+EXIT wipes the active VFO back to a
-clean simplex state (tones cleared, offset cleared, reverse off, scrambler
-off, FM) and shows a `SIMPLEX` toast. Memory channels are never touched.
-
-```
-   deaf VFO?    [F] + [EXIT]  -->  +---------+
-   green light                     | SIMPLEX |   clean slate:
-   but silent                      +---------+   RX = TX, FM, no tones
+```bash
+./tools/setup-toolchain.sh
+./tools/test.sh
+./tools/build.sh
 ```
 
-### You'll hear stations you couldn't before
+`tools/build.sh` performs a clean build, rejects flash/RAM overflow, checks the
+Cortex-M0 ELF architecture and reset vector, and validates the packed updater
+payload and CRC. Outputs are `uvk6-experimental.bin` and
+`uvk6-experimental.packed.bin`; the verification report is
+`build/verification.json`. Nothing in these commands flashes hardware.
 
-**Smart squelch** scores every signal for voice probability using three
-hardware measurements at once -- it opens for voices and stays shut for
-pagers, glitches, and noise, and it can ease the threshold for a weak voice
-before the squelch even opens.
+See [BUILD.md](BUILD.md), [validation results](docs/VALIDATION.md),
+[integration and remaining work](docs/INTEGRATION.md), and
+[hardware test procedure](docs/HARDWARE-VALIDATION.md).
 
-**FM Gain Staging** adapts the receiver front end to signal strength in real
-time, so strong signals come in clean and weak ones are not buried.
+## Original projects and licensing
 
-**Squelch Tail Elimination** mutes the "KSSHHH" at the end of the other
-station's transmission -- for both CTCSS and DCS.
+**Original authors retain credit and their copyright notices.**
 
-### You'll spend less time in menus
+- **James Honiball, KC3TFZ / Tokeloshe — [VUURWERK](https://github.com/Tokeloshe/vuurwerk-firmware)**:
+  complete base firmware, radio features, compressor, adaptive squelch/scanning.
+- **Armel, F4HWN — [F4HWN firmware](https://github.com/armel/uv-k5-firmware-custom)**:
+  display and channel/frequency presentation used in the earlier prototype,
+  informing the current custom home layout.
+- **TA1JS / bcanata — [TA1JS APRS firmware](https://github.com/bcanata/uv-k5-firmware-ta1js)**:
+  standalone BK4819 receive setup and HDLC/NRZI/FCS processing adapted here.
+- **DualTachyon, Egzumer, OneOfEleven and fagci**, and the other upstream authors:
+  original open firmware, radio drivers, UI, AM reception and spectrum heritage.
+- **F4JTV**: credited by TA1JS for its position decoders. This fork uses its own
+  coordinate-parser implementation; F4JTV's parser source is excluded because
+  a clear code license was not found during the audit.
 
-One-press **F-key shortcuts** for everything you change often, each confirmed
-by a 1-second toast:
+The complete fork follows VUURWERK's explicit permission to fork, modify and
+redistribute its **complete firmware package under GPL v3**. VUURWERK also states
+additional restrictions on extracting its original modules. Its original
+[LICENSE](LICENSE) is preserved unchanged. Imported Apache-2.0 notices,
+third-party licenses, original credits and base Git history are retained.
+See [NOTICE](NOTICE), [LICENSES](LICENSES), and [upstream revisions](docs/upstream/sources.json).
 
-```
-F+1  BAND     cycle bands        F+6  POWER     LOW / MID / HIGH
-F+2  A/B      swap VFOs          F+7  BANDSCOPE on / off
-F+3  VFO/MR   freq <-> memory    F+8  REVERSE   repeater reverse
-F+4  SQUELCH  level 0-9          F+9  CALL FREQ jump to calling freq
-F+5  SPECTRUM full analyzer      F+0  MODE      FM / AM / USB
-                    F+EXIT  RESET TO SIMPLEX
-```
-
-A **categorized menu** (7 groups, number keys jump straight in) with a
-plain-language hint line that explains cryptic items while you browse.
-
-### It looks after itself
-
-A **boot-time health probe** checks the transceiver chip and calibration
-EEPROM at every power-on and reports faults in plain text. The **battery
-indicator stays live during TX** and a sag tracker warns you when your pack is
-tiring. The **flashlight auto-extinguishes** after 30 minutes so a pocket
-press never drains your pack overnight. The **backlight fades out** instead of
-cutting to black and stays lit while you are actually talking or listening.
-
-### You can program it from your computer
-
-**CHIRP support** via a community-contributed driver -- read and write
-channels, side-keys, and settings without flashing back to stock. See
-[chirp/README.md](chirp/) for the one-time setup. Driver contributed by
-mjwgeek.
-
----
-
-## What Makes This Different
-
-Stock firmware is open-loop: you set fixed values and hope they work. VUURWERK
-is closed-loop: the radio measures what is actually happening -- noise floor,
-signal strength, audio level, signal type -- and adjusts itself in real time.
-It's the difference between holding the wheel straight with your eyes closed
-and actually watching the road.
-
-**Original innovations.** Intelligence-based squelch with voice-probability
-scoring, voice-seeking spectrum analysis with PTT lock and frequency
-carry-over, FM adaptive gain staging, universal squelch-tail elimination,
-real-time TX audio compression. These aren't ports of existing features. See
-[LICENSE](LICENSE) for the original-contributions registry and
-[FEATURES.md](FEATURES.md) for the technical deep dive.
-
----
-
-## Flash It In 60 Seconds
-
-```
- [download] --> [radio off] --> [hold PTT + power on] --> [LED lit?]
-                                                              |
- [power cycle] <-- [flash ~10s] <-- [pick .packed.bin] <-- [cable in,
-      |                              in Chrome flasher      Chrome open]
-   VUURWERK
-   boot screen
-```
-
-1. Download [`vuurwerk-v1.5.0.packed.bin`](release/vuurwerk-v1.5.0.packed.bin)
-   from the `release/` folder
-2. Turn the radio off
-3. Hold PTT and turn it on -- the flashlight LED confirms bootloader mode
-4. Connect your programming cable (standard Kenwood-style 2-pin)
-5. Open https://egzumer.github.io/uvtools/ in Chrome
-6. "Select firmware file" -> choose the `.packed.bin` -> "Flash firmware"
-7. Wait about 10 seconds, disconnect, power cycle
-
-Chrome is required (the Web Serial API doesn't work in Firefox or Safari).
-Your channels and settings are preserved -- only the firmware changes. Full
-details and troubleshooting: [FLASHING.md](FLASHING.md).
-
----
-
-## Hardware Compatibility -- UV-K5 V1 Only
-
-**VUURWERK only supports the original Quansheng UV-K5 V1 (DP32G030
-processor).** The newer V2 (PY32F030) and V3 (PY32F071) boards are **not
-compatible**; flashing them produces a radio that does not boot (recoverable
-with the right stock firmware, but avoid the trip).
-
-**How to check:** remove the battery and read the board label. V2 and V3
-boards are marked; no marking means V1 -- the one VUURWERK supports.
-
-**If you flashed the wrong hardware**, recover with
-[K5TOOL](https://github.com/qrp73/K5TOOL), which supports all UV-K5 versions.
-
----
-
-## Built By
-
-**Firmware design and architecture:** James Honiball (KC3TFZ)
-**Based on:** [Egzumer](https://github.com/egzumer/uv-k5-firmware-custom),
-with credits to [DualTachyon](https://github.com/DualTachyon),
-[OneOfEleven](https://github.com/OneOfEleven), [fagci](https://github.com/fagci)
-
-See [LICENSE](LICENSE) for full attribution and the complete list of
-VUURWERK-original contributions.
-
----
-
-## Support VUURWERK
-
-VUURWERK is free and built nights and weekends by one operator on a $30
-radio. If the spectrum found you a conversation, or F+EXIT rescued a deaf VFO,
-you can keep the bench powered and keep going on this:
-
-<p align="center">
-  <a href="https://buymeacoffee.com/Tokeloshe">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://buymeacoffee.com/Tokeloshe">
-    <img src="buymeacoffee/qr-code.png" alt="Buy Me a Coffee QR code" width="160">
-  </a>
-  <br>
-  <em>Reading this on a desktop? Scan with your phone.</em>
-</p>
-
-Prefer crypto, or want to help without spending a cent? See
-[DONATE.md](DONATE.md) for XRP and the free ways to support the project.
-
----
-
-## Documentation
-
-- [WHATS_NEW.md](WHATS_NEW.md) -- What's new in v1.5.0, with pictures
-- [USER_MANUAL.md](USER_MANUAL.md) -- Button-by-button operator manual with
-  screen mockups for every feature
-- [FEATURES.md](FEATURES.md) -- Full technical documentation
-- [WHAT_VUURWERK_DOES.md](WHAT_VUURWERK_DOES.md) -- Plain-English guide to
-  every feature
-- [ACCESS_MAP.md](ACCESS_MAP.md) -- Feature access cheat sheet
-- [FLASHING.md](FLASHING.md) -- Flashing guide with troubleshooting
-- [BUILD.md](BUILD.md) -- Building from source
-- [chirp/](chirp/) -- CHIRP driver (community-contributed by mjwgeek)
-- [CHANGELOG.md](CHANGELOG.md) -- Version history
-- [DONATE.md](DONATE.md) -- Support the project
-- [DEDICATION.md](DEDICATION.md) -- In memory of ZS6NE
-
----
-
-## License
-
-VUURWERK is dual-licensed.
-
-**Before you borrow code:** the VUURWERK-original features listed in
-[LICENSE](./LICENSE) are licensed as a package with the complete firmware.
-Taking an individual feature, algorithm, or module into another project or
-product requires written permission (a commercial license) from the author.
-Read the notice at the top of [LICENSE](./LICENSE) first.
-
-**The complete VUURWERK firmware** is distributed under the GNU General Public
-License v3. The upstream Egzumer / DualTachyon code it builds on is licensed
-under the Apache License 2.0, which is compatible with GPL v3; upstream files
-keep their Apache-2.0 notices. You may flash it, fork it, modify it, and
-redistribute the complete firmware under GPL v3 terms.
-
-**VUURWERK-original algorithms and modules** (listed in the
-[LICENSE](./LICENSE) contributions registry) are additionally protected by a
-commercial-license requirement for any use outside the complete VUURWERK
-firmware. Extracting a VUURWERK-original file, porting a VUURWERK-original
-algorithm to another platform, or incorporating VUURWERK-original code into a
-separate project requires a commercial license obtained in writing from James
-Honiball (KC3TFZ).
-
-Commercial licensing inquiries: jhoniball4@gmail.com
-
-Stock upstream code (Egzumer, DualTachyon, OneOfEleven, fagci) remains under
-its original license terms as marked in each file.
-
----
-
-*Dedicated to George Thomas Honiball, ZS6NE (Silent Key). He is a silent key
-now, but not in and through me.*
-
-*VUURWERK (Afrikaans: fireworks) -- because your radio should light up.*
+The project owner is Dustpan95. No collaborators or agents have been invited or
+added. GitHub may list legitimate upstream commit authors in its contributor
+statistics because their history is preserved.

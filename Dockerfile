@@ -1,12 +1,4 @@
-FROM --platform=amd64 archlinux:latest
-RUN pacman -Syyu base-devel --noconfirm
-RUN pacman -Syyu arm-none-eabi-gcc --noconfirm
-RUN pacman -Syyu arm-none-eabi-newlib --noconfirm
-RUN pacman -Syyu git --noconfirm
-RUN pacman -Syyu python-pip --noconfirm
-RUN pacman -Syyu python-crcmod --noconfirm
-WORKDIR /app
-COPY . .
-
-RUN git submodule update --init --recursive
-#RUN make && cp firmware* compiled-firmware/
+FROM ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956
+COPY tools/install-container.sh /tmp/install-container.sh
+RUN bash /tmp/install-container.sh && rm /tmp/install-container.sh
+WORKDIR /src

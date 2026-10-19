@@ -1,0 +1,25 @@
+{
+  "base": {
+    "repository": "https://github.com/Tokeloshe/vuurwerk-firmware",
+    "commit": "2d560898cd02da0fcb94975240209a72f53a62cd",
+    "usage": "complete firmware fork with base history preserved",
+    "license": "upstream complete-package GPL v3 fork permission; original custom licensing notice preserved unchanged"
+  },
+  "f4hwn": {
+    "repository": "https://github.com/armel/uv-k5-firmware-custom",
+    "commit": "fbcf26d8e9811b135b7e2d97bdefebaa4b3ed9e0",
+    "usage": "partial single-VFO layout and S-meter presentation adaptation",
+    "license": "Apache-2.0"
+  },
+  "ta1js": {
+    "repository": "https://github.com/bcanata/uv-k5-firmware-ta1js",
+    "commit": "6320cdac7a2dce46f88027d220ff67e47eb0e3fb",
+    "usage": "BK4819 receive configuration, capture flow, HDLC/NRZI and FCS adaptation; position-parser routines excluded",
+    "license": "Apache-2.0 as marked in the imported source and upstream LICENSE"
+  },
+  "f4jtv_review": {
+    "repository": "https://github.com/F4JTV/aprs_decoder",
+    "usage": "provenance review only; its parser code and symbol graphics are not included",
+    "finding": "TA1JS credits its position decoders to this project; no clear code license was found during inspection"
+  }
+}

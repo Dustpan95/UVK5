@@ -1,4 +1,6 @@
 
+/* Modified for UVK5: release APRS modem before scanning. */
+#include "app/aprs_rx.h"
 #include "app/app.h"
 #include "app/chFrScanner.h"
 #include "driver/bk4819.h"   // VUURWERK v1.3.3: BK4819_GetRSSI (adaptive dwell)
@@ -55,6 +57,7 @@ static void NextMemChannel(void);
 
 void CHFRSCANNER_Start(const bool storeBackupSettings, const int8_t scan_direction)
 {
+    APRS_Stop();
 	if (storeBackupSettings) {
 		initialCROSS_BAND_RX_TX = gEeprom.CROSS_BAND_RX_TX;
 		gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;

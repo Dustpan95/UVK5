@@ -8,7 +8,8 @@ _Min_Heap_Size = 0;      /* required amount of heap  */
    RAM .bss leaves free (~12 KB today). At 0x80 the link check was weaker than
    the measured ~350 B worst-case call depth; 0x400 makes the link fail loudly
    if static RAM ever grows into the stack margin. */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+/* Modified for UVK5: reserve 2 KiB for APRS decode call chains. */
+_Min_Stack_Size = 0x800;
 
 MEMORY
 {

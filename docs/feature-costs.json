@@ -1,0 +1,227 @@
+{
+  "source_fingerprint": "1aee4bcb432eb52b2c461ae9fed53f672734e8e784ca58922a5f6a6817db5722",
+  "compiler": "ARM GCC 10.3.1",
+  "diagnostic_flash_limit": 131072,
+  "real_flash_limit": 61440,
+  "profiles": [
+    {
+      "profile": "baseline",
+      "flags": [],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 61012,
+      "static_ram_bytes": 3832,
+      "fits_60k": true,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "spectrum",
+      "flags": [
+        "ENABLE_SPECTRUM=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68128,
+      "static_ram_bytes": 4700,
+      "fits_60k": false,
+      "delta_flash_bytes": 7116
+    },
+    {
+      "profile": "fm_broadcast",
+      "flags": [
+        "ENABLE_FMRADIO=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 65340,
+      "static_ram_bytes": 3908,
+      "fits_60k": false,
+      "delta_flash_bytes": 4328
+    },
+    {
+      "profile": "vox",
+      "flags": [
+        "ENABLE_VOX=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 61728,
+      "static_ram_bytes": 3840,
+      "fits_60k": false,
+      "delta_flash_bytes": 716
+    },
+    {
+      "profile": "voice_prompts",
+      "flags": [
+        "ENABLE_VOICE=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 62372,
+      "static_ram_bytes": 3860,
+      "fits_60k": false,
+      "delta_flash_bytes": 1360
+    },
+    {
+      "profile": "noaa",
+      "flags": [
+        "ENABLE_NOAA=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 62280,
+      "static_ram_bytes": 3860,
+      "fits_60k": false,
+      "delta_flash_bytes": 1268
+    },
+    {
+      "profile": "dtmf_calling",
+      "flags": [
+        "ENABLE_DTMF_CALLING=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 2,
+      "errors": [
+        "app/action.c:191:2: error: implicit declaration of function 'DTMF_clear_RX' [-Werror=implicit-function-declaration]",
+        "app/app.c:217:7: error: 'gDTMF_RX_index' undeclared (first use in this function); did you mean 'gDTMF_RX_live'?",
+        "app/app.c:218:4: error: implicit declaration of function 'DTMF_clear_RX' [-Werror=implicit-function-declaration]",
+        "app/app.c:254:7: error: 'gDTMF_CallState' undeclared (first use in this function); did you mean 'gDTMF_ReplyState'?",
+        "app/app.c:254:26: error: 'DTMF_CALL_STATE_NONE' undeclared (first use in this function)",
+        "app/app.c:668:11: error: 'gDTMF_RX_index' undeclared (first use in this function); did you mean 'gDTMF_RX_live'?"
+      ]
+    },
+    {
+      "profile": "mic_audio_bar",
+      "flags": [
+        "ENABLE_AUDIO_BAR=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 61316,
+      "static_ram_bytes": 3836,
+      "fits_60k": true,
+      "delta_flash_bytes": 304
+    },
+    {
+      "profile": "bold_small_font",
+      "flags": [
+        "ENABLE_SMALL_BOLD=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 61640,
+      "static_ram_bytes": 3828,
+      "fits_60k": false,
+      "delta_flash_bytes": 628
+    },
+    {
+      "profile": "1750hz",
+      "flags": [
+        "ENABLE_TX1750=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 61208,
+      "static_ram_bytes": 3836,
+      "fits_60k": true,
+      "delta_flash_bytes": 196
+    },
+    {
+      "profile": "without_am_fix",
+      "flags": [
+        "ENABLE_AM_FIX=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 2,
+      "errors": [
+        "ui/vuurwerk_menu.c:109:19: error: 'MENU_AM_FIX' undeclared here (not in a function); did you mean 'MENU_AM'?"
+      ]
+    },
+    {
+      "profile": "without_adaptive_scan",
+      "flags": [
+        "ENABLE_ADAPTIVE_SCAN=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 60904,
+      "static_ram_bytes": 3832,
+      "fits_60k": true,
+      "delta_flash_bytes": -108
+    },
+    {
+      "profile": "without_scan_ranges",
+      "flags": [
+        "ENABLE_SCAN_RANGES=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 60624,
+      "static_ram_bytes": 3828,
+      "fits_60k": true,
+      "delta_flash_bytes": -388
+    },
+    {
+      "profile": "without_flashlight",
+      "flags": [
+        "ENABLE_FLASHLIGHT=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 60612,
+      "static_ram_bytes": 3824,
+      "fits_60k": true,
+      "delta_flash_bytes": -400
+    },
+    {
+      "profile": "stub_compressor",
+      "flags": [],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 60608,
+      "static_ram_bytes": 3816,
+      "fits_60k": true,
+      "delta_flash_bytes": -404
+    },
+    {
+      "profile": "stub_adaptive_squelch",
+      "flags": [],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 60012,
+      "static_ram_bytes": 3820,
+      "fits_60k": true,
+      "delta_flash_bytes": -1000
+    },
+    {
+      "profile": "stub_scanwatch",
+      "flags": [],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 60628,
+      "static_ram_bytes": 3824,
+      "fits_60k": true,
+      "delta_flash_bytes": -384
+    },
+    {
+      "profile": "stub_vfo_split",
+      "flags": [],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 60384,
+      "static_ram_bytes": 3832,
+      "fits_60k": true,
+      "delta_flash_bytes": -628
+    },
+    {
+      "profile": "stub_about",
+      "flags": [],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 60688,
+      "static_ram_bytes": 3828,
+      "fits_60k": true,
+      "delta_flash_bytes": -324
+    }
+  ]
+}

@@ -483,7 +483,7 @@ const uint8_t gFontSmall[95-1][6] =
 	};
 #endif
 
-#ifdef ENABLE_SPECTRUM
+/* Modified for UVK5: shared UI font is needed without spectrum. */
 	const uint8_t gFont3x5[][3] =
 	{
 		{0x00, 0x00, 0x00}, //  32 - space
@@ -651,4 +651,3 @@ const uint8_t gFontSmall[95-1][6] =
 		// {0x03, 0x0b, 0x18}, // 190 - threequarters
 		// {0x18, 0x15, 0x10}, // 191 - questiondown
 	};
-#endif

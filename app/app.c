@@ -1,3 +1,4 @@
+/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -14,6 +15,8 @@
  *     limitations under the License.
  */
 
+/* UVK5 integration: passive APRS hooks. */
+#include "app/aprs_rx.h"
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
@@ -634,6 +637,7 @@ static void CheckRadioInterrupts(void)
 		} interrupts;
 
 		interrupts.__raw = BK4819_ReadRegister(BK4819_REG_02);
+        APRS_Interrupt(interrupts.__raw);
 
 		// 0 = no phase shift
 		// 1 = 120deg phase shift
@@ -971,6 +975,7 @@ void APP_Update(void)
 		if (gPttIsPressed
 			|| gKeyBeingHeld
 			|| gEeprom.BATTERY_SAVE == 0
+            || gAPRS_Enabled
 			|| gScanStateDir != SCAN_OFF
 			|| gCssBackgroundScan
 			// VUURWERK v1.3.0 (F3b): VFO Split armed means no power save.
@@ -1457,6 +1462,7 @@ void cancelUserInputModes(void)
 // this is called once every 500ms
 void APP_TimeSlice500ms(void)
 {
+    APRS_Tick500ms();
 	gNextTimeslice_500ms = false;
 	bool exit_menu = false;
 

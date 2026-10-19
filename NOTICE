@@ -1,0 +1,51 @@
+VUURWERK UV-K6 APRS / Dustpan95 UVK5 — modified complete firmware fork
+
+This project retains the complete VUURWERK source package and base history.
+Original copyright/license notices remain in their source files. New changes
+are marked in modified inherited files and described in docs/INTEGRATION.md.
+
+Original projects and contributions:
+
+James Honiball (KC3TFZ), Tokeloshe/vuurwerk-firmware
+Copyright (c) 2026 James Honiball (KC3TFZ).
+Complete base firmware and VUURWERK original radio functionality, including
+TX compressor, adaptive squelch, scanning, Scan+Watch and UI features.
+The original LICENSE, CREDITS.md and dedication are preserved. The upstream
+LICENSE explicitly permits modifying and redistributing the complete firmware
+under GPL v3, and states additional restrictions on extracting original modules.
+This fork does not claim to relicense VUURWERK-original modules independently.
+
+Armel (F4HWN), armel/uv-k5-firmware-custom
+F4HWN single-VFO channel-name/frequency presentation and boxed S-meter style
+adapted in the earlier display prototype; retained heritage and original
+copyright notices in the custom ui/home.c implementation. Original Apache-2.0 notices and license preserved.
+
+TA1JS / bcanata, bcanata/uv-k5-firmware-ta1js
+Standalone BK4819 APRS receive setup, FIFO capture, NRZI/HDLC and FCS logic
+adapted in app/aprs_rx.c and app/aprs_decode.c. Original source notice:
+Copyright 2024 UV-K5 Firmware Custom. Apache License 2.0.
+The TA1JS documentation credits F4JTV for its position decoders; this fork
+excludes that parser source because a clear license was not found and uses
+its own coordinate parsing implementation. No F4JTV APRS symbol graphics
+or other resources are included.
+
+DualTachyon (original open UV-K5 firmware), Egzumer, OneOfEleven, fagci,
+Tunas1337, manujedi, spm81, and other upstream contributors:
+Original firmware, drivers, radio functions, UI, AM fixes and spectrum heritage.
+Copyright 2023 Dual Tachyon and other notices are retained in source.
+See CREDITS.md and the archived upstream READMEs for additional names.
+
+Third-party components retain their licenses:
+external/printf — Marco Paland, MIT (external/printf/LICENSE).
+external/CMSIS_5 — ARM Limited, Apache-2.0 (external/CMSIS_5/LICENSE.txt).
+chirp/uvk5_vuurwerk.py — upstream GPL-2.0-or-later host-side driver;
+see its own header and the preserved upstream LICENSE attribution.
+
+License copies: LICENSE (unchanged VUURWERK terms and license texts),
+LICENSES/GPL-3.0.txt, LICENSES/Apache-2.0.txt, and docs/upstream/*-LICENSE.txt.
+The complete combined firmware follows the upstream complete-package GPL v3
+fork permission; Apache-2.0 and other inherited notices are preserved.
+No endorsement by upstream authors is implied.
+
+Project owner: Dustpan95. No collaborators or agents are invited or added.
+Preserved upstream commit authors may appear in GitHub contributor statistics.

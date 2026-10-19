@@ -1,3 +1,4 @@
+/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -14,6 +15,8 @@
  *     limitations under the License.
  */
 
+/* UVK5 integration: passive APRS hooks. */
+#include "app/aprs_rx.h"
 #include <string.h>
 
 #if !defined(ENABLE_OVERLAY)
@@ -372,7 +375,10 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMax = 1;
 			break;
 
-		case MENU_SCANWATCH:
+		case MENU_APRS_BEEP:
+        case MENU_APRS_RX:
+            *pMin = 0; *pMax = 1; break;
+        case MENU_SCANWATCH:
 			*pMin = 0;
 			*pMax = 3;    // 0=OFF, 1=SCAN_A_WATCH_B, 2=SCAN_B_WATCH_A, 3=SPLIT
 			break;
@@ -804,7 +810,14 @@ void MENU_AcceptSetting(void)
 			gEeprom.BATTERY_TYPE = gSubMenuSelection;
 			break;
 
-		case MENU_SCANWATCH:
+		case MENU_APRS_BEEP:
+            gAPRS_AlertSound = gSubMenuSelection != 0;
+            return;
+        case MENU_APRS_RX:
+            gAPRS_Enabled = gSubMenuSelection != 0;
+            APRS_Stop();
+            return; /* RAM-only: do not write EEPROM for APRS. */
+        case MENU_SCANWATCH:
 			if (gSubMenuSelection == 3) {
 				// VFO Split mode
 				gScanWatchArmed = 0;          // VUURWERK v1.3.0 (F10)
@@ -1186,7 +1199,13 @@ void MENU_ShowCurrentSetting(void)
 			gSubMenuSelection = gEeprom.BATTERY_TYPE;
 			break;
 
-		case MENU_SCANWATCH:
+		case MENU_APRS_BEEP:
+            gSubMenuSelection = gAPRS_AlertSound;
+            break;
+        case MENU_APRS_RX:
+            gSubMenuSelection = gAPRS_Enabled;
+            break;
+        case MENU_SCANWATCH:
 			if (gVfoSplit.mode != SPLIT_OFF)
 				gSubMenuSelection = 3;
 			else
@@ -1456,7 +1475,11 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 	if (bKeyHeld || !bKeyPressed)
 		return;
 
-	if (UI_MENU_GetCurrentMenuId() == MENU_ABOUT) {
+	if (UI_MENU_GetCurrentMenuId() == MENU_APRS_LOG) {
+        APRS_Open();
+        return;
+    }
+    if (UI_MENU_GetCurrentMenuId() == MENU_ABOUT) {
 		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 		VUURWERK_ABOUT_Show();
 		return;

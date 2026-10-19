@@ -1,3 +1,4 @@
+/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -14,6 +15,8 @@
  *     limitations under the License.
  */
 
+/* UVK5 integration: passive APRS hooks. */
+#include "app/aprs_rx.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -126,7 +129,10 @@ const t_menu_item MenuList[] =
 	{"RxMode", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           },
 	{"Sql",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 	{"ScnWch", VOICE_ID_INVALID,                       MENU_SCANWATCH     },
-	{"About",  VOICE_ID_INVALID,                       MENU_ABOUT         }, // VUURWERK About screen (CONFIG category)
+	{"APRS", VOICE_ID_INVALID, MENU_APRS_RX},
+    {"RxLog", VOICE_ID_INVALID, MENU_APRS_LOG},
+    {"RxBeep", VOICE_ID_INVALID, MENU_APRS_BEEP},
+    {"About",  VOICE_ID_INVALID,                       MENU_ABOUT         }, // VUURWERK About screen (CONFIG category)
 
 	// hidden menu items from here on
 	// enabled if pressing both the PTT and upper side button at power-on
@@ -864,7 +870,14 @@ void UI_DisplayMenu(void)
 			strcpy(String, gSubMenu_SIDEFUNCTIONS[gSubMenuSelection].name);
 			break;
 
-		case MENU_SCANWATCH:
+		case MENU_APRS_BEEP:
+        case MENU_APRS_RX:
+            strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+            break;
+        case MENU_APRS_LOG:
+            strcpy(String, "PACKETS");
+            break;
+        case MENU_SCANWATCH:
 		{
 			const char * const sw_opts[] = {"OFF", "SCAN A\nWATCH B", "SCAN B\nWATCH A", "SPLIT"};
 			strcpy(String, sw_opts[gSubMenuSelection]);

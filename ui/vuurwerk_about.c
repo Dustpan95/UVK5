@@ -12,6 +12,7 @@
  * Commercial licensing inquiries: jhoniball4@gmail.com
  */
 
+/* Modified for UVK5: show actual default APRS profile in About. */
 #include <string.h>
 #include "ui/vuurwerk_about.h"
 #include "ui/main.h"
@@ -38,7 +39,7 @@ void VUURWERK_ABOUT_Show(void) {
     UI_PrintStringSmallBold("VUURWERK " VERSION_STRING, 8, 127, 0);
     UI_PrintStringSmallNormal("Precision RF", 20, 127, 1);
     static const char *const features[4] = {
-        "Adaptive Squelch", "Signal Quality", "Spectrum+", "TX Compressor"
+        "Adaptive Squelch", "Signal Quality", "APRS RX", "TX Compressor"
     };
     for (uint8_t i = 0; i < 4; i++)
         UI_PrintStringSmallNormal(features[i], 2, 127, 2 + i);

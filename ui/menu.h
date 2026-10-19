@@ -1,3 +1,4 @@
+/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -125,7 +126,10 @@ enum
 	MENU_MLONG,
 	MENU_BATTYP,
 	MENU_SCANWATCH,   // VUURWERK: Scan+Watch + VFO Split
-	MENU_ABOUT        // VUURWERK: About screen launcher
+	MENU_ABOUT,       // VUURWERK: About screen launcher
+    MENU_APRS_RX,
+    MENU_APRS_LOG,
+    MENU_APRS_BEEP
 };
 
 extern const uint8_t FIRST_HIDDEN_MENU_ITEM;

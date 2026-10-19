@@ -50,4 +50,5 @@ void UI_DisplayMain(void);
 void UI_MAIN_PrintAGC(bool force);
 #endif
 
+int16_t UI_RX_Signal_dBm(uint8_t *s_level);
 #endif

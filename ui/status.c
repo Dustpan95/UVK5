@@ -14,6 +14,8 @@
  *     limitations under the License.
  */
 
+/* Modified for UVK5: approved home status and percentage battery readout. */
+#include "ui/home.h"
 #include <string.h>
 
 #include "app/chFrScanner.h"
@@ -40,6 +42,11 @@
 void UI_DisplayStatus()
 {
 	gUpdateStatus = false;
+    if (gScreenToDisplay == DISPLAY_MAIN && UI_HomeEligible()) {
+        UI_HomeStatus();
+        ST7565_BlitStatusLine();
+        return;
+    }
 	memset(gStatusLine, 0, sizeof(gStatusLine));
 
 	uint8_t     *line = gStatusLine;
@@ -184,44 +191,11 @@ void UI_DisplayStatus()
 		x1 = x;
 	}
 
-	{	// battery voltage or percentage
-		char         s[8] = "";
-		unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BatteryLevel1) - 0;
-
-		if (gChargingWithTypeC)
-			x2 -= sizeof(BITMAP_USB_C);  // the radio is on charge
-
-		switch (gSetting_battery_text) {
-			default:
-			case 0:
-				break;
-
-			case 1:	{	// voltage
-				const uint16_t voltage = (gBatteryVoltageAverage <= 999) ? gBatteryVoltageAverage : 999; // limit to 9.99V
-				sprintf(s, "%u.%02uV", voltage / 100, voltage % 100);
-				break;
-			}
-
-			case 2:		// percentage
-				sprintf(s, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
-				break;
-		}
-
-		unsigned int space_needed = (7 * strlen(s));
-		if (x2 >= (x1 + space_needed))
-			UI_PrintStringSmallBufferNormal(s, line + x2 - space_needed);
-	}
-
-	// move to right side of the screen
-	x = LCD_WIDTH - sizeof(BITMAP_BatteryLevel1) - sizeof(BITMAP_USB_C);
-
-	// USB-C charge indicator
-	if (gChargingWithTypeC)
-		memcpy(line + x, BITMAP_USB_C, sizeof(BITMAP_USB_C));
-	x += sizeof(BITMAP_USB_C);
-
-	// BATTERY LEVEL indicator
-	UI_DrawBattery(line + x, gBatteryDisplayLevel, gLowBatteryBlink);
+    /* Reserve the rightmost 28 pixels for 0..100%, including in menus. */
+    memset(line + 100, 0, LCD_WIDTH - 100);
+    char battery[5];
+    sprintf(battery, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+    UI_PrintStringSmallBufferNormal(battery, line + LCD_WIDTH - strlen(battery) * 7);
 
 	// **************
 

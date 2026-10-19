@@ -1,3 +1,4 @@
+/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -14,6 +15,8 @@
  *     limitations under the License.
  */
 
+#include "app/aprs_rx.h"
+#include "ui/home.h"
 #include <string.h>
 #include <stdlib.h>  // abs()
 
@@ -175,7 +178,7 @@ void UI_DisplayAudioBar(void)
 // status line report the SAME calibrated figure (they used to differ -- the
 // status line omitted the per-band dBm correction). Returns dBm; fills
 // *s_level with the calibrated S-reading (0-9 across the S0..S9 EEPROM points).
-static int16_t RX_Signal_dBm(uint8_t *s_level)
+int16_t UI_RX_Signal_dBm(uint8_t *s_level)
 {
 	const int16_t rssi_dBm =
 		BK4819_GetRSSI_dBm()
@@ -192,6 +195,7 @@ static int16_t RX_Signal_dBm(uint8_t *s_level)
 
 void DisplayRSSIBar(const bool now)
 {
+    if (gAPRS_Browser || UI_HomeEligible()) return;
 #if defined(ENABLE_RSSI_BAR)
 
 	const unsigned int txt_width    = 7 * 8;                 // 8 text chars
@@ -227,7 +231,7 @@ void DisplayRSSIBar(const bool now)
 
 
 	uint8_t s_level;
-	const int16_t rssi_dBm = RX_Signal_dBm(&s_level);           // shared with the RX status line
+	const int16_t rssi_dBm = UI_RX_Signal_dBm(&s_level);           // shared with the RX status line
 	uint8_t overS9dBm = MIN(MAX(rssi_dBm + gEeprom.S9_LEVEL, 0), 99);
 	uint8_t overS9Bars = MIN(overS9dBm/10, 4);
 
@@ -311,6 +315,7 @@ void UI_MAIN_PrintAGC(bool now)
 void UI_MAIN_TimeSlice500ms(void)
 {
 	if(gScreenToDisplay==DISPLAY_MAIN) {
+        if (gAPRS_Browser || UI_HomeEligible()) { gUpdateDisplay = true; return; }
 #ifdef ENABLE_AGC_SHOW_DATA
 		UI_MAIN_PrintAGC(true);
 		return;
@@ -347,7 +352,10 @@ void UI_DisplayMain(void)
 		return;
 	}
 
-	unsigned int activeTxVFO = gRxVfoIsActive ? gEeprom.RX_VFO : gEeprom.TX_VFO;
+	if (gAPRS_Browser) { APRS_Draw(); return; }
+    if (UI_HomeDraw()) { ST7565_BlitFullScreen(); return; }
+
+    unsigned int activeTxVFO = gRxVfoIsActive ? gEeprom.RX_VFO : gEeprom.TX_VFO;
 
 	for (unsigned int vfo_num = 0; vfo_num < 2; vfo_num++)
 	{
@@ -857,7 +865,7 @@ void UI_DisplayMain(void)
 			sprintf(ctx, "TX %u:%02u PWR:%s", secs / 60, secs % 60, pwr);
 		} else if (gCurrentFunction == FUNCTION_RECEIVE || gCurrentFunction == FUNCTION_INCOMING) {
 			uint8_t s_level;
-			const int16_t rssi_dbm = RX_Signal_dBm(&s_level);   // same figure as the centre bar
+			const int16_t rssi_dbm = UI_RX_Signal_dBm(&s_level);   // same figure as the centre bar
 			SignalQuality_t q = SIGNAL_QUALITY_Get();
 			char sc = SIGNAL_CLASSIFIER_GetSymbol(gEeprom.RX_VFO);
 			sprintf(ctx, "RX S%d %ddBm Q:%d %c", s_level, rssi_dbm, q, sc);

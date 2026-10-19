@@ -1,0 +1,35 @@
+# Physical validation — outstanding
+
+No radio was connected, programmed or flashed during development. These checks
+remain unrun. Build success establishes a software target, not the identity or
+health of an individual radio.
+
+1. Identify the MCU as **DP32G030** using reliable board/revision evidence.
+   Do not infer it solely from a UV-K6 label or Egzumer v0.21 version string.
+   This build is not for replacement MCU revisions.
+2. Read and preserve the current EEPROM/calibration/channel data and original
+   firmware with a known compatible method. Confirm recovery access before
+   deciding to install an experimental image. APRS introduces no new EEPROM
+   mapping, but cross-firmware compatibility has not been physically verified.
+3. After owner-controlled installation, verify boot, keypad, LCD, memory/VFO
+   tuning, normal FM receive and voice TX into a suitable dummy load.
+4. Feed known Bell 202 / AX.25 test signals through suitable RF test equipment.
+   Check real stations, uncompressed/compressed/Mic-E positions, SSIDs, addressed
+   messages (including 67-character text), corrupt frames and repeated packets.
+   Compare the displayed result with an independent decoder. Measure sensitivity,
+   frequency offset tolerance, missed packets and capture/rearm behavior.
+5. Test APRS enable/disable, F+5/RxLog, history navigation, PTT press/release,
+   beeps, channel changes, scanning, CSS scanning, dual watch, VFO split,
+   serial programming, battery save, low battery and key lock. Check that the
+   modem releases and recovers without corrupting normal radio behavior.
+6. With RF/audio measurement equipment, measure mic gain, FM deviation,
+   compressor attack/release, squelch behavior, scan dwell and tone-coded scan
+   acquisition. Calibrate the upstream compressor threshold before making
+   audio-quality claims. Restore normal mic gain after every TX and confirm
+   no unintended transmitter activation.
+7. Measure current consumption, long-running stability and peak stack use.
+   Verify EEPROM/channel/calibration integrity before and after testing.
+
+Record MCU marking, board revision, firmware commit and artifact hashes,
+measurement setup, expected/observed outcomes and failures. Do not promote this
+experimental build to a hardware-validated release until those results exist.

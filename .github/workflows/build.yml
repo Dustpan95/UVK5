@@ -1,0 +1,26 @@
+name: Build and host tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dp32g030:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned ARM compiler and test dependencies
+        run: sudo bash tools/install-container.sh
+      - name: Test decoder, receiver handoff and LCD rendering with sanitizers
+        run: ./tools/test.sh
+      - name: Build and verify DP32G030 firmware
+        run: ./tools/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uvk6-experimental
+          path: |
+            uvk6-experimental.bin
+            uvk6-experimental.packed.bin
+            uvk6-experimental.map
+            build/verification.json
