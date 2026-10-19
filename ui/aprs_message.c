@@ -6,6 +6,7 @@
 #include "external/printf/printf.h"
 #include "ui/helper.h"
 #include <string.h>
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
 static void Body(const char *text, unsigned first)
 {
     unsigned length=strlen(text);
@@ -16,12 +17,25 @@ static void Body(const char *text, unsigned first)
         UI_PrintStringSmallNormal(line,0,0,first+row);
     }
 }
+#endif
 void MESSAGE_Draw(void)
 {
     const APRS_Message *m=&gAPRS_Message;
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
     char line[22];
+#endif
     UI_DisplayClear();
     const char *footer="MENU:NEXT  EXIT:BACK";
+#ifdef ENABLE_APRS_CALLSIGN_ONLY
+    {
+        UI_PrintStringSmallNormal("MY CALLSIGN",0,0,0);
+        UI_PrintStringSmallNormal(m->editCall,0,0,2);
+        UI_PrintStringSmallNormal("MULTI-TAP ABC/123",0,0,3);
+        UI_PrintStringSmallNormal("1:.-/  #:NEXT",0,0,4);
+        UI_PrintStringSmallNormal("*:DELETE",0,0,5);
+        footer="MENU:SAVE  EXIT:CANCEL";
+    }
+#else
     if(m->page==MESSAGE_RECIPIENT || m->page==MESSAGE_CALLSIGN) {
         UI_PrintStringSmallNormal(m->page==MESSAGE_CALLSIGN ? "MY CALLSIGN" : "RECIPIENT",0,0,0);
         UI_PrintStringSmallNormal(m->page==MESSAGE_CALLSIGN ? m->editCall : m->recipient,0,0,2);
@@ -29,7 +43,8 @@ void MESSAGE_Draw(void)
         UI_PrintStringSmallNormal("1:.-/  #:NEXT",0,0,4);
         UI_PrintStringSmallNormal("*:DELETE",0,0,5);
         if(m->page==MESSAGE_CALLSIGN) footer="MENU:SAVE  EXIT:CANCEL";
-    } else if(m->page==MESSAGE_COMPOSE || m->page==MESSAGE_REVIEW) {
+    }
+    else if(m->page==MESSAGE_COMPOSE || m->page==MESSAGE_REVIEW) {
         sprintf(line,"%s %s",m->page==MESSAGE_REVIEW ? "SEND" : "TO",m->recipient);
         UI_PrintStringSmallNormal(line,0,0,0);
         Body(m->text,1);
@@ -55,9 +70,14 @@ void MESSAGE_Draw(void)
             UI_PrintStringSmallNormal("TX UNAVAILABLE",0,0,4);
         footer="EXIT:PACKETS";
     }
+#endif
     if(m->error!=MESSAGE_OK) {
+#ifdef ENABLE_APRS_CALLSIGN_ONLY
+        const char *error=m->error==MESSAGE_BAD_CALL ? "CHECK CALL/SSID" : "CALLSIGN FULL";
+#else
         const char *error=m->error==MESSAGE_BAD_CALL ? "CHECK CALL/SSID" :
                           m->error==MESSAGE_EMPTY ? "EMPTY MESSAGE" : "MESSAGE FULL";
+#endif
         UI_DisplaySmallest(error,0,42,false,true);
     }
     UI_DisplaySmallest(footer,0,50,false,true);

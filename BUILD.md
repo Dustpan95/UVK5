@@ -73,3 +73,21 @@ python3 tools/measure-features.py --profile messaging_editor
 
 See `docs/MESSAGING-IMPLEMENTATION.md`. Do not enlarge the production linker
 region to bypass the physical flash limit.
+
+## Receive-session bench package
+
+`./tools/build-receiver-bench.sh` builds `ENABLE_APRS_SESSION=1` with composition
+still in development (`ENABLE_APRS_MESSAGING=0`). It pins all other boolean flags
+to the source revision's defaults and creates `build/receiver-bench/` with raw and
+packed images, map, verification and source/feature/hash manifest. This command
+never flashes hardware. An owner-controlled bench installation still requires
+identifying the original DP32G030 and preserving EEPROM/calibration/firmware and
+recovery access. See `release/rx-session-bench/README.md`.
+
+Current raw size: **61,388 / 61,440 bytes**, 52 free. Static RAM: **7,996 bytes**;
+2,048-byte linker stack reservation. This profile adds station directory/details,
+personal inbox, all-traffic monitor and own-callsign entry to the approved home.
+The normal default `tools/build.sh` remains the 58,056-byte four-packet receiver.
+Full `ENABLE_APRS_MESSAGING=1` remains an oversized development candidate. Session
+UI is separated from the unfinished composer so real receive testing can proceed
+without changing the final transmit goal or cutting inherited radio features.

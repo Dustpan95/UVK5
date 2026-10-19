@@ -2,7 +2,7 @@
  * UVK5 passive packet browser. No external screen or controller required.
  */
 #include "app/aprs_rx.h"
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
 #include "app/aprs_message.h"
 #include "app/aprs_session.h"
 #endif
@@ -47,13 +47,13 @@ void APRS_DrawRecord(const APRS_Record *r)
 
 void APRS_Draw(void)
 {
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
     if (gAPRS_Message.page != MESSAGE_CLOSED) { MESSAGE_Draw(); return; }
     if (gAPRS_View != APRS_MONITOR) { SESSION_Draw(); return; }
 #endif
     char line[22];
     UI_DisplayClear();
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
     sprintf(line, "MONITOR %u/%u", gAPRS_Count ? gAPRS_Selected+1 : 0, gAPRS_Count);
 #else
     sprintf(line, "APRS %s %u/%u", !gAPRS_Enabled ? "OFF" : APRS_CanListen() ? "RX" : "PAUSE",
@@ -65,8 +65,10 @@ void APRS_Draw(void)
         UI_PrintStringSmallNormal("FM, scan/DW off", 0, 0, 4);
     } else APRS_DrawRecord(&gAPRS_Log[gAPRS_Selected]);
 
-#ifdef ENABLE_APRS_MESSAGING
+#if defined(ENABLE_APRS_SESSION) && !defined(ENABLE_APRS_CALLSIGN_ONLY)
     UI_DisplaySmallest("MENU:REPLY/NEW  EXIT:APRS", 0, 50, false, true);
+#elif defined(ENABLE_APRS_SESSION)
+    UI_DisplaySmallest("UP/DN:PACKET  EXIT:APRS", 0, 50, false, true);
 #else
     UI_DisplaySmallest("UP/DN:PACKET  EXIT:RADIO", 0, 50, false, true);
 #endif

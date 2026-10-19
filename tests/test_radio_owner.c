@@ -23,11 +23,12 @@ volatile uint16_t gTxTimerCountdown_500ms;
 volatile uint8_t gSerialConfigCountDown_500ms;
 uint8_t gUpdateStatus;
 int8_t gScanStateDir;
-static bool clockReady,scanning,allowed,pending,pa,red,muted;
+static bool clockReady,scanning,allowed,pending,pa,red,muted,capturing;
 static unsigned prepare,stop,ramp,delays,abortAt,restore,modem,compressorStops;
 static BELL202_Result modemResult;
 bool SYSTICK_CanCountCycles(void) {return clockReady;}
 bool SCANNER_IsScanning(void) {return scanning;}
+bool APRS_IsCapturing(void) {return capturing;}
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t reg) {assert(reg==BK4819_REG_0C);return pending;}
 void APRS_Stop(void) {++stop;}
 void RADIO_PrepareTX(void)
@@ -84,7 +85,7 @@ static void Init(void)
     gRxVfo->pRX->Frequency=gRxVfo->pTX->Frequency=14439000;
     gRxVfo->Modulation=MODULATION_FM;
     gCurrentFunction=FUNCTION_FOREGROUND;testRadioGPIO.DATA=1u<<GPIOC_PIN_PTT;
-    clockReady=allowed=true;scanning=pending=pa=red=muted=false;
+    clockReady=allowed=true;scanning=pending=pa=red=muted=capturing=false;
     prepare=stop=ramp=delays=abortAt=restore=modem=compressorStops=0;
     gSetting_ScrambleEnable=gCssBackgroundScan=g_SquelchLost=gFlagEndTransmission=gUpdateDisplay=false;
     gTxTimeoutReached=gTxSoftStart.active=false;
@@ -112,6 +113,7 @@ int main(void)
     config.enabled=true;
     Init();g_SquelchLost=true;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
     Init();pending=true;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
+    Init();capturing=true;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
     Init();testRadioGPIO.DATA=0;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
     Init();gCurrentFunction=FUNCTION_RECEIVE;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
     Init();gScanStateDir=1;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);

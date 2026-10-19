@@ -2,7 +2,7 @@
  * UVK5 standalone messaging draft/editor. No hardware TX or persistent writes.
  */
 #include "aprs_message.h"
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
 #include "aprs_session.h"
 #endif
 #include <string.h>
@@ -10,12 +10,14 @@ APRS_Message gAPRS_Message;
 char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1];
 void MESSAGE_Init(void)
 {
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
     static bool ready;
     if(ready) return;
     static const char defaults[]="ARRIVED SAFELY\0NEED ASSISTANCE\0CAN YOU COPY?";
     const char *p=defaults;
     for(unsigned i=0;i<APRS_QUICK_COUNT;i++) {strcpy(gAPRS_Quick[i],p);p+=strlen(p)+1;}
     ready=true;
+#endif
 }
 static const char *const keys[10] = {
     " 0", ".,?!/+-1", "ABC2", "DEF3", "GHI4", "JKL5",
@@ -58,7 +60,7 @@ static bool ValidId(const char *s)
 static void Commit(void) { gAPRS_Message.tapTicks=0; }
 void MESSAGE_EditCall(void)
 {
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
     strcpy(gAPRS_Message.editCall,gAPRS_Profile.callsign);
 #endif
     gAPRS_Message.page=MESSAGE_CALLSIGN;
@@ -84,14 +86,19 @@ void MESSAGE_Key(KEY_Code_t key)
     m->error=MESSAGE_OK;
     if (key==KEY_EXIT) {
         Commit();
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
         switch (m->page) {
         case MESSAGE_OPTIONS: case MESSAGE_QUICK: case MESSAGE_REVIEW:
             m->page=MESSAGE_COMPOSE; break;
         case MESSAGE_COMPOSE: m->page=MESSAGE_RECIPIENT; break;
         default: m->page=MESSAGE_CLOSED; break;
         }
+#else
+        m->page=MESSAGE_CLOSED;
+#endif
         return;
     }
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
     if (m->page==MESSAGE_OPTIONS || m->page==MESSAGE_QUICK) {
         const unsigned count=m->page==MESSAGE_OPTIONS ? 3 : APRS_QUICK_COUNT;
         if (key==KEY_UP) m->selected=(m->selected+count-1)%count;
@@ -125,18 +132,26 @@ void MESSAGE_Key(KEY_Code_t key)
     const bool call=m->page==MESSAGE_RECIPIENT || m->page==MESSAGE_CALLSIGN;
     char *text=m->page==MESSAGE_CALLSIGN ? m->editCall : call ? m->recipient : m->text;
     const unsigned limit=call ? 9 : APRS_MESSAGE_MAX;
+#else
+    if(m->page!=MESSAGE_CALLSIGN) return;
+    char *text=m->editCall;
+    const unsigned limit=9;
+#endif
     unsigned n=strlen(text);
     if (key==KEY_MENU) {
         Commit();
         if (m->page==MESSAGE_CALLSIGN) {
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
             if (SESSION_SetCall(text)) m->page=MESSAGE_CLOSED;
             else m->error=MESSAGE_BAD_CALL;
 #endif
-        } else if (m->page==MESSAGE_RECIPIENT) {
+        }
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
+        else if (m->page==MESSAGE_RECIPIENT) {
             if (MESSAGE_ValidCall(text)) { text[CallLength(text)]=0; m->page=MESSAGE_COMPOSE; }
             else m->error=MESSAGE_BAD_CALL;
         } else { m->page=MESSAGE_OPTIONS; m->selected=0; }
+#endif
         return;
     }
     if (key==KEY_F) { Commit(); return; }

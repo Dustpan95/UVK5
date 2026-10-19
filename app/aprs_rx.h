@@ -9,6 +9,7 @@ extern char gAPRS_BannerSource[10], gAPRS_BannerText[18];
 extern APRS_Record gAPRS_Log[APRS_LOG_CAPACITY];
 extern uint8_t gAPRS_Count, gAPRS_Selected;
 bool APRS_CanListen(void);
+bool APRS_IsCapturing(void);
 void APRS_Stop(void);
 void APRS_Tick500ms(void);
 void APRS_Interrupt(uint16_t bits);

@@ -46,6 +46,7 @@ ENABLE_BLMIN_TMP_OFF          ?= 0
 ENABLE_SCAN_RANGES            ?= 1
 # Candidate editor measured separately until the complete profile fits flash.
 ENABLE_APRS_MESSAGING         ?= 0
+ENABLE_APRS_SESSION           ?= 0
 ENABLE_FONT_PACKING           ?= 1
 
 # ---- DEBUGGING ----
@@ -82,8 +83,15 @@ BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
 OBJS = app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
 ifeq ($(ENABLE_APRS_MESSAGING),1)
-OBJS += app/aprs_message.o app/aprs_session.o ui/aprs_message.o ui/aprs_session.o
+override ENABLE_APRS_SESSION := 1
 CFLAGS_MESSAGING = -DENABLE_APRS_MESSAGING
+endif
+ifeq ($(ENABLE_APRS_SESSION),1)
+OBJS += app/aprs_message.o app/aprs_session.o ui/aprs_message.o ui/aprs_session.o
+CFLAGS_MESSAGING += -DENABLE_APRS_SESSION
+ifneq ($(ENABLE_APRS_MESSAGING),1)
+CFLAGS_MESSAGING += -DENABLE_APRS_CALLSIGN_ONLY
+endif
 endif
 # Startup files
 OBJS += start.o
@@ -493,8 +501,13 @@ bsp/dp32g030/%.h: hardware/dp32g030/%.def
 
 -include $(DEPS)
 
+.PHONY: all clean
+# Switching optional profiles changes object lists and preprocessing. Also clear
+# objects from previous profiles, not only the current default's object list.
+CLEAN_OBJECTS = $(wildcard *.o app/*.o driver/*.o ui/*.o helper/*.o experiments/*.o external/printf/*.o)
+CLEAN_DEPS = $(wildcard *.d app/*.d driver/*.d ui/*.d helper/*.d experiments/*.d external/printf/*.d)
 clean:
-	$(RM) $(call FixPath, $(TARGET).bin $(TARGET).packed.bin $(TARGET).map $(TARGET) $(OBJS) $(DEPS))
+	$(RM) $(call FixPath, $(TARGET).bin $(TARGET).packed.bin $(TARGET).map $(TARGET) $(OBJS) $(DEPS) $(CLEAN_OBJECTS) $(CLEAN_DEPS))
 
 doxygen:
 	doxygen

@@ -1,9 +1,10 @@
 # VUURWERK UV-K6 APRS — experimental UVK5 fork
 
-**Local experimental prototype:** the custom home layout is approved. APRS
+**Experimental development project:** the custom home layout is approved. APRS
 message composition, transmit implementation and feature tradeoffs are still
-in development. No flashable project release has been published. This repository is a
-development checkpoint, not a completed firmware release.
+in development. A [receive-session bench image](release/rx-session-bench/README.md) is available
+for owner-controlled physical testing. This is a development checkpoint, not a
+completed firmware release.
 See the [custom interface review](docs/design/DECISIONS.md) and
 [interactive mockup](docs/design/review.html).
 
@@ -36,15 +37,15 @@ The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md) is i
 as a separate candidate (`ENABLE_APRS_MESSAGING=1`), with multi-tap entry, quick
 messages, send review and truthful blocked-send status. It exceeds flash by
 1,544 bytes before adding a working transmitter, so it is not enabled in the
-fitting receive profile. No final feature cuts have been selected. See the [flash feasibility work](docs/FLASH-FEASIBILITY.md). The message
+minimal default receive profile. No final feature cuts have been selected. See the [flash feasibility work](docs/FLASH-FEASIBILITY.md). The message
 codec/ACK helpers have host tests. Experimental tone, radio-control and outbox
 modules also pass register/model tests, but normal on-radio send/configuration
 integration and RF validation remain unfinished; retaining those parts measures
-66,628 bytes, still 5,188 over flash.
+66,644 bytes, still 5,204 over flash.
 
 All APRS settings, static position, quick-message edits and received history
-are session-only and reset at power-off. The fitting receive profile remains
-an all-traffic packet browser. The optional messaging candidate adds a separate
+are session-only and reset at power-off. The minimal default receive profile remains
+an all-traffic packet browser. The receive-session bench and full messaging candidate add a separate
 personal inbox filtered by an operator-entered callsign/SSID, unread markers,
 a deduplicated station directory, and an all-traffic monitor. All received APRS messages still trigger brief
 banners and configured sound, regardless of addressee. **Currently implemented on-radio: receive.** Standard-compatible transmit is
@@ -97,6 +98,10 @@ Cortex-M0 ELF architecture and reset vector, and validates the packed updater
 payload and CRC. Outputs are `uvk6-experimental.bin` and
 `uvk6-experimental.packed.bin`; the verification report is
 `build/verification.json`. Nothing in these commands flashes hardware.
+
+To build the receive-session bench package (stations, positions and inbox), run
+`./tools/build-receiver-bench.sh`. It uses the same original-MCU limits and
+packages the matching manifest; it never flashes a radio.
 
 See [BUILD.md](BUILD.md), [validation results](docs/VALIDATION.md),
 [integration and remaining work](docs/INTEGRATION.md), and

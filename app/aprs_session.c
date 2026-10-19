@@ -90,7 +90,9 @@ void SESSION_Receive(const APRS_Record *r)
     if(!r || !MESSAGE_ValidCall(r->source)) return;
     Heard(r);
     if(r->kind==APRS_ACK || r->kind==APRS_REJECT) {
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
         MESSAGE_Acknowledge(r->source,r->destination,r->messageId,r->kind==APRS_REJECT);
+#endif
         return;
     }
     if(!SESSION_IsPersonal(r)) return;
@@ -117,13 +119,15 @@ void SESSION_Key(KEY_Code_t key)
 {
     if(gAPRS_View==APRS_HUB) {
         if(key==KEY_EXIT) gAPRS_Browser=false;
-        else if(key==KEY_UP) gAPRS_HubSelected=(gAPRS_HubSelected+4)%5;
-        else if(key==KEY_DOWN) gAPRS_HubSelected=(gAPRS_HubSelected+1)%5;
+        else if(key==KEY_UP) gAPRS_HubSelected=(gAPRS_HubSelected+APRS_HUB_ITEMS-1)%APRS_HUB_ITEMS;
+        else if(key==KEY_DOWN) gAPRS_HubSelected=(gAPRS_HubSelected+1)%APRS_HUB_ITEMS;
         else if(key==KEY_MENU) {
             if(gAPRS_HubSelected==0) { gAPRS_View=APRS_PERSONAL;gAPRS_InboxSelected=0; }
             else if(gAPRS_HubSelected==1) { gAPRS_View=APRS_MONITOR;gAPRS_Selected=0; }
             else if(gAPRS_HubSelected==2) {gAPRS_View=APRS_STATIONS;gAPRS_StationSelected=0;}
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
             else if(gAPRS_HubSelected==3) MESSAGE_Open(0);
+#endif
             else MESSAGE_EditCall();
         }
     } else if(gAPRS_View==APRS_PERSONAL) {
@@ -138,8 +142,10 @@ void SESSION_Key(KEY_Code_t key)
         }
     } else if(gAPRS_View==APRS_PERSONAL_DETAIL) {
         if(key==KEY_EXIT) gAPRS_View=APRS_PERSONAL;
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
         else if(key==KEY_MENU && gAPRS_InboxSelected<gAPRS_InboxCount)
             MESSAGE_Open(gAPRS_Inbox[gAPRS_InboxSelected].source);
+#endif
     } else if(gAPRS_View==APRS_STATIONS) {
         if(key==KEY_EXIT) gAPRS_View=APRS_HUB;
         else if(key==KEY_UP && gAPRS_StationSelected) --gAPRS_StationSelected;
@@ -151,8 +157,10 @@ void SESSION_Key(KEY_Code_t key)
         if(key==KEY_EXIT) gAPRS_View=APRS_HUB;
         else if(key==KEY_UP && gAPRS_Selected) --gAPRS_Selected;
         else if(key==KEY_DOWN && gAPRS_Selected+1<gAPRS_Count) ++gAPRS_Selected;
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
         else if(key==KEY_MENU) MESSAGE_Open(gAPRS_Count && gAPRS_Log[gAPRS_Selected].kind==APRS_MESSAGE ?
                                           gAPRS_Log[gAPRS_Selected].source : 0);
+#endif
     }
     gUpdateDisplay=true;
 }

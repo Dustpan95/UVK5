@@ -32,10 +32,16 @@ build/test_bell202_radio
 "$compiler" -O1 -I tests/radio_mock "${flags[@]}" tests/test_radio_owner.c experiments/aprs_radio_owner.c -o build/test_radio_owner
 build/test_radio_owner
 
-"$compiler" "${flags[@]}" -DENABLE_APRS_MESSAGING -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
+"$compiler" "${flags[@]}" -DENABLE_APRS_MESSAGING -DENABLE_APRS_SESSION -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
     app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
     ui/aprs.c ui/aprs_message.c ui/aprs_session.c ui/home.c ui/helper.c font.c external/printf/printf.c -o build/test_radio_messaging
 build/test_radio_messaging build
+
+mkdir -p build/session-receiver
+"$compiler" "${flags[@]}" -DENABLE_APRS_SESSION -DENABLE_APRS_CALLSIGN_ONLY -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
+    app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
+    ui/aprs.c ui/aprs_message.c ui/aprs_session.c ui/home.c ui/helper.c font.c external/printf/printf.c -o build/test_session_receiver
+build/test_session_receiver build/session-receiver
 
 # Exhaustive exact-arithmetic comparison uses optimized host code; parser/UI
 # suites above retain sanitizer coverage. This is 137 million comparisons.
@@ -44,15 +50,25 @@ build/test_scale
 
 ./tools/test-fonts.sh
 mkdir -p build/font-compression/frames
-frame_names=(aprs-position aprs-message home-memory home-unnamed home-vfo message-compose message-review message-blocked personal-inbox personal-message personal-unconfigured)
+frame_names=(aprs-position aprs-message home-memory home-unnamed home-vfo message-compose message-review message-blocked personal-inbox personal-message personal-unconfigured own-callsign)
 for name in "${frame_names[@]}"; do cp "build/$name.pbm" "build/font-compression/frames/$name.pbm"; done
-"$compiler" "${flags[@]}" -DENABLE_FONT_PACKING -DENABLE_APRS_MESSAGING -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
+"$compiler" "${flags[@]}" -DENABLE_FONT_PACKING -DENABLE_APRS_MESSAGING -DENABLE_APRS_SESSION -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
     app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
     ui/aprs.c ui/aprs_message.c ui/aprs_session.c ui/home.c ui/helper.c font_packed.c helper/packed.c external/printf/printf.c -o build/test_radio_packed
 build/test_radio_packed build
 
 for name in "${frame_names[@]}"; do cmp "build/$name.pbm" "build/font-compression/frames/$name.pbm"; done
-printf '%s\n' 'PASS packed-font framebuffers identical in 11 radio/APRS/editor states'
+printf '%s\n' 'PASS packed-font framebuffers identical in 12 radio/APRS/editor states'
+
+mkdir -p build/session-receiver-raw
+receiver_frames=(aprs-position aprs-message home-memory home-unnamed home-vfo personal-inbox personal-message personal-unconfigured station-directory station-detail own-callsign)
+for name in "${receiver_frames[@]}"; do cp "build/session-receiver/$name.pbm" "build/session-receiver-raw/$name.pbm"; done
+"$compiler" "${flags[@]}" -DENABLE_FONT_PACKING -DENABLE_APRS_SESSION -DENABLE_APRS_CALLSIGN_ONLY -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
+    app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
+    ui/aprs.c ui/aprs_message.c ui/aprs_session.c ui/home.c ui/helper.c font_packed.c helper/packed.c external/printf/printf.c -o build/test_session_receiver_packed
+build/test_session_receiver_packed build/session-receiver
+for name in "${receiver_frames[@]}"; do cmp "build/session-receiver/$name.pbm" "build/session-receiver-raw/$name.pbm"; done
+printf '%s\n' 'PASS packed-font framebuffers identical in 11 receive-session states'
 
 python3 tools/pack-menu-hints.py --check
 "$compiler" "${flags[@]}" tests/test_hints.c helper/packed.c -o build/test_hints

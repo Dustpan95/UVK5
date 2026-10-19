@@ -132,7 +132,7 @@ conditions, calibrated RSSI and degenerate S0/S9 calibration without division by
 zero. Radio scan/PTT algorithms were not replaced.
 
 All original font bytes (plain and optional bold) and menu hint bytes are
-compared against the expanded resources under sanitizers. Eleven actual
+compared against the expanded resources under sanitizers. Twelve full-candidate and eleven receive-session actual
 framebuffer states are identical with packed and unpacked fonts. Compression
 trades flash for RAM; the current build has 7,188 static RAM bytes, excluding its
 2,048-byte stack reservation. Runtime maximum stack usage is unmeasured.
@@ -164,6 +164,29 @@ job. ACK deadlines begin after successful simulated handoff. Retry selection and
 automatic ACK policy are not inferred from these tests; the operator flow remains
 unconnected and the modules are absent from the default image.
 
-The retained owner/transport diagnostic is 66,628 bytes, 5,188 over the physical
+The retained owner/transport diagnostic is 66,644 bytes, 5,204 over the physical
 application limit, and still misses remaining configuration/send integration.
 The default receive binary is unchanged at 58,056 bytes with the recorded hashes.
+
+## Fitting receive-session bench image
+
+`tools/build-receiver-bench.sh` now passes the real linker/vector/architecture,
+RAM/stack and updater-payload/CRC checks at **61,388 bytes**, 52 free. Static RAM
+is **7,996 bytes**, plus the 2,048-byte reserved stack. Its raw hash is
+`ee0cfb450bc8aeff08e02a90435a359b14a27ee21315b08f69eb3d1e7a2afaa2`;
+packed hash is `0b581b1365637f289bb1eec60bdacf0f9b0aca2b48d89873b670a728bb8f674c`.
+The verified hardware target is original DP32G030; no individual radio revision
+or RF behavior is established by this check.
+
+This profile includes the approved home/overlays, station directory/positions,
+personal inbox and monitor with session-only callsign entry, and all radio
+features of the current default. Composition remains available in its separate
+full development profile. APRS transmit remains in development. Twelve full
+candidate and eleven receive-session framebuffers compare byte-for-byte between
+raw and packed fonts, including actual callsign entry. Receive-session tests
+also verify that the hub/monitor expose their implemented controls and PTT works.
+
+Host captures are under `screenshots/receiver-bench/`; they are not photographs.
+The package's manifest links the exact corresponding source and identifies
+whether its build tree was clean. Published bench artifacts must have a clean
+source tree and matching raw/packed hashes. Physical validation remains unrun.

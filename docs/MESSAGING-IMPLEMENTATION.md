@@ -124,9 +124,19 @@ absolute-deadline scheduler, with a RAM-only callback. It excludes actual radio
 output, MCU clock backend, arbitration, automatic ACK dispatch and retries.
 ACK/reject builder output independently decodes as ideal audio in Dire Wolf.
 
-The further frozen-outbox/tone/owner diagnostic uses 66,628 bytes (5,188 over).
+The further frozen-outbox/tone/owner diagnostic uses 66,644 bytes (5,204 over).
 It adds tested policy-driven retries, immutable pending frames, conservative
 radio admission, muted PA soft-start and RX restoration. These parts are not
 connected to the normal editor or default firmware. User policy choices,
 automatic ACK dispatch (including a separate pending control queue), settings
 screens and relay routing remain to be integrated. No RF success is claimed.
+
+## Receive-session bench separation
+
+`ENABLE_APRS_SESSION=1 ENABLE_APRS_MESSAGING=0` compiles the station/inbox/monitor
+and callsign editor independently of unfinished composition. The four-item hub
+has PERSONAL INBOX, ALL TRAFFIC, STATIONS and MY CALLSIGN. Monitor/detail footers
+show their implemented controls. This bench profile is 61,388 bytes, fitting the
+real original-MCU limit by 52 bytes. The full editor profile is retained without
+changes to its approved flow. This separation supports physical receive tests;
+it does not remove transmit from the project or select final feature cuts.

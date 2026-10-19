@@ -32,8 +32,8 @@ are not simultaneous operations.
 
 RX capture is bounded to 240 raw bytes / 192 decoded frame bytes. One valid
 frame is returned per capture. The history holds recent packets, not a deduplicated
-station directory. The fitting receive profile exposes all addressees in one
-packet browser. The optional messaging candidate adds a separate RAM-only
+station directory. The minimal default receive profile exposes all addressees in one
+packet browser. The fitting receive-session bench and full messaging candidate add a separate RAM-only
 personal inbox, deduplicated station directory and all-traffic monitor with
 an own-callsign editor; see
 `MESSAGING-IMPLEMENTATION.md`. Received history, callsign, position and quick
@@ -78,3 +78,16 @@ calibration. A passing gain-limit test does not establish good sounding audio.
 
 See `HARDWARE-VALIDATION.md` before any physical installation. Future additions
 should preserve a reproducible passing profile and remeasure the flash budget.
+
+The receive-session bench uses `ENABLE_APRS_SESSION=1` without the unfinished
+composer. It fits at 61,388 bytes and exposes the approved station/inbox/monitor
+and callsign screens. The full messaging profile implies session UI. Build
+cleanup now removes prior optional objects and passes the selected flags to
+`make clean`; the bench packager pins every boolean option to the source
+revision's defaults before selecting its profile. Cross-profile stale objects
+cannot be reused by those clean build scripts.
+
+The experimental radio owner also defers while APRS capture is active, even if
+no BK4819 interrupt is pending. The receive module exposes that state without
+changing capture behavior. Host tests verify capture transitions and the owner
+admission guard; the normal receive image does not include a transmitter.

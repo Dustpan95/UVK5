@@ -11,8 +11,12 @@ void SESSION_Draw(void)
     const char *footer="MENU:OPEN  EXIT:RADIO";
     if(gAPRS_View==APRS_HUB) {
         UI_PrintStringSmallNormal("APRS",0,0,0);
-        const char *const items[]={"PERSONAL INBOX","ALL TRAFFIC","STATIONS","NEW MESSAGE","MY CALLSIGN"};
-        for(unsigned i=0;i<5;i++) {
+        const char *const items[]={"PERSONAL INBOX","ALL TRAFFIC","STATIONS",
+#ifndef ENABLE_APRS_CALLSIGN_ONLY
+            "NEW MESSAGE",
+#endif
+            "MY CALLSIGN"};
+        for(unsigned i=0;i<APRS_HUB_ITEMS;i++) {
             sprintf(line,"%c%s",i==gAPRS_HubSelected ? '>' : ' ',items[i]);
             UI_PrintStringSmallNormal(line,0,0,i+1);
         }
@@ -46,7 +50,11 @@ void SESSION_Draw(void)
     } else if(gAPRS_View==APRS_PERSONAL_DETAIL) {
         UI_PrintStringSmallNormal("PERSONAL MESSAGE",0,0,0);
         if(gAPRS_InboxSelected<gAPRS_InboxCount) APRS_DrawRecord(&gAPRS_Inbox[gAPRS_InboxSelected]);
+#ifdef ENABLE_APRS_CALLSIGN_ONLY
+        footer="EXIT:INBOX";
+#else
         footer="MENU:REPLY  EXIT:INBOX";
+#endif
     } else {
         sprintf(line,"PERSONAL INBOX %u",gAPRS_InboxCount);
         UI_PrintStringSmallNormal(line,0,0,0);

@@ -62,7 +62,7 @@ included in the totals below.
 | Receive and approved home overlays | 58,056 | 7,188 | 3,384 free |
 | Editor, profile, inbox, stations, received ACK handling | 62,984 | 8,200 | 1,544 over |
 | Same plus retained TX protocol and timing helpers | 65,012 | diagnostic | 3,572 over |
-| Same plus frozen outbox, tone backend and radio owner | 66,628 | diagnostic | 5,188 over |
+| Same plus frozen outbox, tone backend and radio owner | 66,644 | diagnostic | 5,204 over |
 
 The receive profile passes the real 60 KiB linker, ARMv6S-M/Thumb-1 vector and
 packed updater/CRC checks. `receive-build-verification.json` records hashes and
@@ -124,7 +124,7 @@ A larger or different compiler alone has not solved the original-MCU budget.
 
 The final phase of `tools/measure-protocol.py` also retains the actual original-MCU
 clock, BK4819 tone backend, radio admission/muted PA ramp/RX restoration wrapper,
-and frozen outbox. It measures **66,628 bytes**, 5,188 over physical flash. These
+and frozen outbox. It measures **66,644 bytes**, 5,204 over physical flash. These
 modules pass host model tests and cross-compile, but are outside the normal
 Makefile and are never executed on hardware here. The probe still excludes normal
 send/configuration integration, automatic ACK dispatch, custom quick-message and
@@ -136,3 +136,13 @@ AM-fix-off now builds while retaining the shared table used by FM gain staging;
 it saves 556 bytes in a separate receive-profile comparison. Default AM fix
 remains on, and both default image hashes are byte-identical after the repair.
 This option alone does not fund the remaining transport budget.
+
+## Fitting receive-session bench profile
+
+Separating receive-session screens from the unfinished composer gives a fitting
+physical-test profile: **61,388 / 61,440 bytes**, 7,996 static RAM. It includes
+stations/positions, personal inbox, monitor and own-callsign entry, along with
+the approved home and existing radio features. The full editor remains 62,984,
+and retained transport/owner remains 66,644. This is a bench checkpoint and no
+final TX/feature-cut decision follows from it. Only 52 flash bytes remain, so
+this profile is not evidence that the complete requested TX service fits.

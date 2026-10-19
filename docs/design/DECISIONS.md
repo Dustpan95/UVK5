@@ -102,3 +102,8 @@ bandscope states. `mode-overlays-review.png` records the proposed direction;
 the real scan footer says MENU/EXIT:STOP because MENU stops the inherited scan.
 The numeric-entry overlay replaces the main readout only while digits are being
 entered, keeping the home context and secondary VFO visible.
+
+A separate receive-session bench profile now contains the approved station/inbox
+screens and callsign entry, without unfinished composition controls. The full
+messaging candidate retains the approved flow. `screenshots/receiver-bench/`
+one directory above contains actual host-rendered receive-profile examples.

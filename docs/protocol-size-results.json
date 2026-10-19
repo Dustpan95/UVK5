@@ -1,5 +1,5 @@
 {
-  "source_fingerprint": "96b625acce4597c2e9ebc03627b1ff8a4aa8e7f07e2653a8372dd413accf0c27",
+  "source_fingerprint": "6101e309ddbcd968e6c5a5b7e0d7785bb98410ecb452dc099f4bee52ed96afb1",
   "compiler": "ARM GCC 10.3.1",
   "real_flash_limit": 61440,
   "diagnostic_flash_limit": 131072,
@@ -14,8 +14,8 @@
     "retry service",
     "position and saved-message editing UI"
   ],
-  "with_tone_backend_and_outbox_bytes": 66628,
-  "transport_increment_bytes": 1616,
+  "with_tone_backend_and_outbox_bytes": 66644,
+  "transport_increment_bytes": 1632,
   "transport_still_excludes": [
     "normal UI send integration",
     "automatic ACK dispatch",

@@ -29,6 +29,7 @@ for p in sorted(SOURCE.rglob('*')):
 variants=[('baseline',[],None)]
 for label,flag in [
  ('messaging_editor','ENABLE_APRS_MESSAGING=1'),
+ ('session_receiver','ENABLE_APRS_SESSION=1'),
  ('font_packing','ENABLE_FONT_PACKING=1'),('font_unpacked','ENABLE_FONT_PACKING=0'),
  ('spectrum','ENABLE_SPECTRUM=1'),('fm_broadcast','ENABLE_FMRADIO=1'),
  ('vox','ENABLE_VOX=1'),('voice_prompts','ENABLE_VOICE=1'),('noaa','ENABLE_NOAA=1'),

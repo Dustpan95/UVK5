@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
 """Convert host-test LCD framebuffer PBMs to PNGs without image dependencies."""
 import binascii
+import argparse
 import pathlib
 import struct
 import zlib
 
 root = pathlib.Path(__file__).resolve().parents[1]
-output = root / 'docs/screenshots'
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--receive-session',action='store_true',help='Render receive-session bench test captures')
+args=parser.parse_args()
+source=root/'build/session-receiver' if args.receive_session else root/'build'
+output = root / ('docs/screenshots/receiver-bench' if args.receive_session else 'docs/screenshots')
 output.mkdir(parents=True, exist_ok=True)
 
 def chunk(kind, payload):
     return struct.pack('>I', len(payload)) + kind + payload + struct.pack('>I', binascii.crc32(kind + payload) & 0xffffffff)
 
-for name in ('aprs-position', 'aprs-message', 'home-memory', 'home-unnamed', 'home-vfo', 'message-compose', 'message-review', 'message-blocked', 'personal-inbox', 'personal-message', 'personal-unconfigured', 'station-directory', 'station-detail'):
-    fields = (root / 'build' / (name + '.pbm')).read_text().split()
+for name in ('aprs-position', 'aprs-message', 'home-memory', 'home-unnamed', 'home-vfo', 'message-compose', 'message-review', 'message-blocked', 'personal-inbox', 'personal-message', 'personal-unconfigured', 'station-directory', 'station-detail', 'own-callsign'):
+    if args.receive_session and name.startswith('message-'):continue
+    fields = (source / (name + '.pbm')).read_text().split()
     assert fields[:3] == ['P1', '128', '64']
     pixels = [int(x) for x in fields[3:]]
     assert len(pixels) == 128 * 64

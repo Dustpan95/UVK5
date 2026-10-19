@@ -18,7 +18,7 @@
  * No APRS transmit, beacon, acknowledgment or EEPROM write path is present.
  */
 #include "aprs_rx.h"
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
 #include "aprs_message.h"
 #include "aprs_session.h"
 #endif
@@ -59,6 +59,8 @@ bool APRS_CanListen(void)
         gEeprom.DUAL_WATCH == DUAL_WATCH_OFF &&
         gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_OFF && gVfoSplit.mode == SPLIT_OFF;
 }
+
+bool APRS_IsCapturing(void) {return armed && capturing;}
 
 void APRS_Stop(void)
 {
@@ -115,7 +117,7 @@ static void Decode(void)
 {
     APRS_Record record;
     if (!APRS_DecodeBits(capture, captureCount, &record)) return;
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
     SESSION_Receive(&record);
 #endif
     memmove(gAPRS_Log + 1, gAPRS_Log, (APRS_LOG_CAPACITY - 1) * sizeof(record));
@@ -156,7 +158,7 @@ void APRS_Interrupt(uint16_t bits)
 
 void APRS_Tick500ms(void)
 {
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
     MESSAGE_Tick500ms();
     SESSION_Tick500ms();
 #endif
@@ -179,7 +181,7 @@ void APRS_Tick500ms(void)
 
 void APRS_Open(void)
 {
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
     MESSAGE_Init();
     SESSION_Open();
 #endif
@@ -199,7 +201,7 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
     if (!gAPRS_Browser) return false;
     /* PTT must retain the stock press/release path; hide the browser first. */
     if (key == KEY_PTT) {
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
         gAPRS_Message.page = MESSAGE_CLOSED;
 #endif
         gAPRS_Browser = false;
@@ -207,7 +209,7 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
         return false;
     }
     if (!pressed) return true;
-#ifdef ENABLE_APRS_MESSAGING
+#ifdef ENABLE_APRS_SESSION
     if (held) return true;
     if (gAPRS_Message.page != MESSAGE_CLOSED) {
         MESSAGE_Key(key);
