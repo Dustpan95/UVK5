@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install pinned ARM compiler and test dependencies
         run: sudo bash tools/install-container.sh
       - name: Test decoder, receiver handoff and LCD rendering with sanitizers
@@ -26,6 +28,8 @@ jobs:
             build/verification.json
       - name: Build original-MCU receive-session bench package
         run: ./tools/build-receiver-bench.sh
+      - name: Reproduce published bench binaries from their frozen source
+        run: python3 tools/verify-bench-release.py
       - uses: actions/upload-artifact@v4
         with:
           name: uvk6-rx-session-bench

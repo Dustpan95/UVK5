@@ -55,7 +55,10 @@ checks the distributed images and metadata. Remote CI status is separate.
 ## Reproduce and credits
 
 At the manifest's source commit, run `./tools/test.sh` and
-`./tools/build-receiver-bench.sh` using the documented pinned toolchain. Outputs
+`./tools/build-receiver-bench.sh` using the documented pinned toolchain. Verify
+the committed files against a fresh archive of their exact source using
+`python3 tools/verify-bench-release.py` from a current checkout with full Git
+history. Both raw and packed files reproduced byte-for-byte locally. Outputs
 are under `build/receiver-bench/`. Corresponding complete source, build scripts,
 licenses, notices and original history are available at the manifest's source URL.
 

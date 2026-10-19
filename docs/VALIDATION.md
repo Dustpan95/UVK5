@@ -190,3 +190,13 @@ Host captures are under `screenshots/receiver-bench/`; they are not photographs.
 The package's manifest links the exact corresponding source and identifies
 whether its build tree was clean. Published bench artifacts must have a clean
 source tree and matching raw/packed hashes. Physical validation remains unrun.
+
+The published raw and packed images were fetched from their immutable GitHub
+URLs and matched the manifest hashes. A fresh source archive of commit
+`d8b8b3d1119b66d1ed177e2dd32a81f9003e0b8a` then rebuilt both files byte-for-byte
+with the manifest's 46 pinned boolean settings. `tools/verify-bench-release.py`
+reproduces this check without altering the working checkout. The CI workflow
+also runs it against the frozen published source while development continues.
+The artifact-publication commit's initial GitHub run 39289755235 passed host
+tests and both real-limit build/package checks; later workflow results must be
+checked separately. None of these checks is a physical radio/RF test.

@@ -91,3 +91,10 @@ The normal default `tools/build.sh` remains the 58,056-byte four-packet receiver
 Full `ENABLE_APRS_MESSAGING=1` remains an oversized development candidate. Session
 UI is separated from the unfinished composer so real receive testing can proceed
 without changing the final transmit goal or cutting inherited radio features.
+
+Verify the distributed bench binaries against a fresh archive of the manifest's
+exact source commit with `python3 tools/verify-bench-release.py`. The source
+commit must exist locally (CI fetches full history). This rebuild compares both
+raw and packed images byte-for-byte, leaves the working checkout intact, and
+never creates a Git worktree or flashes hardware. It uses the manifest's flags
+rather than the current development profile.
