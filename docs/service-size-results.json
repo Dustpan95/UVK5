@@ -1,0 +1,18 @@
+{
+  "source_fingerprint": "ae67afecad6474ddc427872e57455274c3c44bc3e574d2940c7ed45db48f04ed",
+  "compiler": "ARM GCC 10.3.1",
+  "real_flash_limit": 61440,
+  "diagnostic_flash_limit": 131072,
+  "model_bound_service_bytes": 67692,
+  "over_flash_bytes": 6252,
+  "static_ram_bytes": 8608,
+  "scope": "Diagnostic UI/RX/foreground hooks and RAM channel model; not operational firmware",
+  "still_excludes": [
+    "actual separate-frequency hardware adapter",
+    "position/quick-message editing screens",
+    "unique outgoing ID allocation",
+    "complete delivery-state UI",
+    "relay paths",
+    "hardware carrier-sense/RF validation"
+  ]
+}

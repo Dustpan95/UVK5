@@ -20,6 +20,16 @@ build/test_message
 "$compiler" "${flags[@]}" tests/test_tx.c app/aprs_tx.c app/aprs_message.c app/aprs_decode.c app/aprs_position.c -o build/test_tx
 build/test_tx
 
+"$compiler" "${flags[@]}" -DENABLE_APRS_SESSION -DENABLE_APRS_MESSAGING -ffunction-sections -fdata-sections \
+    tests/test_aprs_service.c experiments/aprs_service.c app/aprs_tx.c app/aprs_message.c \
+    app/aprs_session.c app/aprs_decode.c app/aprs_position.c -Wl,--gc-sections -o build/test_aprs_service
+build/test_aprs_service
+
+"$compiler" "${flags[@]}" -DENABLE_APRS_SESSION -DENABLE_APRS_MESSAGING -ffunction-sections -fdata-sections \
+    tests/test_aprs_channel.c experiments/aprs_channel.c experiments/aprs_service.c app/aprs_tx.c app/aprs_message.c \
+    app/aprs_session.c app/aprs_decode.c app/aprs_position.c -Wl,--gc-sections -o build/test_aprs_channel
+build/test_aprs_channel
+
 "$compiler" "${flags[@]}" tests/test_bell202_timing.c experiments/bell202_symbols.c experiments/bell202_timing.c -o build/test_bell202_timing
 build/test_bell202_timing
 

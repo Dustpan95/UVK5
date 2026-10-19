@@ -219,3 +219,33 @@ output guards for empty/short, repeated, overlapping, random and window-boundary
 inputs. The development bench passes real flash/RAM/vector/updater checks at
 61,368 bytes; the previously published 61,388-byte bench and its manifest remain
 frozen. `tools/test-packer.py` reproduces the new stream cases.
+
+## Approved session service and separate-channel model
+
+The real experimental service passes sanitizer tests for default-disabled TX,
+validated enable, personal automatic ACKs/SSID-zero matching, other-addressee
+and wrong-frequency exclusion, duplicate/full queues, three total attempts,
+frequency-matched delivery evidence, beacon position requirements, atomic invalid
+configuration and cancellation on disable/identity changes. Pending control
+replies do not overwrite an own message or its acknowledgment deadline.
+
+The channel model passes tune-before-send and restore-after-send checks with
+injected operations. The configurable ACK deadline defaults to ten seconds
+**after** handoff; ACK/reject, PTT, expiry, fault and disable restoration are tested,
+including wrap, control replies during a wait and interruption during acquisition.
+The hardware enter/restore adapter and normal UI/RX/foreground calls are absent.
+No channel switching, APRS RF output or physical backup has been verified.
+
+The retained service/model cross-compiles at 68,560 bytes; a separately generated
+model-bound service copy measures 67,692 bytes with 8,608 static RAM. Neither
+fits or contains an actual channel-retuning adapter. Its copied hooks are for
+size diagnosis, not an implemented normal build. The baseline, protocol and tone
+owner phases remain separately reported. No diagnostic linker enlargement is a
+hardware-capacity change.
+
+The local raw-EEPROM consistency checker was exercised with matching full-size
+fixtures and rejects truncated, mismatching and uniform-calibration fixtures.
+It does not validate a connected radio, every calibration field, or recovery.
+No owner backup exists in the workspace. The corrected installation-preparation
+guide distinguishes charging USB-C from two-pin serial programming, EEPROM reads
+from firmware dumps, and MCU evidence from model/version labels.

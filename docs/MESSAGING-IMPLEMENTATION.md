@@ -153,6 +153,13 @@ The all-session-only requirement remains in effect.
 The latest outbox investigation additionally freezes requested RF frequency,
 records the local receive frequency in the full messaging candidate, handles
 late matching acknowledgments and separates bounded priority control replies.
-Active VFO versus separate APRS-frequency routing, retry policy, automatic ACK
-policy and relay configuration remain pending choices. The control mechanism
+Separate APRS-frequency routing, automatic personal ACKs, three total attempts
+and a configurable 10-second default ACK wait are approved. Relay configuration,
+retry spacing and further setup-screen review remain open. The control mechanism
 is not an automatic transmitter in the normal image.
+
+The experimental service now applies automatic personal ACK selection and the
+three-attempt policy; the separate-channel model manages the approved ACK wait
+and voice restoration through injected operations. Neither is bound to the
+normal editor, receiver or hardware retuning yet. User approval of the policy
+is recorded in `design/DECISIONS.md`; software tests do not establish RF success.

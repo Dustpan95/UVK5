@@ -1,5 +1,5 @@
 {
-  "source_fingerprint": "ae1e1d6376ec312f544c79760afa798f6631a267065a3a1be3bb31ffdbe1fc66",
+  "source_fingerprint": "ae67afecad6474ddc427872e57455274c3c44bc3e574d2940c7ed45db48f04ed",
   "compiler": "ARM GCC 10.3.1",
   "real_flash_limit": 61440,
   "diagnostic_flash_limit": 131072,
@@ -22,6 +22,17 @@
     "normal UI send integration",
     "automatic ACK dispatch",
     "position/quick-message configuration UI",
+    "relay path configuration",
+    "hardware carrier-sense/RF validation"
+  ],
+  "with_session_service_and_channel_model_bytes": 68560,
+  "service_model_increment_bytes": 820,
+  "service_model_static_ram_bytes": 8604,
+  "service_model_still_excludes": [
+    "normal UI/receive/foreground binding",
+    "actual separate-frequency hardware adapter",
+    "position/quick-message configuration UI",
+    "unique outgoing ID allocation",
     "relay path configuration",
     "hardware carrier-sense/RF validation"
   ]

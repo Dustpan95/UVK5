@@ -41,3 +41,14 @@ independent TNC; verify messages, ACK/rejects and beacons, busy-channel behavior
 PA ramp, timeout/PTT abort and receive restoration. Start with explicit TX enable
 and a calibrated tone gain. The current normal build does not contain the
 experimental transport and cannot perform these tests.
+
+## Owner preparation
+
+The original radio USB-C socket is charging-only. A compatible USB serial adapter
+using the two-pin programming sockets is needed before any local backup or
+installation. See `../FLASHING.md` for a read-only full-EEPROM backup example and
+`../tools/check-eeprom-backups.py` for file consistency checks. Two matching
+8,192-byte files include the calibration region, but file checks alone do not
+establish calibration correctness or recovery. `k5prog -r` reads EEPROM, not a
+firmware dump. Physical MCU identification and usable recovery remain required.
+Independent receivers/TNCs can validate RF once hardware preparation is complete.

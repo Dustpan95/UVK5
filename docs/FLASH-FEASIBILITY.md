@@ -83,7 +83,8 @@ scheduler under LTO. Its clock and tone callbacks operate only on synthetic RAM
 state. No BK4819 or GPIO write occurs. The probe adds 2,028 bytes to its exact
 same-source candidate; `protocol-size-results.json` records the fingerprint.
 
-This is a lower-bound protocol/timing cost. Actual tone output, MCU clock backend,
+This measures the retained protocol/timing paths plus diagnostic scaffolding;
+it is not an exact forecast of the final integrated firmware. Actual tone output, MCU clock backend,
 TX limits/arbitration, busy-channel handling, automatic ACK dispatch, retries,
 and position/custom-quick editing screens still need space and implementation.
 The station directory and received ACK/reject parser are already in the
@@ -195,3 +196,27 @@ code/data sections, alignment sorting and whole-program compilation each saved
 zero bytes on the same editor candidate (`section-size-results.json`). The
 production compiler flags and radio features remain unchanged. These small
 savings do not solve the full firmware budget; no feature-cut decision follows.
+
+## Approved service and model-bound measurement
+
+Automatic personal ACKs, three total attempts, a separate APRS frequency and a
+configurable 10-second default ACK wait are now approved. The experimental
+service and channel model implement/test those mechanisms with injected radio
+operations. The actual hardware enter/restore adapter remains absent.
+
+The old retained-path diagnostic plus the service/model uses **68,560 bytes**,
+7,120 over. A second diagnostic instead binds the service into copied UI-send,
+receive and 10 ms foreground paths, omits parallel raw protocol probes and removes
+the superseded draft ACK callback in that isolated copy. It measures **67,692
+bytes**, **6,252 over**, with 8,608 static RAM bytes. The difference includes
+changed diagnostic scaffolding; it is not a 868-byte production optimization or
+an adopted feature cut. These measurements retain incomplete paths and cannot
+establish an exact final shortfall. `service-size-results.json` records the
+fingerprint and exclusions; reproduce with `python3 tools/measure-service.py`.
+
+The bound copy still has RAM-only channel entry/restore, placeholder external
+message IDs and incomplete delivery-state presentation. Hardware retuning,
+position/quick-message editing, ID allocation, relay paths and RF/carrier-sense
+validation remain. **Never execute, flash or distribute either diagnostic as
+usable firmware.** The normal Makefile/editor/receiver remain unchanged, and
+no operational automatic transmitter is enabled by this checkpoint.

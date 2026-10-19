@@ -41,7 +41,18 @@ minimal default receive profile. No final feature cuts have been selected. See t
 codec/ACK helpers have host tests. Experimental tone, radio-control and outbox
 modules also pass register/model tests, but normal on-radio send/configuration
 integration and RF validation remain unfinished; retaining those parts measures
-67,740 bytes, still 6,300 over flash.
+67,740 bytes, still 6,300 over flash. The new service/channel model and copied
+UI/RX/foreground hooks have a separate diagnostic measurement of **67,692 bytes**
+(**6,252 over**); it still lacks the actual retuning adapter and remaining UI.
+These diagnostics include scaffolding and are not final firmware-size forecasts.
+
+Selected TX policy: a separate APRS frequency, automatic ACKs for personal
+numbered messages, up to three total message attempts and a configurable ACK
+listen period defaulting to **10 seconds**, then restoration of voice operation.
+This is a single-receiver radio: dual watch alternates frequencies. Those
+mechanisms have service/model tests; an operational on-radio binding remains
+unfinished. The USB-C socket charges the original radio; programming/backups
+require its two-pin serial adapter. See [backup preparation](FLASHING.md).
 
 All APRS settings, static position, quick-message edits and received history
 are session-only and reset at power-off. The minimal default receive profile remains

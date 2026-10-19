@@ -125,7 +125,8 @@ retain their locally observed frequency. This does not select the pending UI
 choice between active-VFO operation and a separate APRS channel. Explicit policy
 supports one or up to three attempts, busy deferral, bounded lifetime, cancellation,
 ACK/reject matching and wrap-safe deadlines. ACK waiting begins after successful
-handoff. Policy selection and automatic ACK behavior remain pending user choices.
+handoff. Automatic personal ACKs and three total outgoing attempts are now approved.
+The ACK-listen interval is configurable with a 10-second default.
 Failure/cancellation can follow an earlier successful attempt; attempts remain
 recorded and must be shown honestly by the future UI. Matching late ACK/rejects
 can still confirm an earlier completed send after cancellation or timeout, until
@@ -153,3 +154,42 @@ synthetic +/-6.7 us SPI-duration variation and periodic simulated interrupt
 latency. Independent Dire Wolf decoded message, beacon, ACK and reject fixtures
 with bit repair disabled. `tools/test-bell202-timing.py` reproduces this optional
 test. It tests the chosen software timing budget, not a physical SPI bus or RF.
+
+## Session service and separate-channel orchestration
+
+`experiments/aprs_service.c` applies the approved policy behind explicit session
+configuration. It requires a callsign, selected APRS frequency and bounded timing
+before enable. It queues ACKs only for valid numbered personal messages received
+on that APRS frequency, preserving ID case; controls never ACK other controls.
+Duplicate receptions can queue another ACK after an earlier reply was sent, while
+identical pending replies share a queue slot. Call the service before personal
+mailbox duplicate suppression when the actual receive binding is added.
+
+Own messages use three total attempts. Static beacons require a configured
+position and do not request an ACK. Disabling TX or changing callsign clears
+pending control replies and stops old-identity retries. Late, frequency-matched
+ACK/reject evidence can still update a completed send without enabling any RF.
+No APRS configuration or history is written to EEPROM.
+
+`experiments/aprs_channel.c` orchestrates enter/send/ACK-wait/restore using injected
+hardware operations. It waits from the completed handoff deadline, restores
+voice on ACK/reject, expiry, fault or disable, and lets PTT interrupt a wait.
+A timeout restores voice before a later service call can acquire another attempt.
+The model preserves retry deadlines after PTT; retry spacing and its display
+remain unfinished. Control replies can be sent during the same ACK-listen lease
+without overwriting the outgoing frame or deadline. Tests cover time wrap,
+refused entry, interruption during acquisition, restoration exactly once, queued
+controls while waiting and early lifetime expiry.
+
+**The actual hardware enter/restore adapter is not implemented.** Test callbacks
+simulate tuning and restoration. Integration must preserve the actual voice
+VFO, offsets/codes, calibration and receiver state, and restore voice before any
+ordinary key/PTT, save or serial operation can act on temporary APRS state.
+The existing tone owner only accepts an already selected, matching simplex
+frequency; it is not itself the requested separate-frequency adapter.
+
+The latest diagnostic additionally retains the service/channel model on top of
+the tone/outbox/owner. Its callbacks simulate channel entry/restore in RAM;
+retaining these helpers is not a physical retuning test or a flashable image.
+Normal UI/RX/foreground binding, hardware adapter, outgoing ID allocation, relay
+paths, position/quick-message editing and RF validation remain outstanding.

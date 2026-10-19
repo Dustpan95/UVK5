@@ -131,3 +131,41 @@ if args.transport_options:
         'delta_flash_bytes':used-transport,'over_flash_bytes':used-61440}
   report['optional_transport_profiles'].append(item);print(json.dumps(item),flush=True)
  (work/'results.json').write_text(json.dumps(report,indent=2)+'\n')
+
+# Finally retain the session policy and channel orchestration. Entry/restore
+# callbacks below only touch RAM: the actual channel hardware adapter is absent.
+p=work/'Makefile';p.write_text(p.read_text().replace('OBJS += app/aprs_tx.o',
+ 'OBJS += experiments/aprs_service.o experiments/aprs_channel.o app/aprs_tx.o'))
+p=work/'app/protocol_probe.c';s=p.read_text()
+s=s.replace('#include "app/aprs_tx.h"', '#include "app/aprs_tx.h"\n#include "experiments/aprs_channel.h"')
+s=s.replace('void APRS_ProtocolProbe(void) {', r'''static volatile uint32_t probeChannel,restores;
+static APRS_ChannelAdmission EnterChannel(uint32_t frequency,void *ctx) {
+ (void)ctx;probeChannel=frequency;
+ return gProbeMode&4096 ? APRS_CHANNEL_BUSY : APRS_CHANNEL_READY;
+}
+static void RestoreChannel(void *ctx) {(void)ctx;++restores;}
+static bool InterruptChannel(void *ctx) {(void)ctx;return gProbeMode&8192;}
+void APRS_ProtocolProbe(void) {''')
+s=s.replace(' const BELL202_Output output={Now,Symbol,Cancelled,0};', r''' if(gProbeMode&2048) {
+  static APRS_Channel channel;
+  const APRS_ChannelOps ops={LinkNow,EnterChannel,SendRadio,RestoreChannel,InterruptChannel,0};
+  gProbeAccepted=CHANNEL_Configure(&channel,&ops);
+  const APRS_ServiceSettings config={gProbeFrequency,APRS_ACK_DEFAULT_TICKS,60000,1000,gProbeMode&128};
+  gProbeAccepted=SERVICE_Configure(&config);
+  const uint32_t now=SCHEDULER_GetTicks10ms();
+  if(gProbeMode&1) gProbeAccepted=SERVICE_Beacon(now);
+  else gProbeAccepted=SERVICE_Message(gAPRS_Message.recipient,gAPRS_Message.text,id,now);
+  if(gAPRS_Selected<gAPRS_Count && gAPRS_Selected<APRS_LOG_CAPACITY)
+   gProbeAccepted=SERVICE_Receive(&gAPRS_Log[gAPRS_Selected],now);
+  CHANNEL_Process(&channel);
+  if(gProbeMode&16) CHANNEL_Interrupt(&channel);
+ }
+ const BELL202_Output output={Now,Symbol,Cancelled,0};''')
+p.write_text(s)
+service,log=build();(work/'service.log').write_text(log)
+report['with_session_service_and_channel_model_bytes']=service
+report['service_model_increment_bytes']=service-transport
+report['service_model_static_ram_bytes']=static_ram(log)
+report['service_model_still_excludes']=['normal UI/receive/foreground binding','actual separate-frequency hardware adapter',
+ 'position/quick-message configuration UI','unique outgoing ID allocation','relay path configuration','hardware carrier-sense/RF validation']
+(work/'results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))

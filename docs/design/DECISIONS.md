@@ -116,7 +116,27 @@ are not implemented or approved yet. They retain session-only configuration.
 Saving a position is distinct from sending a beacon; editing a quick message
 would leave both the saved value and composition draft intact until Save.
 
-The owner is also reviewing active-VFO versus separate-frequency APRS routing.
+The owner selected a separate APRS frequency with restoration of voice operation.
 Core prototypes freeze requested frequency, which supports enforcing either
 policy later without silently sending queued frames on a changed channel.
-Retry and automatic-ACK policies remain open. No final feature cuts are chosen.
+Automatic personal ACKs and three total outgoing attempts are approved; retry spacing remains open. No final feature cuts are chosen.
+
+## Approved APRS transport policy
+
+- Use a separately configured APRS frequency; switch there for data operation
+  and restore the prior voice operation afterward.
+- After an outgoing numbered message, listen for its ACK for a configurable
+  interval, **10 seconds by default**, measured after the complete handoff.
+  Restore voice sooner on ACK/reject; PTT interrupts the wait.
+- Explicit APRS TX enable and a configured own callsign are required for RF.
+  Automatically ACK valid numbered messages addressed to that callsign.
+- Use at most **three total message attempts**, including the first send.
+  Further retry spacing and operator presentation remain to be designed.
+- This radio has one RF receiver and dual-watch alternation, not simultaneous
+  reception of two frequencies. Voice reception is unavailable while on APRS.
+
+The service and channel orchestration have host tests. The hardware retuning
+adapter, normal receive/foreground/UI binding and RF validation are unfinished;
+these policy mechanisms do not enable a transmitter in the published bench.
+PTT restores voice while keeping existing pending retry deadlines. A dedicated
+cancel action can stop retries; neither action pretends an ACK was received.
