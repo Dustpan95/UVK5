@@ -5,6 +5,8 @@
 /* Transport model only; not connected to a normal firmware send action yet.
  * Policy is explicit: the caller chooses retries and bounded queue lifetime.
  * Time is wrapping 10 ms scheduler ticks, not coalescing foreground flags.
+ * Every queued frame freezes its requested frequency in radio-native 10 Hz
+ * units. The link must refuse a changed channel, never silently retarget it.
  */
 typedef enum {
     APRS_TX_IDLE, APRS_TX_QUEUED, APRS_TX_WAIT_ACK, APRS_TX_SENT,
@@ -18,26 +20,31 @@ typedef struct {
 } APRS_TX_Policy;
 typedef struct {
     uint32_t (*now)(void *);
-    APRS_LinkResult (*send)(const uint8_t *,size_t,void *);
+    APRS_LinkResult (*send)(const uint8_t *,size_t,uint32_t frequency,void *);
     void *context;
 } APRS_TX_Link;
 typedef struct {
     uint8_t frame[100];
     char sender[10],recipient[10],id[6];
-    uint32_t nextTick,expiresTick;
+    uint32_t frequency,nextTick,expiresTick; /* Frequency in radio-native 10 Hz units. */
     APRS_TX_Policy policy;
     APRS_TX_State state;
     uint8_t length,attempts;
     bool needsAcknowledgment;
 } APRS_TX_Job;
 extern APRS_TX_Job gAPRS_TX;
-bool TX_QueueMessage(const char *sender,const char *recipient,const char *text,
+#define APRS_CONTROL_CAPACITY 2 /* Provisional bounded priority queue. */
+bool TX_QueueMessage(uint32_t frequency,const char *sender,const char *recipient,const char *text,
                      const char *id,APRS_TX_Policy policy,uint32_t now);
-bool TX_QueueBeacon(const char *sender,int32_t latitude,int32_t longitude,
+bool TX_QueueBeacon(uint32_t frequency,const char *sender,int32_t latitude,int32_t longitude,
                     uint32_t lifetimeTicks,uint32_t now);
-bool TX_QueueControl(const char *sender,const char *recipient,const char *id,
+bool TX_QueueControl(uint32_t frequency,const char *sender,const char *recipient,const char *id,
                      bool rejected,uint32_t lifetimeTicks,uint32_t now);
+/* Control replies have their own priority FIFO; true means queued, not sent. */
+uint8_t TX_PendingControls(void);
 void TX_Process(const APRS_TX_Link *link);
 bool TX_Acknowledge(const char *source,const char *addressee,const char *id,bool rejected);
 void TX_Cancel(void);
+/* Whole-data-TX disable clears control replies as well as stopping retries. */
+void TX_CancelAll(void);
 #endif

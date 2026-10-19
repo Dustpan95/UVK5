@@ -95,7 +95,7 @@ callsign/SSID/ID validation, message construction, receive-parser roundtrip and
 ACK/rejection correlation including SSID zero. The independent audio test's
 ordinary message is built with the actual C message builder before encoding.
 These are software checks, not successful radio messages. The current candidate
-with session inbox/monitor is 62,984 bytes (1,544 over flash); see `MESSAGING-IMPLEMENTATION.md`.
+with session inbox/monitor is 63,020 bytes (1,580 over flash); see `MESSAGING-IMPLEMENTATION.md`.
 
 The session-profile/inbox candidate additionally passes own-call keypad entry,
 validation/save/cancel, own-address filtering, SSID-zero normalization, unread
@@ -119,7 +119,7 @@ the actual C beacon builder as well as the actual C message builder before the
 C HDLC/NRZI encoder. Positive and corrupted-frame cases pass in Dire Wolf.
 No actual RF, timer, retries or radio handoff is tested by this waveform.
 
-The retained-protocol diagnostic build is 65,012 bytes, 3,572 over the real
+The retained-protocol diagnostic build is 65,052 bytes, 3,612 over the real
 application region, and still excludes the operational radio driver/service.
 See `FLASH-FEASIBILITY.md`; no larger diagnostic linker region is a hardware fix.
 
@@ -164,7 +164,14 @@ job. ACK deadlines begin after successful simulated handoff. Retry selection and
 automatic ACK policy are not inferred from these tests; the operator flow remains
 unconnected and the modules are absent from the default image.
 
-The retained owner/transport diagnostic is 66,644 bytes, 5,204 over the physical
+The additional transport tests cover frozen requested frequency and refusal
+when the actual VFO changes, local received-frequency metadata, immediate RX
+rearming without timer/alert changes, matching late ACKs, independent control
+FIFO ordering/deduplication/full/expiry behavior, wrapping deadlines, busy
+controls without starving own-job expiry, and whole-TX cancellation. No packet
+currently triggers automatic RF acknowledgment in the normal firmware.
+
+The retained owner/transport diagnostic is 67,760 bytes, 6,320 over the physical
 application limit, and still misses remaining configuration/send integration.
 The default receive binary is unchanged at 58,056 bytes with the recorded hashes.
 

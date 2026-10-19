@@ -212,6 +212,27 @@ s.centered('SIMPLEX RESTORED',50);s.save('overlay-toast')
 s=home('hybrid-memory');s.rect(0,47,128,17,0);s.line(47)
 s.text('B ACTIVITY 144.390',2,49);s.text('HEARD -91dBm',2,58,'mini');s.save('overlay-split')
 
+# Setup proposals; position format and final TX policy remain user decisions.
+s=Screen();s.status();s.centered('APRS SETUP',10,'mini')
+for i,label in enumerate(['MY CALLSIGN','STATIC POSITION','QUICK MESSAGES','DATA TX  OFF']):
+    s.text(('>' if i==0 else ' ')+label,2,21+i*9)
+s.footer('MENU:EDIT   EXIT:APRS');s.save('setup-overview')
+for key,title,value in [('position-decimal','LATITUDE - DEGREES','49.05833N'),
+                        ('position-minutes','LATITUDE - DEG/MIN','49 03.50N')]:
+    s=Screen();s.status();s.centered(title,10,'mini');s.centered(value,22,'big')
+    s.rect(76,39,6,1);s.centered('0-9:DIGITS  #:N/S  *:DEL',46,'mini')
+    s.footer('MENU:LON   EXIT:CANCEL');s.save(key)
+s=Screen();s.status();s.centered('REVIEW POSITION',10,'mini')
+s.text('49.05833N',2,23);s.text('072.02916W',2,35)
+s.centered('RESETS AT POWER OFF',47,'mini');s.footer('MENU:SAVE   EXIT:EDIT');s.save('position-review')
+s=Screen();s.status();s.centered('EDIT QUICK MESSAGE',10,'mini')
+for i,label in enumerate(['1 ARRIVED SAFELY','2 NEED ASSISTANCE','3 CAN YOU COPY?']):
+    s.text(('>' if i==0 else ' ')+label,2,23+i*10)
+s.footer('MENU:EDIT   EXIT:SETUP');s.save('quick-settings')
+s=Screen();s.status();s.text('QUICK 1',2,10,'mini');s.text('14/67 ABC',90,10,'mini')
+s.text('ARRIVED SAFELY_',2,23);s.centered('#:NEXT  *:DELETE',46,'mini')
+s.footer('MENU:SAVE  EXIT:CANCEL');s.save('quick-editor')
+
 # Contact sheets show alternatives without assuming any option was selected.
 try:
  titlefont=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',22)
@@ -263,6 +284,13 @@ sheet('mode-overlays-review',[
  ('overlay-entry','Frequency entry','Entered digits use the main readout area'),
  ('overlay-toast','Temporary radio confirmation','Confirmation briefly covers the secondary strip'),
  ('overlay-split','Secondary-VFO activity','Frequency and signal shown in the lower strip')],cols=2)
+sheet('setup-entry-review',[
+ ('setup-overview','Session-only APRS setup','Proposed entry points; data TX starts disabled'),
+ ('position-decimal','A. Decimal-degree entry','Matches the approved received-coordinate display'),
+ ('position-minutes','B. Degrees/minutes entry','Mirrors the coordinate form used in a beacon'),
+ ('position-review','Review position before saving','Save config here; sending a beacon is a separate action'),
+ ('quick-settings','Choose a quick message to edit','Saved text and changes reset at power-off'),
+ ('quick-editor','Reuse the multi-tap editor','Save or cancel without changing the outgoing draft')],cols=3)
 (OUT/'frames.json').write_text(json.dumps(frames,separators=(',',':')))
 if (OUT/'review.template.html').exists():
     (OUT/'review.html').write_text((OUT/'review.template.html').read_text().replace('__FRAMES__',json.dumps(frames,separators=(',',':'))))

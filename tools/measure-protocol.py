@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Measure retained message/beacon/control/HDLC/timing helpers, without a radio driver.
+"""Measure protocol helpers and retained experimental radio transport.
 
-Creates an oversized diagnostic copy under build/. Never flash this copy.
-The probe only writes synthetic symbols to volatile RAM; no RF output exists.
+Creates an oversized diagnostic copy under build/. Never execute or flash it.
+The initial helper probe writes synthetic symbols to RAM. The last phase retains
+actual hardware entry points for size measurement only.
 """
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import os
 import shutil
 import subprocess
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--transport-options',action='store_true',help='Also measure explicitly labeled optional feature combinations; never changes defaults')
+args=parser.parse_args()
 root=Path(__file__).resolve().parents[1];work=root/'build/protocol-size'
 if work.exists():shutil.rmtree(work)
 def ignore(directory,names):
@@ -20,14 +25,21 @@ for p in sorted(work.rglob('*')):
  if p.is_file() and (p.suffix in {'.c','.h','.ld','.inc'} or p.name=='Makefile'):
   fingerprint.update(str(p.relative_to(work)).encode());fingerprint.update(p.read_bytes())
 p=work/'firmware.ld';p.write_text(p.read_text().replace('LENGTH = 60K','LENGTH = 128K'))
-def build():
+def build(flags=()):
  result=subprocess.run(['docker','run','--rm','--user',f'{os.getuid()}:{os.getgid()}',
  '-v',str(work)+':/src','-w','/src','uvk6-build:verified','bash','-c',
- 'set -e; make clean; make -j2 ENABLE_APRS_MESSAGING=1; arm-none-eabi-nm -S --size-sort uvk6-experimental > symbols.txt'],
+ 'set -e; make clean; make -j2 ENABLE_APRS_MESSAGING=1 "$@"; arm-none-eabi-nm -S --size-sort uvk6-experimental > symbols.txt; arm-none-eabi-size -A uvk6-experimental','bash',*flags],
  stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
  if result.returncode:raise RuntimeError(result.stdout[-5000:])
  return (work/'uvk6-experimental.bin').stat().st_size,result.stdout
+def static_ram(log):
+ sizes={}
+ for line in log.splitlines():
+  f=line.split()
+  if len(f)==3 and f[0] in {'.data','.bss'}:sizes[f[0]]=int(f[1])
+ return sum(sizes.values())
 baseline,log=build();(work/'baseline.log').write_text(log)
+baseline_ram=static_ram(log)
 print(json.dumps({'phase':'baseline','bytes':baseline}),flush=True)
 (work/'app/protocol_probe.c').write_text('''/* Diagnostic RAM-only probe; never release or flash. */
 #include "app/aprs_message.h"
@@ -36,6 +48,7 @@ print(json.dumps({'phase':'baseline','bytes':baseline}),flush=True)
 #include "experiments/bell202_timing.h"
 volatile unsigned gProbeMode, gProbeTone, gProbeAccepted;
 volatile int32_t gProbeLatitude, gProbeLongitude;
+volatile uint32_t gProbeFrequency;
 volatile char gProbeId[5],gProbeSource[9];
 static void Symbol(bool high, void *context) { (void)context;gProbeTone=high?2200:1200; }
 static uint32_t Now(void *context) { (void)context;static uint32_t cycle;return cycle+=100; }
@@ -59,7 +72,7 @@ p=work/'app/aprs_message.c';p.write_text(p.read_text().replace('m->delivery=MESS
 size,log=build();(work/'probe.log').write_text(log)
 report={'source_fingerprint':fingerprint.hexdigest(),'compiler':'ARM GCC 10.3.1',
  'real_flash_limit':61440,'diagnostic_flash_limit':131072,
- 'messaging_candidate_bytes':baseline,'with_protocol_helpers_bytes':size,'increment_bytes':size-baseline,
+ 'messaging_candidate_bytes':baseline,'messaging_static_ram_bytes':baseline_ram,'with_protocol_helpers_bytes':size,'increment_bytes':size-baseline,
  'not_included':['radio tone output and MCU clock backend','TX limits/arbitration','busy-channel handling',
  'automatic ACK dispatch','retry service','position and saved-message editing UI']}
 (work/'results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
@@ -73,29 +86,48 @@ s=s.replace('#include "experiments/bell202_timing.h"', '''#include "experiments/
 #include "experiments/bell202_radio.h"
 #include "experiments/aprs_radio_owner.h"
 #include "app/aprs_tx.h"
+#include "app/aprs_rx.h"
 extern uint32_t SCHEDULER_GetTicks10ms(void);
 static uint32_t LinkNow(void *ctx) { (void)ctx;return SCHEDULER_GetTicks10ms(); }
-static APRS_LinkResult SendRadio(const uint8_t *frame,size_t length,void *ctx) {
+static APRS_LinkResult SendRadio(const uint8_t *frame,size_t length,uint32_t frequency,void *ctx) {
  (void)ctx;
  const APRS_RadioConfig config={gProbeMode&128,gProbeMode&127};
- return APRS_RadioSend(frame,length,(void *)&config);
+ return APRS_RadioSend(frame,length,frequency,(void *)&config);
 }''')
 # The injected callbacks need the volatile input declaration above them.
 s=s.replace('static APRS_LinkResult SendRadio(', 'extern volatile unsigned gProbeMode;\nstatic APRS_LinkResult SendRadio(')
 s=s.replace(' gProbeAccepted=BELL202_Transmit(frame,n,&output);',''' gProbeAccepted=BELL202_Transmit(frame,n,&output);
  if(gProbeMode&64) {
   const uint32_t now=SCHEDULER_GetTicks10ms();
-  if(gProbeMode&8) gProbeAccepted=TX_QueueControl(gAPRS_Profile.callsign,gAPRS_Message.recipient,id,gProbeMode&32,1000,now);
-  else if(gProbeMode&1) gProbeAccepted=TX_QueueBeacon(gAPRS_Profile.callsign,gProbeLatitude,gProbeLongitude,1000,now);
-  else gProbeAccepted=TX_QueueMessage(gAPRS_Profile.callsign,gAPRS_Message.recipient,gAPRS_Message.text,id,(APRS_TX_Policy){1000,20000,3},now);
+  if(gProbeMode&8) gProbeAccepted=TX_QueueControl(gProbeFrequency,gAPRS_Profile.callsign,gAPRS_Message.recipient,id,gProbeMode&32,1000,now);
+  else if(gProbeMode&1) gProbeAccepted=TX_QueueBeacon(gProbeFrequency,gAPRS_Profile.callsign,gProbeLatitude,gProbeLongitude,1000,now);
+  else gProbeAccepted=TX_QueueMessage(gProbeFrequency,gAPRS_Profile.callsign,gAPRS_Message.recipient,gAPRS_Message.text,id,(APRS_TX_Policy){1000,20000,3},now);
   const APRS_TX_Link link={LinkNow,SendRadio,0};TX_Process(&link);
   if(gProbeMode&2) gProbeAccepted=TX_Acknowledge(source,gAPRS_Profile.callsign,id,gProbeMode&4);
-  if(gProbeMode&16) TX_Cancel();
+  if(gProbeMode&16) TX_CancelAll();
+  if(gProbeMode&512) gProbeAccepted=TX_PendingControls();
+  if((gProbeMode&1024) && gAPRS_Selected<gAPRS_Count && gAPRS_Selected<APRS_LOG_CAPACITY)
+   gProbeFrequency=gAPRS_Log[gAPRS_Selected].frequency;
  }''')
 p.write_text(s)
 transport,log=build();(work/'transport.log').write_text(log)
 report['with_tone_backend_and_outbox_bytes']=transport
 report['transport_increment_bytes']=transport-size
+report['transport_static_ram_bytes']=static_ram(log)
 report['transport_still_excludes']=['normal UI send integration','automatic ACK dispatch',
  'position/quick-message configuration UI','relay path configuration','hardware carrier-sense/RF validation']
 (work/'results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
+
+if args.transport_options:
+ variants=[
+  ('without_application_uart',['ENABLE_UART=0']),
+  ('without_uart_am_fix',['ENABLE_UART=0','ENABLE_AM_FIX=0']),
+  ('without_uart_am_fix_flashlight_scan_options',['ENABLE_UART=0','ENABLE_AM_FIX=0','ENABLE_FLASHLIGHT=0','ENABLE_SCAN_RANGES=0','ENABLE_ADAPTIVE_SCAN=0']),
+ ]
+ report['optional_transport_profiles']=[]
+ for name,flags in variants:
+  used,log=build(flags);(work/(name+'.log')).write_text(log)
+  item={'profile':name,'flags':flags,'flash_bytes':used,'static_ram_bytes':static_ram(log),
+        'delta_flash_bytes':used-transport,'over_flash_bytes':used-61440}
+  report['optional_transport_profiles'].append(item);print(json.dumps(item),flush=True)
+ (work/'results.json').write_text(json.dumps(report,indent=2)+'\n')

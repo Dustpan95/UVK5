@@ -33,9 +33,9 @@ ARM GCC 10.3.1, same radio features and real 16 KiB SRAM layout:
 | Profile | Flash | Static RAM | Against 61,440-byte limit |
 |---|---:|---:|---:|
 | Existing receive/home prototype | 58,056 | 7,188 | 3,384 free |
-| With editor, session profile and separate inbox/monitor | 62,984 | 8,200 | 1,544 over |
+| With editor, session profile and separate inbox/monitor | 63,020 | 8,232 | 1,580 over |
 
-Delta: 4,928 flash bytes, 1,012 static RAM bytes. This measures the reachable
+Delta: 4,964 flash bytes, 1,044 static RAM bytes. This measures the reachable
 editor, profile, inbox and UI, not the complete TX service. LTO removes unused builder/ACK
 helpers from this particular candidate, so their full retained firmware cost
 is still unmeasured. Position/quick-message editing screens, modem, relay configuration and retry
@@ -118,17 +118,17 @@ The list shows age; details show callsign, position and time since last heard.
 An open detail remains attached to its station as new packets arrive; eviction
 returns to the list. Entries and their positions disappear on power-off.
 
-The retained protocol/timing probe now uses 65,012 bytes, 3,572 over flash. It
+The retained protocol/timing probe now uses 65,052 bytes, 3,612 over flash. It
 includes message/beacon/control builders, FCS/HDLC/NRZI and the experimental
 absolute-deadline scheduler, with a RAM-only callback. It excludes actual radio
 output, MCU clock backend, arbitration, automatic ACK dispatch and retries.
 ACK/reject builder output independently decodes as ideal audio in Dire Wolf.
 
-The further frozen-outbox/tone/owner diagnostic uses 66,644 bytes (5,204 over).
+The further frozen-outbox/tone/owner diagnostic uses 67,760 bytes (6,320 over).
 It adds tested policy-driven retries, immutable pending frames, conservative
 radio admission, muted PA soft-start and RX restoration. These parts are not
 connected to the normal editor or default firmware. User policy choices,
-automatic ACK dispatch (including a separate pending control queue), settings
+automatic ACK policy/dispatch, settings
 screens and relay routing remain to be integrated. No RF success is claimed.
 
 ## Receive-session bench separation
@@ -140,3 +140,19 @@ show their implemented controls. This bench profile is 61,388 bytes, fitting the
 real original-MCU limit by 52 bytes. The full editor profile is retained without
 changes to its approved flow. This separation supports physical receive tests;
 it does not remove transmit from the project or select final feature cuts.
+
+## Setup design review
+
+`design/setup-entry-review.png` proposes the APRS setup hub, decimal or
+degrees/minutes position entry, position review, quick-message selection and a
+separate multi-tap quick-message editor. These are concept mockups pending owner
+review, not implemented screens. Cancel would leave the saved quick message and
+composition draft intact. Saving a static position would not send a beacon.
+The all-session-only requirement remains in effect.
+
+The latest outbox investigation additionally freezes requested RF frequency,
+records the local receive frequency in the full messaging candidate, handles
+late matching acknowledgments and separates bounded priority control replies.
+Active VFO versus separate APRS-frequency routing, retry policy, automatic ACK
+policy and relay configuration remain pending choices. The control mechanism
+is not an automatic transmitter in the normal image.

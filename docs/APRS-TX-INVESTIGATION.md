@@ -110,18 +110,35 @@ scan or split operation. Active receive, open squelch, a held PTT or a pending
 receive interrupt defers transmission. The normal radio TX preparation retains
 its frequency, battery and timeout checks; audio remains muted during the
 existing PA soft-start. Every acquired-TX return drops PA and restores RX without
-roger/DTMF/tail audio. Actual owner tests exercise ramp/cleanup on completion,
+roger/DTMF/tail audio, then immediately rearms eligible APRS reception. A refused
+normal TX preparation also rearms RX. Rearming does not advance session ages or
+notification timers and does not dispatch a sound. Actual owner tests exercise ramp/cleanup on completion,
 PTT interruption and modem timing faults. No RF or hardware is present in these
 tests. This conservative admission is not validated carrier sense; open-squelch
 APRS use and collision avoidance still need design and bench work.
 
 `app/aprs_tx.c` implements a frozen session-only outbox behind an injected link.
-Draft changes cannot mutate the stored frame or ACK identity. Explicit policy
+Draft changes cannot mutate the stored frame, requested RF frequency or ACK
+identity. Frequency is stored in local radio-native 10 Hz units; the transport
+refuses a changed channel. Received records in the full messaging candidate also
+retain their locally observed frequency. This does not select the pending UI
+choice between active-VFO operation and a separate APRS channel. Explicit policy
 supports one or up to three attempts, busy deferral, bounded lifetime, cancellation,
 ACK/reject matching and wrap-safe deadlines. ACK waiting begins after successful
 handoff. Policy selection and automatic ACK behavior remain pending user choices.
 Failure/cancellation can follow an earlier successful attempt; attempts remain
-recorded and must be shown honestly by the future UI.
+recorded and must be shown honestly by the future UI. Matching late ACK/rejects
+can still confirm an earlier completed send after cancellation or timeout, until
+that frozen job is replaced; an already received ACK/reject is not overturned.
+
+Two provisional control slots hold ACK/reject frames independently of the own
+message. They freeze frequency, have bounded lifetimes, deduplicate identical
+pending replies, reject contradictory replies and do not replace a full queue.
+They take priority for one radio handoff per foreground service call without
+changing the outgoing message or its ACK deadline. Own-job expiry continues even
+when a control reply is busy. Whole-data-TX cancellation clears pending controls.
+These are tested mechanisms, not an adopted automatic-ACK or retry policy; no
+received packet currently queues an RF reply in normal firmware.
 
 These modules are deliberately absent from the normal Makefile/send action.
 They are host-tested and cross-compiled, not an operational or RF-validated

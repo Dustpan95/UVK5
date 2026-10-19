@@ -11,6 +11,8 @@ extern uint8_t gAPRS_Count, gAPRS_Selected;
 bool APRS_CanListen(void);
 bool APRS_IsCapturing(void);
 void APRS_Stop(void);
+/* Re-arm eligible receive immediately, without advancing timers or alerts. */
+void APRS_Resume(void);
 void APRS_Tick500ms(void);
 void APRS_Interrupt(uint16_t bits);
 void APRS_Open(void);

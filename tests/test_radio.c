@@ -102,6 +102,7 @@ int main(int argc,char **argv) {
     for(unsigned i=0;i<128;i++) regs[i]=0x100+i;
     uint16_t before[128];memcpy(before,regs,sizeof(regs));
     gRxVfo->Modulation=MODULATION_FM;
+    gRxVfo->pRX=&gRxVfo->freq_config_RX;gRxVfo->pRX->Frequency=14439000;
     gCurrentFunction=FUNCTION_FOREGROUND;
     APRS_Tick500ms(); assert(writes==0);
     gAPRS_Enabled=true;
@@ -113,9 +114,24 @@ int main(int argc,char **argv) {
     const uint8_t changed[]={0x70,0x71,0x72,0x58,0x5a,0x5c,0x5d,0x5e,0x3f};
     for(unsigned i=0;i<sizeof(changed);i++) assert(regs[changed[i]]==before[changed[i]]);
     unsigned stopped=writes;APRS_Stop();assert(writes==stopped);
+    gAPRS_BannerTicks=3;
+    unsigned resume_beeps=beeps;
+#ifdef ENABLE_APRS_SESSION
+    uint32_t resume_age=gAPRS_SessionTicks;
+#endif
+    APRS_Resume();assert(regs[0x59]==0x1000 && !APRS_IsCapturing());
+    assert(gAPRS_BannerTicks==3 && beeps==resume_beeps);
+#ifdef ENABLE_APRS_SESSION
+    assert(gAPRS_SessionTicks==resume_age);
+#endif
+    stopped=writes;APRS_Resume();assert(writes==stopped);
+    APRS_Stop();gAPRS_Enabled=false;stopped=writes;
+    APRS_Resume();assert(writes==stopped);
+    gAPRS_Enabled=true;gAPRS_BannerTicks=0;
     APRS_Tick500ms();gCurrentFunction=FUNCTION_TRANSMIT;
     APRS_Interrupt(0x3002);assert(regs[0x59]==0);
     stopped=writes;APRS_Tick500ms();assert(writes==stopped);
+    APRS_Resume();assert(writes==stopped);
     gCurrentFunction=FUNCTION_POWER_SAVE;assert(!APRS_CanListen());
     gCurrentFunction=FUNCTION_FOREGROUND;
     gScanStateDir=1;assert(!APRS_CanListen());gScanStateDir=0;
@@ -140,6 +156,9 @@ int main(int argc,char **argv) {
         fifo_active=false;
         assert(gAPRS_Log[0].kind==APRS_POSITION);
         assert(gAPRS_Log[0].latitude==49058333);
+#ifdef ENABLE_APRS_MESSAGING
+        assert(gAPRS_Log[0].frequency==14439000);
+#endif
         assert(gAPRS_Count==(round<4 ? round+1 : 4));
     }
     APRS_Stop();

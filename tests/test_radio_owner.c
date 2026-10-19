@@ -24,13 +24,14 @@ volatile uint8_t gSerialConfigCountDown_500ms;
 uint8_t gUpdateStatus;
 int8_t gScanStateDir;
 static bool clockReady,scanning,allowed,pending,pa,red,muted,capturing;
-static unsigned prepare,stop,ramp,delays,abortAt,restore,modem,compressorStops;
+static unsigned prepare,stop,ramp,delays,abortAt,restore,modem,compressorStops,resume;
 static BELL202_Result modemResult;
 bool SYSTICK_CanCountCycles(void) {return clockReady;}
 bool SCANNER_IsScanning(void) {return scanning;}
 bool APRS_IsCapturing(void) {return capturing;}
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t reg) {assert(reg==BK4819_REG_0C);return pending;}
 void APRS_Stop(void) {++stop;}
+void APRS_Resume(void) {assert(!pa && !red && !gTxSoftStart.active && gCurrentFunction==FUNCTION_FOREGROUND);++resume;}
 void RADIO_PrepareTX(void)
 {
     ++prepare;
@@ -86,7 +87,7 @@ static void Init(void)
     gRxVfo->Modulation=MODULATION_FM;
     gCurrentFunction=FUNCTION_FOREGROUND;testRadioGPIO.DATA=1u<<GPIOC_PIN_PTT;
     clockReady=allowed=true;scanning=pending=pa=red=muted=capturing=false;
-    prepare=stop=ramp=delays=abortAt=restore=modem=compressorStops=0;
+    prepare=stop=ramp=delays=abortAt=restore=modem=compressorStops=resume=0;
     gSetting_ScrambleEnable=gCssBackgroundScan=g_SquelchLost=gFlagEndTransmission=gUpdateDisplay=false;
     gTxTimeoutReached=gTxSoftStart.active=false;
     gTxTimerCountdown_500ms=gSerialConfigCountDown_500ms=gUpdateStatus=0;gScanStateDir=0;
@@ -96,33 +97,36 @@ static void Clean(void)
 {
     assert(!pa && !red && !gTxSoftStart.active && restore==1 && prepare==1 && stop==1);
     assert(!gTxTimerCountdown_500ms && !gTxTimeoutReached && !gFlagEndTransmission);
-    assert(gUpdateDisplay && gUpdateStatus && compressorStops==2);
+    assert(gUpdateDisplay && gUpdateStatus && compressorStops==2 && resume==1);
 }
 int main(void)
 {
     uint8_t frame[16]={0};APRS_RadioConfig config={true,24};
-    Init();assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_SENT);
+    Init();assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_SENT);
     assert(modem==1 && ramp==6);Clean();
-    Init();abortAt=3;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_FAULT);
+    Init();abortAt=3;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_FAULT);
     assert(!modem && ramp==2);Clean();
     Init();modemResult=BELL202_LATE;
-    assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_FAULT);Clean();
-    Init();allowed=false;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED);
-    assert(prepare==1 && !restore && !pa && !modem);
-    Init();config.enabled=false;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
+    assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_FAULT);Clean();
+    Init();allowed=false;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED);
+    assert(prepare==1 && !restore && !pa && !modem && resume==1);
+    Init();config.enabled=false;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
     config.enabled=true;
-    Init();g_SquelchLost=true;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
-    Init();pending=true;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
-    Init();capturing=true;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
-    Init();testRadioGPIO.DATA=0;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
-    Init();gCurrentFunction=FUNCTION_RECEIVE;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_BUSY && !prepare);
-    Init();gScanStateDir=1;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
-    Init();scanning=true;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
-    Init();gSerialConfigCountDown_500ms=1;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
-    Init();gEeprom.TX_VFO=2;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
-    Init();gRxVfo->pTX->Frequency++;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
-    Init();gRxVfo->Modulation=MODULATION_AM;assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
+    Init();g_SquelchLost=true;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_BUSY && !prepare);
+    Init();pending=true;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_BUSY && !prepare);
+    Init();capturing=true;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_BUSY && !prepare);
+    Init();testRadioGPIO.DATA=0;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_BUSY && !prepare);
+    Init();gCurrentFunction=FUNCTION_RECEIVE;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_BUSY && !prepare);
+    Init();gScanStateDir=1;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
+    Init();scanning=true;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
+    Init();gSerialConfigCountDown_500ms=1;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
+    Init();gEeprom.TX_VFO=2;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
+    Init();gRxVfo->pTX->Frequency++;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
+    Init();gRxVfo->Modulation=MODULATION_AM;assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
     Init();gRxVfo->DTMF_PTT_ID_TX_MODE=PTT_ID_APOLLO;
-    assert(APRS_RadioSend(frame,16,&config)==APRS_LINK_DENIED && !prepare);
+    assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
+    Init();assert(APRS_RadioSend(frame,16,14582500,&config)==APRS_LINK_DENIED && !prepare);
+    Init();gRxVfo->pRX->Frequency=gRxVfo->pTX->Frequency=14582500;
+    assert(APRS_RadioSend(frame,16,14439000,&config)==APRS_LINK_DENIED && !prepare);
     puts("PASS actual radio owner explicit enable/admission, normal-TX checks, muted PA ramp and RX restoration on completion/PTT/timing faults");
 }

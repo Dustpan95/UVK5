@@ -1,0 +1,42 @@
+{
+  "source_fingerprint": "6101e309ddbcd968e6c5a5b7e0d7785bb98410ecb452dc099f4bee52ed96afb1",
+  "compiler": "ARM GCC 10.3.1",
+  "diagnostic_flash_limit": 131072,
+  "real_flash_limit": 61440,
+  "profiles": [
+    {
+      "profile": "baseline",
+      "flags": [],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 58056,
+      "static_ram_bytes": 7188,
+      "fits_60k": true,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "without_uart",
+      "flags": [
+        "ENABLE_UART=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 55676,
+      "static_ram_bytes": 6644,
+      "fits_60k": true,
+      "delta_flash_bytes": -2380
+    },
+    {
+      "profile": "without_wide_rx",
+      "flags": [
+        "ENABLE_WIDE_RX=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 57984,
+      "static_ram_bytes": 7188,
+      "fits_60k": true,
+      "delta_flash_bytes": -72
+    }
+  ]
+}

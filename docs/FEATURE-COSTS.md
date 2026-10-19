@@ -1,6 +1,6 @@
 # Measured feature costs
 
-Current whole-profile measurements use source fingerprint `5f8206dcfacf2a37ada85440024afd77e62693ccbd091479105ad3f893f80611`.
+The original whole-profile table uses source fingerprint `5f8206dcfacf2a37ada85440024afd77e62693ccbd091479105ad3f893f80611`.
 ARM GCC 10.3.1, identical current radio features except the stated variant.
 Baseline: **58,056 / 61,440 flash bytes**, 7,188 static RAM bytes.
 No feature cuts are selected. Standalone receive-profile fits do not establish
@@ -52,3 +52,14 @@ Reproduce with `python3 tools/measure-features.py`; `--profile NAME` selects
 a subset plus baseline. JSON records the measured source fingerprint. Later
 source changes require new measurements before assigning exact release costs.
 See `FLASH-FEASIBILITY.md` for the current complete-profile problem.
+
+## Application UART and wide receive follow-up
+
+`programming-costs.json` records a separately fingerprinted RX comparison:
+application UART off uses 55,676 bytes (2,380 saved), and wide receive off uses
+57,984 bytes (72 saved), against the same-source 58,056-byte baseline. Removing
+application UART would remove firmware serial programming/CHIRP support; the
+bootloader updater is separate. Neither option is selected. Do not subtract RX
+costs from the TX total: full-transport combinations are measured independently
+in `protocol-size-results.json` when `tools/measure-protocol.py --transport-options`
+is run. Those remain incomplete oversized diagnostic prototypes, not releases.

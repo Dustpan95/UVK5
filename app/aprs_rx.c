@@ -103,6 +103,14 @@ static void Arm(void)
     armed      = true;
 }
 
+void APRS_Resume(void)
+{
+    if(!APRS_CanListen() || armed) return;
+    for(unsigned i=0;i<sizeof(registers);++i)
+        saved[i]=BK4819_ReadRegister(registers[i]);
+    Arm();
+}
+
 
 static void Drain(uint8_t words)
 {
@@ -117,6 +125,9 @@ static void Decode(void)
 {
     APRS_Record record;
     if (!APRS_DecodeBits(capture, captureCount, &record)) return;
+#ifdef ENABLE_APRS_MESSAGING
+    record.frequency=gRxVfo->pRX ? gRxVfo->pRX->Frequency : 0;
+#endif
 #ifdef ENABLE_APRS_SESSION
     SESSION_Receive(&record);
 #endif

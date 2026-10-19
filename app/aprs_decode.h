@@ -13,6 +13,9 @@ typedef struct {
     char text[APRS_TEXT_MAX + 1];
     char messageId[6];
     int32_t latitude, longitude; /* millionths of degrees */
+#ifdef ENABLE_APRS_MESSAGING
+    uint32_t frequency; /* Local RX frequency in 10 Hz units; not packet content. */
+#endif
     APRS_Kind kind;
 } APRS_Record;
 uint16_t APRS_FCS(const uint8_t *data, uint16_t length);
