@@ -34,8 +34,8 @@ does not establish the MCU revision.
 The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md) is implemented
 as a separate candidate (`ENABLE_APRS_MESSAGING=1`), with multi-tap entry, quick
 messages, send review and truthful blocked-send status. It exceeds flash by
-3,652 bytes before adding a working transmitter, so it is not enabled in the
-fitting receive profile. No final feature cuts have been selected. The message
+3,040 bytes before adding a working transmitter, so it is not enabled in the
+fitting receive profile. No final feature cuts have been selected. See the [flash feasibility work](docs/FLASH-FEASIBILITY.md). The message
 codec/ACK helpers have host tests; on-radio transport remains unimplemented.
 
 All APRS settings, static position, quick-message edits and received history

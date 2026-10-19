@@ -5,6 +5,7 @@
  * Position-ambiguity encodings are rejected rather than inventing precision.
  */
 #include "aprs_position.h"
+#include "aprs_scale.h"
 
 static bool Decimal(const uint8_t *s, unsigned length, uint32_t *value)
 {
@@ -99,7 +100,7 @@ bool APRS_Position(const uint8_t *destination, const uint8_t *info, uint16_t len
     uint32_t northing, easting;
     if (length < 13 || !Base91(info + 1, &northing) || !Base91(info + 5, &easting)) return false;
     if (northing > 180u * 380926u || easting > 360u * 190463u) return false;
-    *latitude = 90000000 - (int32_t)((uint64_t)northing * 1000000u / 380926u);
-    *longitude = -180000000 + (int32_t)((uint64_t)easting * 1000000u / 190463u);
+    *latitude = 90000000 - (int32_t)(APRS_ScaleMillion(northing, 380926u));
+    *longitude = -180000000 + (int32_t)(APRS_ScaleMillion(easting, 190463u));
     return true;
 }

@@ -1,0 +1,18 @@
+{
+  "source_fingerprint": "df1423600463c4e6e72b19ec7575b3042c8c2ec3e4caafeb64b81ef91500bfe8",
+  "compiler": "ARM GCC 10.3.1",
+  "real_flash_limit": 61440,
+  "diagnostic_flash_limit": 131072,
+  "messaging_candidate_bytes": 64480,
+  "with_protocol_helpers_bytes": 65884,
+  "increment_bytes": 1404,
+  "not_included": [
+    "radio tone output and scheduling",
+    "TX limits/arbitration",
+    "busy-channel handling",
+    "on-air ACK parsing and generation",
+    "retry service",
+    "position and saved-message editing UI",
+    "station directory"
+  ]
+}

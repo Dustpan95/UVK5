@@ -12,7 +12,7 @@ physical radio revision was not established.
 - Toolchain setup from the pinned Ubuntu image with signed packages: ARM GCC
   10.3.1, ARM binutils 2.38 and newlib 3.3.0. Cached setup was reused successfully.
 - Clean default-profile build with the existing warning-as-error flags and LTO.
-- Raw flash image **61,024 / 61,440 bytes**, leaving **416 bytes**.
+- Raw flash image **60,412 / 61,440 bytes**, leaving **1,028 bytes**.
 - Static `.data` + `.bss`: **3,832 bytes**. Linker stack reservation: **2,048
   bytes**. The startup vector sets SP to **0x20003ff0**, preserving upstream's
   16-byte top-of-SRAM reserve. 12,536 bytes lie between static data and that SP;
@@ -96,7 +96,7 @@ callsign/SSID/ID validation, message construction, receive-parser roundtrip and
 ACK/rejection correlation including SSID zero. The independent audio test's
 ordinary message is built with the actual C message builder before encoding.
 These are software checks, not successful radio messages. The current candidate
-with session inbox/monitor is 65,092 bytes (3,652 over flash); see `MESSAGING-IMPLEMENTATION.md`.
+with session inbox/monitor is 64,480 bytes (3,040 over flash); see `MESSAGING-IMPLEMENTATION.md`.
 
 The session-profile/inbox candidate additionally passes own-call keypad entry,
 validation/save/cancel, own-address filtering, SSID-zero normalization, unread
@@ -105,3 +105,21 @@ and still triggers banner/sound. New arrivals preserve an open message until
 its eviction, then return to the list. Position and quick-message RAM setters
 reject invalid input without partial changes. No hardware power-cycle claim is
 made; the profile code contains no EEPROM accesses.
+
+## Flash feasibility optimization
+
+Compressed-coordinate scaling now uses exact bounded 32-bit arithmetic. The
+exhaustive C test compares 137,133,362 valid input/divisor pairs with the former
+64-bit expression. It passes, and all parser, receiver, editor and UI sanitizer
+checks pass after this change. Default flash falls by 612 bytes; static RAM is
+unchanged. The original-MCU ELF/vector/budget and updater checks pass.
+
+The static-beacon builder passes coordinate/hemisphere bounds, nearest-hundredth
+minute rounding and degree-carry tests. The independent waveform test now uses
+the actual C beacon builder as well as the actual C message builder before the
+C HDLC/NRZI encoder. Positive and corrupted-frame cases pass in Dire Wolf.
+No actual RF, timer, retries or radio handoff is tested by this waveform.
+
+The retained-protocol diagnostic build is 65,884 bytes, 4,444 over the real
+application region, and still excludes the operational radio driver/service.
+See `FLASH-FEASIBILITY.md`; no larger diagnostic linker region is a hardware fix.

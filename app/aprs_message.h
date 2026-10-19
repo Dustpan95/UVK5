@@ -38,5 +38,7 @@ bool MESSAGE_Acknowledge(const char *source, const char *addressee,
 /* Build an AX.25 UI body, without FCS. No relay path is assumed here. */
 size_t MESSAGE_BuildFrame(const char *sender, const char *recipient,
                          const char *text, const char *id, uint8_t *out, size_t capacity);
+size_t MESSAGE_BuildBeacon(const char *sender, int32_t latitude, int32_t longitude,
+                           char table, char symbol, uint8_t *out, size_t capacity);
 void MESSAGE_Draw(void);
 #endif

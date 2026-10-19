@@ -33,8 +33,8 @@ ARM GCC 10.3.1, same radio features and real 16 KiB SRAM layout:
 
 | Profile | Flash | Static RAM | Against 61,440-byte limit |
 |---|---:|---:|---:|
-| Existing receive/home prototype | 61,024 | 3,832 | 416 free |
-| With editor, session profile and separate inbox/monitor | 65,092 | 4,596 | 3,652 over |
+| Existing receive/home prototype | 60,412 | 3,832 | 1,028 free |
+| With editor, session profile and separate inbox/monitor | 64,480 | 4,596 | 3,040 over |
 
 Delta: 4,068 flash bytes, 764 static RAM bytes. This measures the reachable
 editor, profile, inbox and UI, not the complete TX service. LTO removes unused builder/ACK
@@ -101,3 +101,9 @@ Tests exercise decoded FIFO delivery into the mailbox, other-address alerts,
 filtering, SSID-zero equivalence, unread state, bounded eviction, view stability,
 identity changes, save/cancel, full keypad callsign entry and setter validation.
 These are host simulations, not RF or physical power-cycle tests.
+
+The exact coordinate-decoding optimization saved 612 bytes in both profiles.
+See `FLASH-FEASIBILITY.md` for compiler experiments, the protocol lower-bound
+measurement and remaining work. `messaging-costs.json` retains the earlier
+65,092-byte checkpoint for provenance; current candidate totals are measured
+alongside the protocol probe in `protocol-size-results.json`.

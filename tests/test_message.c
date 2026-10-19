@@ -69,6 +69,18 @@ int main(void) {
     assert(!MESSAGE_BuildFrame("MYCALL","N0CALL","bad{text","1",frame,sizeof(frame)));
     assert(!MESSAGE_BuildFrame("MYCALL","N0CALL","","1",frame,sizeof(frame)));
     assert(!MESSAGE_BuildFrame("MYCALL","N0CALL","hello","",frame,sizeof(frame)));
+    n=MESSAGE_BuildBeacon("MYCALL-15",49058333,-72029166,'/','-',frame,sizeof(frame));
+    assert(n==36 && !memcmp(frame+16,"!4903.50N/07201.75W-",20));
+    crc=APRS_FCS(frame,n);frame[n]=crc;frame[n+1]=crc>>8;
+    assert(APRS_ParseFrame(frame,n+2,&record) && record.kind==APRS_POSITION);
+    assert(record.latitude==49058333 && record.longitude==-72029166);
+    n=MESSAGE_BuildBeacon("MYCALL",89999999,179999999,'/','-',frame,sizeof(frame));
+    assert(n==36 && !memcmp(frame+16,"!9000.00N/18000.00E-",20));
+    assert(!MESSAGE_BuildBeacon("MYCALL",INT32_MIN,0,'/','-',frame,sizeof(frame)));
+    assert(!MESSAGE_BuildBeacon("MYCALL",0,180000001,'/','-',frame,sizeof(frame)));
+    assert(!MESSAGE_BuildBeacon("MYCALL",0,0,'?','-',frame,sizeof(frame)));
+    assert(!MESSAGE_BuildBeacon("MYCALL",0,0,'/','-',frame,35));
+    puts("PASS static beacon encoding, coordinate rounding/carry and bounds");
     puts("PASS multi-tap/timeout/delete, draft preservation, quick insert/bounds, review, blocked TX");
     puts("PASS call/SSID/ID validation, AX.25 message build/roundtrip, ACK source/recipient/ID matching");
 }

@@ -22,6 +22,8 @@ for label,payload,expected in [
  ('stuffing',b':MYCALL   :'+b'~'*67,':MYCALL   :'+ '~'*67)]:
     body=address('APZUVK',0,False)+address('N0CALL',15,True)+b'\x03\xf0'+payload
     command=[str(out/'encode')]
+    if label=='position':
+        command.append('--beacon');body=b'';expected='!4903.50N/07201.75W-'
     if label=='message':
         command.append('--message');body=b'MEET AT TRAILHEAD'
         expected=':MYCALL   :MEET AT TRAILHEAD{01'

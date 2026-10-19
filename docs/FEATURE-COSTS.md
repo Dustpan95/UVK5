@@ -49,3 +49,8 @@ The later inbox/monitor checkpoint measures 61,024 bytes for the fitting profile
 and 65,092 for the candidate. See `MESSAGING-IMPLEMENTATION.md` and
 `messaging-costs.json` for current candidate totals; this table retains its
 original source fingerprint so historical feature deltas are not misrepresented.
+
+A subsequent exact-arithmetic optimization reduces the fitting profile to
+60,412 bytes and the messaging candidate to 64,480. The retained TX protocol
+probe is 65,884, still incomplete. Current measurements and next priorities
+are in `FLASH-FEASIBILITY.md`; earlier tables remain historical measurements.

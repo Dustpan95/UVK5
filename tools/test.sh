@@ -21,3 +21,8 @@ build/test_message
     app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
     ui/aprs.c ui/aprs_message.c ui/aprs_session.c ui/home.c ui/helper.c font.c external/printf/printf.c -o build/test_radio_messaging
 build/test_radio_messaging build
+
+# Exhaustive exact-arithmetic comparison uses optimized host code; parser/UI
+# suites above retain sanitizer coverage. This is 137 million comparisons.
+"$compiler" -std=c11 -O2 -Wall -Wextra -Werror -I . tests/test_scale.c -o build/test_scale
+build/test_scale

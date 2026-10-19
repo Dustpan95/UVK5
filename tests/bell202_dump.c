@@ -10,6 +10,9 @@ int main(int argc, char **argv) {
         char text[69];n=fread(text,1,sizeof(text)-1,stdin);text[n]=0;
         n=MESSAGE_BuildFrame("N0CALL-15","MYCALL",text,"01",frame,sizeof(frame));
         if(!n) return 1;
+    } else if(argc==2 && !strcmp(argv[1],"--beacon")) {
+        n=MESSAGE_BuildBeacon("N0CALL-15",49058333,-72029166,'/','-',frame,sizeof(frame));
+        if(!n) return 1;
     } else n=fread(frame,1,sizeof(frame),stdin);
     return BELL202_Encode(frame,n,emit,stdout)?0:1;
 }

@@ -189,3 +189,31 @@ size_t MESSAGE_BuildFrame(const char *sender, const char *recipient, const char 
     memcpy(out+27,text,n);out[27+n]='{';memcpy(out+28+n,id,strlen(id));
     return size;
 }
+
+static unsigned Position(uint8_t *out, int32_t value, bool longitude)
+{
+    const uint32_t absolute=value<0 ? (uint32_t)-value : (uint32_t)value;
+    /* Round to the nearest hundredth minute, including degree carry. Bounds
+     * are checked before negation; all arithmetic fits in 32 bits. */
+    const uint32_t hundredths=(absolute*3u+250u)/500u;
+    const unsigned degrees=hundredths/6000u, minutes=hundredths%6000u;
+    unsigned n=0;
+    if(longitude) out[n++]='0'+degrees/100u;
+    out[n++]='0'+degrees/10u%10u;out[n++]='0'+degrees%10u;
+    out[n++]='0'+minutes/1000u;out[n++]='0'+minutes/100u%10u;
+    out[n++]='.';out[n++]='0'+minutes/10u%10u;out[n++]='0'+minutes%10u;
+    out[n++]=longitude ? (value<0 ? 'W' : 'E') : (value<0 ? 'S' : 'N');
+    return n;
+}
+size_t MESSAGE_BuildBeacon(const char *sender, int32_t lat, int32_t lon,
+                           char table, char symbol, uint8_t *out, size_t capacity)
+{
+    if(!MESSAGE_ValidCall(sender) || lat < -90000000 || lat > 90000000 ||
+       lon < -180000000 || lon > 180000000 || !out || capacity<36 ||
+       (table!='/' && table!='\\') || symbol<'!' || symbol>'~') return 0;
+    Address(out,"APZUVK",false);Address(out+7,sender,true);
+    out[14]=3;out[15]=0xf0;out[16]='!';
+    unsigned n=17;n+=Position(out+n,lat,false);out[n++]=table;
+    n+=Position(out+n,lon,true);out[n++]=symbol;
+    return n;
+}

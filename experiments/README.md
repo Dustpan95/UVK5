@@ -21,3 +21,16 @@ no transmitted RF waveform or interoperability was tested.
 
 See [the investigation report](../docs/APRS-TX-INVESTIGATION.md) for the result
 and the remaining implementation/hardware work.
+
+## Standard Bell 202 protocol helpers
+
+`bell202_symbols.c` generates FCS/HDLC/NRZI tone selections and is independently
+tested as ideal 1200/2200 Hz audio with `tools/test-bell202.py`. The actual
+message and static-beacon builders are in `app/aprs_message.c`. There is no
+working radio output or scheduler in these helpers.
+
+`python3 tools/measure-protocol.py` measures the additional retained code in an
+isolated diagnostic copy. Its callback writes synthetic tone words to volatile
+RAM, not a radio. Outputs use a deliberately oversized linker region solely for
+measurement and must never be flashed or released. It does not measure a full
+TX service. See `docs/FLASH-FEASIBILITY.md` for exact totals and omissions.

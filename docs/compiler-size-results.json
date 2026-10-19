@@ -1,0 +1,110 @@
+{
+  "source_fingerprint": "f27ccc16bb6169050d873e449b3a51eccfcfa90eac65b7a8ccc8a52aaa6bec4a",
+  "compiler": "ARM GCC 10.3.1",
+  "feature_flags": [
+    "ENABLE_APRS_MESSAGING=1"
+  ],
+  "real_flash_limit": 61440,
+  "diagnostic_flash_limit": 131072,
+  "profiles": [
+    {
+      "profile": "unchanged",
+      "flags": [],
+      "exit_code": 0,
+      "flash_bytes": 65092,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "no_inline_small",
+      "flags": [
+        "-fno-inline-small-functions"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 65052,
+      "delta_bytes": -40
+    },
+    {
+      "profile": "no_inline_once",
+      "flags": [
+        "-fno-inline-functions-called-once"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 66108,
+      "delta_bytes": 1016
+    },
+    {
+      "profile": "no_inline_both",
+      "flags": [
+        "-fno-inline-small-functions",
+        "-fno-inline-functions-called-once"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 68964,
+      "delta_bytes": 3872
+    },
+    {
+      "profile": "inline_limit_3",
+      "flags": [
+        "-finline-limit=3"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 65268,
+      "delta_bytes": 176
+    },
+    {
+      "profile": "allow_builtins",
+      "flags": [
+        "ALLOW_BUILTINS"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 64952,
+      "delta_bytes": -140
+    },
+    {
+      "profile": "no_unwind",
+      "flags": [
+        "-fno-unwind-tables",
+        "-fno-asynchronous-unwind-tables"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 65092,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "no_switch_conversion",
+      "flags": [
+        "-fno-tree-switch-conversion"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 65156,
+      "delta_bytes": 64
+    },
+    {
+      "profile": "no_caller_saves",
+      "flags": [
+        "-fno-caller-saves"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 65092,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "no_split_wide",
+      "flags": [
+        "-fno-split-wide-types"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 65116,
+      "delta_bytes": 24
+    },
+    {
+      "profile": "no_ipa_cp",
+      "flags": [
+        "-fno-ipa-cp"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 65436,
+      "delta_bytes": 344
+    }
+  ]
+}
