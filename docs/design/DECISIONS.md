@@ -47,8 +47,8 @@ The revised home layout is approved and implemented in the local experimental
 build. Host-rendered captures are in `docs/screenshots/home-*.png`; the accepted
 concepts remain separate in this directory. The actual battery percentage uses
 the existing voltage-to-percentage conversion and still needs hardware validation.
-The station-directory/inbox concepts are approved layouts but are not yet the
-implemented packet browser. Example traffic and 76% mockup battery are synthetic.
+The station directory and separate inbox are implemented in the optional
+messaging candidate; the fitting receive profile retains the packet browser. Example traffic and 76% mockup battery are synthetic.
 
 ## Still open
 
@@ -60,9 +60,8 @@ implemented packet browser. Example traffic and 76% mockup battery are synthetic
 - Beacon/message send confirmation, scheduling and ACK/retry presentation.
 - Final feature tradeoffs after independent cost measurements and modem work.
 
-Implementation of the approved design is proceeding. Publication awaits the
-remaining transmit investigation and an explicit discussion of measured feature
-tradeoffs. The four-packet browser remains a technical prototype.
+Implementation of the approved design is proceeding. Source checkpoints are published as work proceeds. A complete firmware release
+awaits the remaining transmit work and measured feature tradeoffs. The four-packet browser remains a technical prototype.
 
 Regenerate with `python3 tools/design_mockups.py` (requires host GCC and Pillow).
 The HTML is self-contained; no server or network is required. The generator
@@ -84,7 +83,7 @@ handoff or acknowledgment occurred. The tested message builder and ACK matching
 APIs are not yet connected to a working TX/RX message service. There is no
 automatic ACK generation, retry scheduling or operational transport yet.
 
-The measured editor candidate with the separate inbox/monitor exceeds application flash by 3,040 bytes. It is
+The measured editor candidate with the separate inbox/monitor exceeds application flash by 1,544 bytes. It is
 not enabled in the fitting receive prototype and is not a flashable release.
 See `MESSAGING-IMPLEMENTATION.md` one directory above for costs and test limits.
 
@@ -94,3 +93,12 @@ produce notifications regardless of addressee. Four personal entries and four
 monitor packets are provisional capacities. Static-position and quick-message
 RAM setters exist; their configuration screens remain future work. No EEPROM
 storage is used for APRS.
+
+## Approved compact mode overlays
+
+Scanning, frequency entry and temporary alerts keep the home readout visible
+with compact overlays. The implementation also covers split, DTMF activity and
+bandscope states. `mode-overlays-review.png` records the proposed direction;
+the real scan footer says MENU/EXIT:STOP because MENU stops the inherited scan.
+The numeric-entry overlay replaces the main readout only while digits are being
+entered, keeping the home context and secondary VFO visible.

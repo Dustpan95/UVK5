@@ -34,6 +34,10 @@
 #include "dtmf.h"
 #include "toast.h"
 #include "vfo_split.h"
+#include "scan_rate.h"
+#include "signal_quality.h"
+#include "signal_classifier.h"
+#include "bandscope.h"
 #include <string.h>
 
 /* Coordinates include the eight-pixel status line. */
@@ -97,16 +101,76 @@ static void Frequency(uint32_t f, unsigned y)
     Text(s + 7, 109, y + 8, 1, false);
 }
 
+static unsigned Primary(void)
+{
+    return gCurrentFunction==FUNCTION_TRANSMIT || gInputBoxIndex || gDTMF_InputMode || !gRxVfoIsActive ?
+           gEeprom.TX_VFO : gEeprom.RX_VFO;
+}
+
 bool UI_HomeEligible(void)
 {
-    return gScanStateDir == SCAN_OFF && !SCANNER_IsScanning() &&
-        gVfoSplit.mode == SPLIT_OFF && !toast_timer && !gInputBoxIndex && !gDTMF_InputMode;
+    return gEeprom.TX_VFO<2 && gEeprom.RX_VFO<2;
+}
+
+static void Banner(const char *title, const char *body)
+{
+    Rect(0,47,128,17,false);Rect(0,47,128,1,true);
+    Text(title,2,49,0,false);Text(body,2,57,1,false);
+}
+
+static void Input(bool memory)
+{
+    char ascii[9],s[16];
+    for(unsigned i=0;i<8;i++) ascii[i]=gInputBox[i]<10 ? '0'+gInputBox[i] : '-';
+    ascii[8]=0;
+    Rect(0,16,128,31,false);
+    if(memory) sprintf(s,"CH-%.3s",ascii);
+    else {
+        const unsigned digits=gEeprom.VfoInfo[gEeprom.TX_VFO].pRX->Frequency>=100000000 ? 4 : 3;
+        sprintf(s,"%.*s.%s",digits,ascii,ascii+digits);
+    }
+    Center(s,20,2);Center(memory ? "CHANNEL ENTRY" : "FREQUENCY ENTRY",40,0);
+    Rect(0,57,128,7,true);Text("EXIT:DELETE  HOLD EXIT:CANCEL",8,58,0,true);
+}
+
+static void Overlays(unsigned primary)
+{
+    char s[32],frequency[12];
+    const VfoState_t state=VfoState[primary];
+    static const char *const warnings[]={"","BUSY","BAT LOW","TX DISABLE","TIMEOUT","ALARM","VOLT HIGH"};
+    if(state!=VFO_STATE_NORMAL) {
+        Banner("RADIO ALERT",state<sizeof(warnings)/sizeof(*warnings) ? warnings[state] : "CHECK RADIO");
+    } else if(gDTMF_InputMode) {
+        Banner("DTMF ENTRY",gDTMF_InputBox);
+    } else if(toast_timer) {
+        Banner("RADIO",toast_msg);
+    } else if(gVfoSplit.mode!=SPLIT_OFF) {
+        const bool alert=gVfoSplit.alert.active;
+        const uint32_t f=alert ? gVfoSplit.alert.freq_10Hz : gVfoSplit.current_freq_10Hz;
+        Rect(0,47,128,17,false);Rect(0,47,128,1,true);
+        if(alert) strcpy(s,"VFO B ACTIVITY");
+        else sprintf(s,"B SCAN CH%03u",gVfoSplit.current_channel+1);
+        Text(s,2,49,0,false);
+        sprintf(frequency,"%3u.%05u",(unsigned)(f/100000),(unsigned)(f%100000));
+        Text(frequency,2,57,1,false);
+        if(alert) {sprintf(s,"%ddBm",gVfoSplit.alert.rssi_dBm);Text(s,86,58,0,false);}
+    } else if(gScanStateDir!=SCAN_OFF || SCANNER_IsScanning()) {
+        sprintf(s,"SCAN %s %uc/s",gScanPauseMode ? "HOLD" : gScanStateDir>0 ? "UP" : "DOWN",SCAN_RATE_ChannelsPerSec());
+        Rect(0,47,128,17,false);Rect(0,47,128,1,true);Text(s,2,49,1,false);
+        Text("MENU/EXIT:STOP  UP/DN:DIR",16,58,0,false);
+    } else if(gAPRS_BannerTicks) {
+        sprintf(s,"MSG %s",gAPRS_BannerSource);Banner(s,gAPRS_BannerText);
+    } else if(gSetting_live_DTMF_decoder && gDTMF_RX_live[0]) {
+        unsigned n=strlen(gDTMF_RX_live);Banner("DTMF DECODE",gDTMF_RX_live+(n>17 ? n-17 : 0));
+    } else if(BANDSCOPE_IsEnabled() && !FUNCTION_IsRx()) {
+        memset(gFrameBuffer[6],0,128);BANDSCOPE_Render(gFrameBuffer[6]);
+    }
 }
 
 void UI_HomeStatus(void)
 {
     memset(gStatusLine, 0xff, sizeof(gStatusLine));
-    const unsigned active = gEeprom.TX_VFO < 2 ? gEeprom.TX_VFO : 0;
+    const unsigned active = UI_HomeEligible() ? Primary() : 0;
     const VFO_Info_t *v = &gEeprom.VfoInfo[active];
     const char *state = gCurrentFunction == FUNCTION_TRANSMIT ? "TX" :
                         FUNCTION_IsRx() ? "RX" : "";
@@ -114,7 +178,7 @@ void UI_HomeStatus(void)
     char s[16];
     const char power = v->OUTPUT_POWER == OUTPUT_POWER_HIGH ? 'H' :
                        v->OUTPUT_POWER == OUTPUT_POWER_MID ? 'M' : 'L';
-    sprintf(s, "%s %c", gModulationStr[v->Modulation], power);
+    sprintf(s, "%s %c", v->Modulation<MODULATION_UKNOWN ? gModulationStr[v->Modulation] : "?", power);
     Text(s, 19, 1, 0, true);
     if (gAPRS_Enabled) Text("APRS", 47, 1, 0, true);
     if (gEeprom.KEY_LOCK) Text("LK", 75, 1, 0, true);
@@ -128,11 +192,10 @@ bool UI_HomeDraw(void)
 {
     if (!UI_HomeEligible()) return false;
     const bool tx = gCurrentFunction == FUNCTION_TRANSMIT;
-    const unsigned primary = tx || !gRxVfoIsActive ? gEeprom.TX_VFO : gEeprom.RX_VFO;
-    if (primary >= 2 || VfoState[primary] != VFO_STATE_NORMAL) return false;
+    const unsigned primary = Primary();
     const VFO_Info_t *v = &gEeprom.VfoInfo[primary];
     const uint32_t f = tx ? v->pTX->Frequency : v->pRX->Frequency;
-    char s[24], name[17] = {0};
+    char s[32], name[17] = {0};
     const bool memory = IS_MR_CHANNEL(gEeprom.ScreenChannel[primary]);
     if (memory) SETTINGS_FetchChannelName(name, gEeprom.ScreenChannel[primary]);
     name[16] = 0;
@@ -156,6 +219,13 @@ bool UI_HomeDraw(void)
                 v->StepFrequency / 100, v->StepFrequency % 100 / 10);
         Center(s, 39, 0);
     }
+    if(FUNCTION_IsRx() && !gInputBoxIndex) {
+        uint8_t level;int16_t dbm=UI_RX_Signal_dBm(&level);
+        sprintf(s,"S%u %ddBm Q%u %c",level,dbm,SIGNAL_QUALITY_Get(),SIGNAL_CLASSIFIER_GetSymbol(primary));
+        const unsigned y=memory && name[0] ? 42 : 39;
+        Rect(0,y,128,7,false);Text(s,2,y,0,false);
+        for(unsigned i=0;i<9;i++) if(level>i) Rect(100+i*3,y+1,2,4,true);
+    }
     const unsigned secondary = primary ^ 1;
     const uint32_t other = gEeprom.VfoInfo[secondary].pRX->Frequency;
     sprintf(s, "%c %3u.%05u", 'A' + secondary, (unsigned)(other / 100000), (unsigned)(other % 100000));
@@ -169,13 +239,9 @@ bool UI_HomeDraw(void)
     } else {
         Rect(0, 57, 128, 7, true);
         Text("MENU   F+5:APRS   EXIT:A/B", 16, 58, 0, true);
-        if (gAPRS_BannerTicks) {
-            Rect(0, 47, 128, 17, false);
-            Rect(0, 47, 128, 1, true);
-            sprintf(s, "MSG %s", gAPRS_BannerSource);
-            Text(s, 2, 49, 0, false);
-            Text(gAPRS_BannerText, 2, 57, 1, false);
-        }
+        if(gInputBoxIndex) Input(memory);
+        Overlays(primary);
     }
+
     return true;
 }

@@ -46,6 +46,7 @@ ENABLE_BLMIN_TMP_OFF          ?= 0
 ENABLE_SCAN_RANGES            ?= 1
 # Candidate editor measured separately until the complete profile fits flash.
 ENABLE_APRS_MESSAGING         ?= 0
+ENABLE_FONT_PACKING           ?= 1
 
 # ---- DEBUGGING ----
 ENABLE_AM_FIX_SHOW_DATA       ?= 0
@@ -90,7 +91,7 @@ OBJS += init.o
 ifeq ($(ENABLE_OVERLAY),1)
 	OBJS += sram-overlay.o
 endif
-OBJS += external/printf/printf.o
+OBJS += external/printf/printf.o helper/packed.o
 
 # Drivers
 OBJS += driver/adc.o
@@ -152,7 +153,12 @@ OBJS += bitmaps.o
 OBJS += board.o
 OBJS += dcs.o
 OBJS += dtmf.o
+ifeq ($(ENABLE_FONT_PACKING),1)
+OBJS += font_packed.o
+CFLAGS_FONTS = -DENABLE_FONT_PACKING
+else
 OBJS += font.o
+endif
 OBJS += frequencies.o
 OBJS += functions.o
 OBJS += helper/battery.o
@@ -250,7 +256,7 @@ ifeq ($(ENABLE_OVERLAY),1)
 	ASFLAGS += -DENABLE_OVERLAY
 endif
 
-CFLAGS = $(CFLAGS_MESSAGING)
+CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_FONTS)
 ifeq ($(ENABLE_CLANG),0)
 	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD

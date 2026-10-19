@@ -45,3 +45,5 @@ utils/*.exe
 # UVK5 experimental build output
 uvk6-experimental*
 build/
+__pycache__/
+*.pyc

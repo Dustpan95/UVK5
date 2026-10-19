@@ -4,13 +4,24 @@
 #include "aprs_decode.h"
 #include "driver/keyboard.h"
 #define APRS_INBOX_CAPACITY 4 /* Measured prototype capacity; not a release limit. */
-typedef enum { APRS_HUB, APRS_PERSONAL, APRS_PERSONAL_DETAIL, APRS_MONITOR } APRS_View;
+#define APRS_STATION_CAPACITY 8
+typedef struct {
+    char callsign[10];
+    int32_t latitude,longitude;
+    uint32_t heardTick;
+    bool hasPosition;
+} APRS_Station;
+typedef enum { APRS_HUB, APRS_PERSONAL, APRS_PERSONAL_DETAIL, APRS_MONITOR, APRS_STATIONS, APRS_STATION_DETAIL } APRS_View;
 typedef struct {
     char callsign[10];
     int32_t latitude, longitude;
     bool positionSet;
 } APRS_Profile;
 extern APRS_Profile gAPRS_Profile;
+extern APRS_Station gAPRS_Stations[APRS_STATION_CAPACITY];
+extern uint8_t gAPRS_StationCount,gAPRS_StationSelected;
+extern uint32_t gAPRS_SessionTicks;
+void SESSION_Tick500ms(void);
 extern APRS_Record gAPRS_Inbox[APRS_INBOX_CAPACITY];
 extern uint8_t gAPRS_InboxCount, gAPRS_Unread, gAPRS_InboxSelected, gAPRS_HubSelected;
 extern APRS_View gAPRS_View;

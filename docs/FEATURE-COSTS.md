@@ -54,3 +54,9 @@ A subsequent exact-arithmetic optimization reduces the fitting profile to
 60,412 bytes and the messaging candidate to 64,480. The retained TX protocol
 probe is 65,884, still incomplete. Current measurements and next priorities
 are in `FLASH-FEASIBILITY.md`; earlier tables remain historical measurements.
+
+The shared-display/lossless-resource checkpoint now measures **58,056 bytes**
+for receive/home, **62,984** for the editor/inbox/stations/received-control
+candidate, and **65,012** with retained TX protocol/timing helpers. These are
+new whole-profile measurements, not sums of the historical deltas above. See
+`FLASH-FEASIBILITY.md` and its fingerprinted reports. No feature cuts were made.

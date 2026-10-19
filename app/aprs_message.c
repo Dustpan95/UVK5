@@ -7,9 +7,16 @@
 #endif
 #include <string.h>
 APRS_Message gAPRS_Message;
-char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1] = {
-    "ARRIVED SAFELY", "NEED ASSISTANCE", "CAN YOU COPY?"
-};
+char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1];
+void MESSAGE_Init(void)
+{
+    static bool ready;
+    if(ready) return;
+    static const char defaults[]="ARRIVED SAFELY\0NEED ASSISTANCE\0CAN YOU COPY?";
+    const char *p=defaults;
+    for(unsigned i=0;i<APRS_QUICK_COUNT;i++) {strcpy(gAPRS_Quick[i],p);p+=strlen(p)+1;}
+    ready=true;
+}
 static const char *const keys[10] = {
     " 0", ".,?!/+-1", "ABC2", "DEF3", "GHI4", "JKL5",
     "MNO6", "PQRS7", "TUV8", "WXYZ9"
@@ -59,6 +66,7 @@ void MESSAGE_EditCall(void)
 }
 void MESSAGE_Open(const char *replyTo)
 {
+    MESSAGE_Init();
     /* Keep the existing draft when re-entering; never discard text on PTT. */
     if (replyTo && MESSAGE_ValidCall(replyTo)) {
         strcpy(gAPRS_Message.recipient,replyTo);
@@ -171,6 +179,23 @@ static void Address(uint8_t *out, const char *call, bool last)
     while(n<6) out[n++]=' '<<1;
     out[6]=0x60|(ssid<<1)|last;
 }
+static void MessageHeader(uint8_t *out, const char *sender, const char *recipient)
+{
+    Address(out,"APZUVK",false); Address(out+7,sender,true);
+    out[14]=3;out[15]=0xf0;out[16]=':';
+    memset(out+17,' ',9);memcpy(out+17,recipient,strlen(recipient));out[26]=':';
+}
+size_t MESSAGE_BuildControl(const char *sender, const char *recipient,
+                            const char *id, bool rejected, uint8_t *out, size_t capacity)
+{
+    if(!MESSAGE_ValidCall(sender) || !MESSAGE_ValidCall(recipient) || !id || !out) return 0;
+    unsigned n=0;
+    while(n<5 && (Alnum(id[n]) || (id[n]>='a' && id[n]<='z'))) ++n;
+    if(!n || id[n] || capacity<30+n) return 0;
+    MessageHeader(out,sender,recipient);
+    memcpy(out+27,rejected ? "rej" : "ack",3);memcpy(out+30,id,n);
+    return 30+n;
+}
 size_t MESSAGE_BuildFrame(const char *sender, const char *recipient, const char *text,
                          const char *id, uint8_t *out, size_t capacity)
 {
@@ -183,9 +208,7 @@ size_t MESSAGE_BuildFrame(const char *sender, const char *recipient, const char 
     }
     const unsigned size=16+11+n+1+strlen(id);
     if (!n || n>APRS_MESSAGE_MAX || size>capacity) return 0;
-    Address(out,"APZUVK",false); Address(out+7,sender,true);
-    out[14]=3;out[15]=0xf0;out[16]=':';
-    memset(out+17,' ',9);memcpy(out+17,recipient,strlen(recipient));out[26]=':';
+    MessageHeader(out,sender,recipient);
     memcpy(out+27,text,n);out[27+n]='{';memcpy(out+28+n,id,strlen(id));
     return size;
 }

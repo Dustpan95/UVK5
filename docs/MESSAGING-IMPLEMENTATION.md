@@ -23,8 +23,7 @@ helpers; a working on-radio message transmitter is still outstanding.
   and a previous explicit successful-handoff state. SSID zero and omitted SSID
   compare equally. ACKs are not inferred from pressing Send or from elapsed time.
 
-The ACK/handoff APIs are exercised by simulated tests, not wired into the
-current receive parser or a transmitter. The software editor is integrated into
+The ACK/handoff APIs are exercised by simulated tests, connected to received control parsing, but not to a transmitter. The software editor is integrated into
 an optional candidate build; it is not yet a usable messaging release.
 
 ## Measured size
@@ -33,18 +32,19 @@ ARM GCC 10.3.1, same radio features and real 16 KiB SRAM layout:
 
 | Profile | Flash | Static RAM | Against 61,440-byte limit |
 |---|---:|---:|---:|
-| Existing receive/home prototype | 60,412 | 3,832 | 1,028 free |
-| With editor, session profile and separate inbox/monitor | 64,480 | 4,596 | 3,040 over |
+| Existing receive/home prototype | 58,056 | 7,188 | 3,384 free |
+| With editor, session profile and separate inbox/monitor | 62,984 | 8,200 | 1,544 over |
 
-Delta: 4,068 flash bytes, 764 static RAM bytes. This measures the reachable
+Delta: 4,928 flash bytes, 1,012 static RAM bytes. This measures the reachable
 editor, profile, inbox and UI, not the complete TX service. LTO removes unused builder/ACK
 helpers from this particular candidate, so their full retained firmware cost
-is still unmeasured. Position/quick-message editing screens, station directory, modem,
-relay configuration and ACK/retry processing require additional space.
+is still unmeasured. Position/quick-message editing screens, modem, relay configuration and retry
+processing require additional space. Station directory and received control
+parsing are included in the candidate.
 
 Diagnostic measurement enlarges FLASH to 128 KiB only in ignored copies to
 measure overflow; **never flash those outputs**. The production linker still
-enforces 60 KiB. The default receive/home build remains unchanged and fitting;
+enforces 60 KiB. The default receive/home build fits;
 `ENABLE_APRS_MESSAGING=1` is a development candidate, not a feature-cut decision.
 No final radio-function removal or optional-feature exclusion is approved.
 
@@ -58,7 +58,8 @@ These differ in spacing from concept mockups and are not hardware photographs.
 - Numeric static-position editing and quick-message customization on the LCD.
   Their validated RAM setters exist; their operator editing screens do not.
   The own-callsign editor is implemented. No persistence is required.
-- Integrate message ID/ACK/rejection parsing, deduplication and address filtering.
+- Connect the tested ACK/reject builder and received control matching to a real
+  transport. Parsing, personal-message deduplication and address filtering exist.
 - Specify delivery timeout, retries/cancellation, busy-channel handling and relay
   routing before enabling an operational send action.
 - Standard 1200/2200 Hz radio output, timer scheduling, radio arbitration and
@@ -73,7 +74,7 @@ All APRS settings and quick-message changes are deliberately RAM-only. Profile
 callsign and coordinates start unset; example quick messages initialize at boot.
 No EEPROM address is claimed, read or written by the new profile code.
 
-The candidate APRS hub offers PERSONAL INBOX, ALL TRAFFIC, NEW MESSAGE and
+The candidate APRS hub offers PERSONAL INBOX, ALL TRAFFIC, STATIONS, NEW MESSAGE and
 MY CALLSIGN. Callsign entry uses the same multi-tap editor, with save/cancel and
 format validation. Omitted SSID and `-0` refer to the same personal identity.
 Without a configured callsign, the inbox shows a setup prompt; the monitor and
@@ -82,8 +83,9 @@ notifications still work.
 A separate four-message personal buffer tracks unread state. The existing
 four-packet all-traffic log includes messages for every addressee and positions.
 Unrelated traffic cannot evict personal messages. Both capacities are prototype
-values, not final limits. Each newly received personal message is appended;
-message-ID deduplication is not implemented yet.
+values, not final limits. Personal messages are deduplicated by source, nonempty ID and exact text.
+The monitor still logs every decoded packet, and every received text message
+still triggers the configured notification.
 
 Changing the own callsign clears the old personal inbox and unread state,
 while leaving monitor traffic and the composition draft intact. Saving the same
@@ -107,3 +109,17 @@ See `FLASH-FEASIBILITY.md` for compiler experiments, the protocol lower-bound
 measurement and remaining work. `messaging-costs.json` retains the earlier
 65,092-byte checkpoint for provenance; current candidate totals are measured
 alongside the protocol probe in `protocol-size-results.json`.
+
+## Station directory and transmit investigation
+
+Eight provisional station slots track the latest heard time and last valid
+position per callsign. A later message retains that station's known position.
+The list shows age; details show callsign, position and time since last heard.
+An open detail remains attached to its station as new packets arrive; eviction
+returns to the list. Entries and their positions disappear on power-off.
+
+The retained protocol/timing probe now uses 65,012 bytes, 3,572 over flash. It
+includes message/beacon/control builders, FCS/HDLC/NRZI and the experimental
+absolute-deadline scheduler, with a RAM-only callback. It excludes actual radio
+output, MCU clock backend, arbitration, automatic ACK dispatch and retries.
+ACK/reject builder output independently decodes as ideal audio in Dire Wolf.

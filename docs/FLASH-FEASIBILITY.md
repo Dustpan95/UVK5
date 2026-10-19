@@ -43,52 +43,62 @@ Reproduce with `python3 tools/investigate-size.py`. Outputs under
 `build/size-investigation` use 128 KiB diagnostic regions and must never be
 flashed or released. The production linker still enforces 60 KiB.
 
-## What TX measurement means
+## Current shared-display/resource checkpoint
 
-`tools/measure-protocol.py` retains the actual message builder, new static
-beacon builder, HDLC/FCS/NRZI encoder and ACK-state matching helpers under LTO.
-Its callback writes synthetic tone selections to volatile RAM, not a radio.
-The same frozen source is built before/after adding the probe so the delta is
-measured rather than guessed. This is a lower bound on protocol code, not a
-complete working transmitter or a trustworthy total release budget.
+The single home renderer now covers scan, frequency entry, split, warnings,
+toast, DTMF activity and bandscope overlays. Low-battery and key-lock priorities
+remain in the real main-screen code. Host tests exercise these modes; physical
+radio operation still needs bench validation. Scan and PTT algorithms remain.
 
-The current measurements are:
+Original fonts and all menu hint text are losslessly expanded into RAM. Every
+byte is compared with the original resources under sanitizers; eleven actual
+LCD framebuffers compare identically between raw and packed fonts. No glyph,
+hint or coordinate precision was removed. Original resource source and notices
+remain in the complete repository. This saves flash at a RAM cost, which is
+included in the totals below.
 
-| Profile | Flash | Against 61,440-byte application region |
-|---|---:|---:|
-| Receive and approved home | 60,412 | 1,028 free |
-| Editor, RAM profile, inbox and monitor | 64,480 | 3,040 over |
-| Same plus retained TX protocol helpers | 65,884 | 4,444 over |
+| Current profile | Flash | Static RAM | Against 61,440 bytes |
+|---|---:|---:|---:|
+| Receive and approved home overlays | 58,056 | 7,188 | 3,384 free |
+| Editor, profile, inbox, stations, received ACK handling | 62,984 | 8,200 | 1,544 over |
+| Same plus retained TX protocol and timing helpers | 65,012 | diagnostic | 3,572 over |
 
-Retaining these TX helpers adds **1,404 bytes** to the exact same candidate.
-`protocol-size-results.json` records the frozen source fingerprint. This is not
-an estimate for the missing hardware driver and service. At least 4,444 bytes
-must be recovered *before* those parts can be included. The probe does not call
-any BK4819 or GPIO write and is not compiled into the normal Makefile.
+The receive profile passes the real 60 KiB linker, ARMv6S-M/Thumb-1 vector and
+packed updater/CRC checks. `receive-build-verification.json` records hashes and
+RAM bounds. The candidate and probe are diagnostic builds, not flashable output.
+The 2 KiB linker stack reservation is additional to static RAM; runtime maximum
+stack depth remains unmeasured.
 
-Missing parts include radio tone output and absolute symbol scheduling,
-TX limits/arbitration, busy-channel handling, on-air ACK parsing/generation,
-retry/cancel behavior, static-position/custom-quick-message editing screens,
-and the approved station directory. Their costs remain unmeasured.
+A same-source GCC 13.2.1 comparison did not help: on an earlier frozen shared-UI
+snapshot, GCC 10 -Os used 61,712 bytes, GCC 13 -Os and -Oz each used 61,876.
+`toolchain-size-results.json` identifies that snapshot. GCC 10 remains pinned;
+the comparison is not additive to the current checkpoint.
 
-The static beacon builder is host-tested for geographic limits, hemispheres,
-rounding to the nearest hundredth minute and carry into the next degree. Its
-actual C output, followed by the actual C symbol encoder, decodes in independent
-Dire Wolf with repair disabled. Deliberately corrupted audio is rejected. This
-establishes ideal software protocol/audio encoding, not BK4819 RF output.
+## What the current TX measurement means
+
+`tools/measure-protocol.py` retains actual message, static beacon and ACK/reject
+builders, FCS/HDLC/NRZI, ACK matching and the experimental absolute symbol
+scheduler under LTO. Its clock and tone callbacks operate only on synthetic RAM
+state. No BK4819 or GPIO write occurs. The probe adds 2,028 bytes to its exact
+same-source candidate; `protocol-size-results.json` records the fingerprint.
+
+This is a lower-bound protocol/timing cost. Actual tone output, MCU clock backend,
+TX limits/arbitration, busy-channel handling, automatic ACK dispatch, retries,
+and position/custom-quick editing screens still need space and implementation.
+The station directory and received ACK/reject parser are already in the
+candidate. No diagnostic linker enlargement changes physical flash capacity.
+
+Message/beacon/control builders and the actual encoder independently decode as
+ideal 1200/2200 Hz audio in Dire Wolf with repair disabled. Corrupted-symbol
+fixtures fail decoding. The standalone scheduler is host-tested for absolute
+40,000-cycle intervals, wraparound, cancellation and timing faults. These are
+software experiments; BK4819 phase continuity, deviation and RF decoding remain
+unverified.
 
 ## Next engineering target
 
-Consolidate the inherited and custom screen paths, then measure the resulting
-complete UI before asking for radio-feature sacrifices. In the frozen messaging
-build, `UI_DisplayMain` occupies 4,688 bytes and `UI_DisplayMenu` 2,672 bytes;
-LTO inlines helpers into these functions, so these are size drivers, not amounts
-that can simply be deleted. Scanning, numeric input, split operation, warnings,
-key lock and toast states still need useful displays after any consolidation.
-
-Other candidates include lossless font/string compression and eliminating
-repeated formatting code. Savings must be measured with unchanged feature
-behavior. If these cannot fund the full requested service, present measured
-feature combinations for the owner's decision. A working fit is not guaranteed;
-no feature removal or promise of a complete original-MCU build follows from
-publishing the source.
+Continue lossless storage/code consolidation and measure the complete service.
+Review flash and RAM together. If optimization cannot fund all requested
+features, present measured combinations for the owner's decision before any
+radio-feature cuts. Publishing source checkpoints does not establish that the
+complete original-MCU release fits or works on hardware.

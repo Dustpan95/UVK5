@@ -11,7 +11,7 @@
 #include "ui/helper.h"
 #include <string.h>
 
-static void Coord(char *out, int32_t value, char positive, char negative)
+void APRS_FormatCoordinate(char *out, int32_t value, char positive, char negative)
 {
     const uint32_t abs = value < 0 ? (uint32_t)-value : (uint32_t)value;
     sprintf(out, "%lu.%05lu%c", (unsigned long)(abs / 1000000),
@@ -22,14 +22,14 @@ void APRS_DrawRecord(const APRS_Record *r)
 {
     char line[22];
 
-    if (r->kind == APRS_MESSAGE) {
+    if (r->kind == APRS_MESSAGE || r->kind == APRS_ACK || r->kind == APRS_REJECT) {
         sprintf(line, "%s>%s", r->source, r->destination);
         UI_DisplaySmallest(line, 0, 8, false, true);
     } else UI_PrintString(r->source, 0, LCD_WIDTH, 1, 8);
     if (r->kind == APRS_POSITION) {
-        Coord(line, r->latitude, 'N', 'S');
+        APRS_FormatCoordinate(line, r->latitude, 'N', 'S');
         UI_PrintStringSmallNormal(line, 0, 0, 3);
-        Coord(line, r->longitude, 'E', 'W');
+        APRS_FormatCoordinate(line, r->longitude, 'E', 'W');
         UI_PrintStringSmallNormal(line, 0, 0, 4);
     } else {
         /* Four rows of 17 characters fit all 67 APRS message characters. */

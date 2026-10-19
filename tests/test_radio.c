@@ -7,6 +7,7 @@
 #include <string.h>
 #include "app/aprs_rx.h"
 #include "audio.h"
+#include "font.h"
 #ifdef ENABLE_APRS_MESSAGING
 #include "app/aprs_message.h"
 #include "app/aprs_session.h"
@@ -28,6 +29,7 @@
 #include "capture.h"
 #include "dtmf.h"
 #include "helper/battery.h"
+#include "signal_quality.h"
 
 EEPROM_Config_t gEeprom;
 VFO_Info_t *gRxVfo = &gEeprom.VfoInfo[0], *gCurrentVfo = &gEeprom.VfoInfo[0];
@@ -35,6 +37,14 @@ FUNCTION_Type_t gCurrentFunction;
 VfoSplit_t gVfoSplit;
 VfoState_t VfoState[2];
 int8_t gScanStateDir;
+bool gScanPauseMode, gSetting_live_DTMF_decoder;
+char gDTMF_InputBox[15],gDTMF_RX_live[20],toast_msg[TOAST_MSG_SIZE];
+static bool bandscope_enabled;
+bool BANDSCOPE_IsEnabled(void) { return bandscope_enabled; }
+void BANDSCOPE_Render(uint8_t *line) { memset(line,0x55,128); }
+uint8_t SCAN_RATE_ChannelsPerSec(void) { return 18; }
+SignalQuality_t SIGNAL_QUALITY_Get(void) { return QUALITY_EXCELLENT; }
+char SIGNAL_CLASSIFIER_GetSymbol(uint8_t vfo) { (void)vfo;return 'V'; }
 bool gCssBackgroundScan, gUpdateDisplay, gDTMF_InputMode, gRxVfoIsActive, gWasFKeyPressed;
 uint16_t gBatteryVoltageAverage;
 volatile uint16_t gTxTimerCountdown_500ms;
@@ -88,6 +98,7 @@ static void image(const char *name) {
 }
 int main(int argc,char **argv) {
     assert(argc==2);
+    FONT_Init();
     for(unsigned i=0;i<128;i++) regs[i]=0x100+i;
     uint16_t before[128];memcpy(before,regs,sizeof(regs));
     gRxVfo->Modulation=MODULATION_FM;
@@ -147,7 +158,7 @@ int main(int argc,char **argv) {
         fifo_active=false;
         assert(gAPRS_Log[0].kind==APRS_MESSAGE);
 #ifdef ENABLE_APRS_MESSAGING
-        assert(gAPRS_InboxCount==round+1);
+        assert(gAPRS_InboxCount==1); /* Repeated message ID is one inbox entry. */
 #endif
         assert(gAPRS_BannerTicks==10 && !gAPRS_Browser);
         assert(!strcmp(gAPRS_BannerSource,"N0CALL-15"));
@@ -314,6 +325,33 @@ int main(int argc,char **argv) {
     assert(!strcmp(gAPRS_Profile.callsign,"MYCALL") && gAPRS_Message.page==MESSAGE_CLOSED);
     assert(writes==config_writes);
 
+    APRS_Record station_packet={.kind=APRS_POSITION,.latitude=49058333,.longitude=-72029166};
+    strcpy(station_packet.source,"N0STN");
+    SESSION_Receive(&station_packet);unsigned station_count=gAPRS_StationCount;
+    assert(gAPRS_Stations[0].hasPosition && !strcmp(gAPRS_Stations[0].callsign,"N0STN"));
+    SESSION_Tick500ms();station_packet.kind=APRS_OTHER;
+    SESSION_Receive(&station_packet);assert(gAPRS_StationCount==station_count && gAPRS_Stations[0].hasPosition);
+    assert(gAPRS_Stations[0].latitude==49058333 && gAPRS_Stations[0].heardTick==gAPRS_SessionTicks);
+    gAPRS_View=APRS_STATION_DETAIL;gAPRS_StationSelected=0;
+    UI_HomeStatus();SESSION_Draw();snprintf(path,sizeof(path),"%s/station-detail.pbm",argv[1]);image(path);
+    strcpy(station_packet.source,"N1STN");SESSION_Receive(&station_packet);
+    assert(gAPRS_StationSelected==1 && !strcmp(gAPRS_Stations[gAPRS_StationSelected].callsign,"N0STN"));
+    for(unsigned i=2;i<11;i++) {sprintf(station_packet.source,"N%uSTN",i);SESSION_Receive(&station_packet);}
+    assert(gAPRS_StationCount==8 && gAPRS_View==APRS_STATIONS);
+    gAPRS_StationSelected=7;SESSION_Draw();snprintf(path,sizeof(path),"%s/station-directory.pbm",argv[1]);image(path);
+    SESSION_Key(KEY_DOWN);assert(gAPRS_StationSelected==7);
+    SESSION_Key(KEY_MENU);assert(gAPRS_View==APRS_STATION_DETAIL);
+    SESSION_Key(KEY_EXIT);assert(gAPRS_View==APRS_STATIONS);
+    strcpy(gAPRS_Message.recipient,"N0ACK");strcpy(gAPRS_Message.text,"PING");
+    assert(MESSAGE_MarkSent("MYCALL","01"));
+    APRS_Record ack={.kind=APRS_ACK};strcpy(ack.source,"N0WRNG");strcpy(ack.destination,"MYCALL");strcpy(ack.messageId,"01");
+    unsigned before_ack=gAPRS_InboxCount;
+    SESSION_Receive(&ack);assert(gAPRS_Message.delivery==MESSAGE_WAIT_ACK);
+    strcpy(ack.source,"N0ACK");SESSION_Receive(&ack);
+    assert(gAPRS_Message.delivery==MESSAGE_ACKED && gAPRS_InboxCount==before_ack);
+    gAPRS_Message.page=MESSAGE_CLOSED;
+    puts("PASS received ACK routing/correlation without inbox pollution");
+    puts("PASS station deduplication, retained positions, last-heard age, detail stability and bounded eviction");
     puts("PASS session profile validation, personal filtering/unread/eviction, monitor isolation, callsign editing");
     gAPRS_Message.page=MESSAGE_CLOSED;
     puts("PASS integrated editor keys/held-repeat/PTT, draft preservation, candidate LCD bounds");
@@ -340,9 +378,21 @@ int main(int argc,char **argv) {
     assert(UI_HomeDraw());snprintf(path,sizeof(path),"%s/home-vfo.pbm",argv[1]);image(path);
     gEeprom.TX_VFO=2;assert(!UI_HomeDraw());gEeprom.TX_VFO=0;
     gEeprom.DUAL_WATCH=1;assert(UI_HomeDraw());gEeprom.DUAL_WATCH=0;
-    gVfoSplit.mode=SPLIT_ALERT;assert(!UI_HomeDraw());gVfoSplit.mode=SPLIT_OFF;
-    toast_timer=1;assert(!UI_HomeDraw());toast_timer=0;
-    gInputBoxIndex=1;assert(!UI_HomeDraw());gInputBoxIndex=0;
-    VfoState[0]=VFO_STATE_TX_DISABLE;assert(!UI_HomeDraw());
+    gVfoSplit.mode=SPLIT_ALERT;gVfoSplit.alert.active=true;
+    gVfoSplit.alert.freq_10Hz=14439000;gVfoSplit.alert.rssi_dBm=-91;
+    assert(UI_HomeDraw());snprintf(path,sizeof(path),"%s/home-split.pbm",argv[1]);image(path);
+    gVfoSplit.mode=SPLIT_OFF;
+    toast_timer=1;strcpy(toast_msg,"SIMPLEX");assert(UI_HomeDraw());
+    snprintf(path,sizeof(path),"%s/home-toast.pbm",argv[1]);image(path);toast_timer=0;
+    gInputBoxIndex=3;memset(gInputBox,10,sizeof(gInputBox));gInputBox[0]=1;gInputBox[1]=4;gInputBox[2]=6;
+    assert(UI_HomeDraw());snprintf(path,sizeof(path),"%s/home-entry.pbm",argv[1]);image(path);gInputBoxIndex=0;
+    VfoState[0]=VFO_STATE_TX_DISABLE;assert(UI_HomeDraw());
+    snprintf(path,sizeof(path),"%s/home-warning.pbm",argv[1]);image(path);VfoState[0]=VFO_STATE_NORMAL;
+    gScanStateDir=1;assert(UI_HomeDraw());snprintf(path,sizeof(path),"%s/home-scan.pbm",argv[1]);image(path);gScanStateDir=0;
+    gDTMF_InputMode=true;strcpy(gDTMF_InputBox,"12345678*#ABCD");assert(UI_HomeDraw());gDTMF_InputMode=false;
+    gSetting_live_DTMF_decoder=true;strcpy(gDTMF_RX_live,"1234567890123456789");assert(UI_HomeDraw());gSetting_live_DTMF_decoder=false;
+    gCurrentFunction=FUNCTION_FOREGROUND;bandscope_enabled=true;assert(UI_HomeDraw());assert(gFrameBuffer[6][0]==0x55);bandscope_enabled=false;
+    gCurrentFunction=FUNCTION_TRANSMIT;assert(UI_HomeDraw());
+    puts("PASS compact scan/input/toast/split/warning/DTMF/bandscope/TX modes");
     puts("PASS browser navigation/PTT passthrough, real framebuffer rendering, UI fallback");
 }

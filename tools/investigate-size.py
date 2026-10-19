@@ -33,7 +33,7 @@ profiles={
 }
 fingerprint=hashlib.sha256()
 for p in sorted(SOURCE.rglob('*')):
- if p.is_file() and (p.suffix in {'.c','.h','.ld'} or p.name=='Makefile'):
+ if p.is_file() and (p.suffix in {'.c','.h','.ld','.inc'} or p.name=='Makefile'):
   fingerprint.update(str(p.relative_to(SOURCE)).encode());fingerprint.update(p.read_bytes())
 def build(item):
  name,flags=item;work=OUT/name

@@ -19,6 +19,8 @@ def address(call,ssid,last):
 for label,payload,expected in [
  ('position',b'!4903.50N/07201.75W-Test','!4903.50N/07201.75W-Test'),
  ('message',b':MYCALL   :MEET AT TRAILHEAD{01',':MYCALL   :MEET AT TRAILHEAD{01'),
+ ('ack',b'',':MYCALL   :ackaZ123'),
+ ('reject',b'',':MYCALL   :rejaZ123'),
  ('stuffing',b':MYCALL   :'+b'~'*67,':MYCALL   :'+ '~'*67)]:
     body=address('APZUVK',0,False)+address('N0CALL',15,True)+b'\x03\xf0'+payload
     command=[str(out/'encode')]
@@ -27,6 +29,8 @@ for label,payload,expected in [
     if label=='message':
         command.append('--message');body=b'MEET AT TRAILHEAD'
         expected=':MYCALL   :MEET AT TRAILHEAD{01'
+    if label in ('ack','reject'):
+        command.append('--'+label);body=b''
     symbols=subprocess.run(command,input=body,stdout=subprocess.PIPE,check=True).stdout
     for corrupt in (False,True):
         encoded=bytearray(symbols)

@@ -24,11 +24,12 @@ def ignore(directory,names):
 shutil.copytree(ROOT,SOURCE,ignore=ignore)
 fingerprint=hashlib.sha256()
 for p in sorted(SOURCE.rglob('*')):
-    if p.is_file() and (p.suffix in {'.c','.h','.ld'} or p.name=='Makefile'):
+    if p.is_file() and (p.suffix in {'.c','.h','.ld','.inc'} or p.name=='Makefile'):
         fingerprint.update(str(p.relative_to(SOURCE)).encode());fingerprint.update(p.read_bytes())
 variants=[('baseline',[],None)]
 for label,flag in [
  ('messaging_editor','ENABLE_APRS_MESSAGING=1'),
+ ('font_packing','ENABLE_FONT_PACKING=1'),('font_unpacked','ENABLE_FONT_PACKING=0'),
  ('spectrum','ENABLE_SPECTRUM=1'),('fm_broadcast','ENABLE_FMRADIO=1'),
  ('vox','ENABLE_VOX=1'),('voice_prompts','ENABLE_VOICE=1'),('noaa','ENABLE_NOAA=1'),
  ('dtmf_calling','ENABLE_DTMF_CALLING=1'),('mic_audio_bar','ENABLE_AUDIO_BAR=1'),
@@ -36,6 +37,7 @@ for label,flag in [
  ('without_am_fix','ENABLE_AM_FIX=0'),('without_adaptive_scan','ENABLE_ADAPTIVE_SCAN=0'),
  ('without_scan_ranges','ENABLE_SCAN_RANGES=0'),('without_flashlight','ENABLE_FLASHLIGHT=0')]:
     variants.append((label,[flag],None))
+variants.append(('messaging_packed',['ENABLE_APRS_MESSAGING=1','ENABLE_FONT_PACKING=1'],None))
 notice='/* Diagnostic stub in a complete isolated firmware copy; not release code. */\n'
 stubs={
  'compressor':('tx_compressor.c','#include "tx_compressor.h"\nCompressorConfig_t gCompressorConfig;\nvoid TX_COMPRESSOR_Start(void){}\nvoid TX_COMPRESSOR_Process(void){}\nvoid TX_COMPRESSOR_Stop(void){}\n'),

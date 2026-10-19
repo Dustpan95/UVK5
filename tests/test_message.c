@@ -80,6 +80,19 @@ int main(void) {
     assert(!MESSAGE_BuildBeacon("MYCALL",0,180000001,'/','-',frame,sizeof(frame)));
     assert(!MESSAGE_BuildBeacon("MYCALL",0,0,'?','-',frame,sizeof(frame)));
     assert(!MESSAGE_BuildBeacon("MYCALL",0,0,'/','-',frame,35));
+    for(unsigned rejected=0;rejected<2;rejected++) {
+        n=MESSAGE_BuildControl("MYCALL-15","N0CALL-7","aZ123",rejected,frame,sizeof(frame));
+        assert(n==35 && !memcmp(frame+27,rejected ? "rejaZ123" : "ackaZ123",8));
+        crc=APRS_FCS(frame,n);frame[n]=crc;frame[n+1]=crc>>8;
+        assert(APRS_ParseFrame(frame,n+2,&record));
+        assert(record.kind==(rejected ? APRS_REJECT : APRS_ACK));
+        assert(!strcmp(record.messageId,"aZ123") && !strcmp(record.destination,"N0CALL-7"));
+    }
+    assert(!MESSAGE_BuildControl("MYCALL","N0CALL","",false,frame,sizeof(frame)));
+    assert(!MESSAGE_BuildControl("MYCALL","N0CALL","ABCDEF",false,frame,sizeof(frame)));
+    assert(!MESSAGE_BuildControl("MYCALL","N0CALL","{1",false,frame,sizeof(frame)));
+    assert(!MESSAGE_BuildControl("MYCALL","N0CALL","12345",false,frame,34));
+    puts("PASS ACK/reject construction and parser roundtrip, case-preserving ID and capacity bounds");
     puts("PASS static beacon encoding, coordinate rounding/carry and bounds");
     puts("PASS multi-tap/timeout/delete, draft preservation, quick insert/bounds, review, blocked TX");
     puts("PASS call/SSID/ID validation, AX.25 message build/roundtrip, ACK source/recipient/ID matching");

@@ -6,11 +6,12 @@
 #define APRS_FRAME_MAX 192
 #define APRS_LOG_CAPACITY 4
 #define APRS_TEXT_MAX 67
-typedef enum { APRS_OTHER, APRS_POSITION, APRS_MESSAGE } APRS_Kind;
+typedef enum { APRS_OTHER, APRS_POSITION, APRS_MESSAGE, APRS_ACK, APRS_REJECT } APRS_Kind;
 typedef struct {
     char source[10];
     char destination[10];
     char text[APRS_TEXT_MAX + 1];
+    char messageId[6];
     int32_t latitude, longitude; /* millionths of degrees */
     APRS_Kind kind;
 } APRS_Record;

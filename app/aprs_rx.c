@@ -158,6 +158,7 @@ void APRS_Tick500ms(void)
 {
 #ifdef ENABLE_APRS_MESSAGING
     MESSAGE_Tick500ms();
+    SESSION_Tick500ms();
 #endif
     if (gAPRS_BannerTicks && --gAPRS_BannerTicks == 0) gUpdateDisplay = true;
     if (alertPending && gCurrentFunction == FUNCTION_FOREGROUND) {
@@ -179,6 +180,7 @@ void APRS_Tick500ms(void)
 void APRS_Open(void)
 {
 #ifdef ENABLE_APRS_MESSAGING
+    MESSAGE_Init();
     SESSION_Open();
 #endif
     gAPRS_Browser = true;

@@ -202,6 +202,16 @@ s=Screen();s.status();s.centered('STATIC BEACON',10,'mini');s.text('CALL MYCALL-
 s.text('49.05833N',2,31);s.text('072.02916W',2,41)
 s.footer('MENU:REVIEW  EXIT:APRS');s.save('beacon-static')
 
+# Proposals for unifying mode feedback with the approved home layout.
+s=home('hybrid-vfo');s.rect(0,47,128,17,0);s.line(47)
+s.centered('SCAN UP  18 CH/s',49);s.footer('MENU:HOLD  EXIT:STOP');s.save('overlay-scan')
+s=home('hybrid-vfo');s.rect(0,16,128,31,0);s.centered('146.---',19,'big')
+s.centered('FREQUENCY ENTRY',39,'mini');s.save('overlay-entry')
+s=home('hybrid-memory');s.rect(0,47,128,17,0);s.line(47)
+s.centered('SIMPLEX RESTORED',50);s.save('overlay-toast')
+s=home('hybrid-memory');s.rect(0,47,128,17,0);s.line(47)
+s.text('B ACTIVITY 144.390',2,49);s.text('HEARD -91dBm',2,58,'mini');s.save('overlay-split')
+
 # Contact sheets show alternatives without assuming any option was selected.
 try:
  titlefont=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',22)
@@ -248,6 +258,11 @@ sheet('messaging-review',[
  ('message-review','4. Review and send','Recipient and text visible before transmission'),
  ('message-pending','5. Waiting for acknowledgment','Proposed delivery state; retry policy still open'),
  ('message-acked','6. Acknowledged','A remote ACK confirms receipt by that station')],cols=3)
+sheet('mode-overlays-review',[
+ ('overlay-scan','Scanning','Active readout stays visible; scan feedback below'),
+ ('overlay-entry','Frequency entry','Entered digits use the main readout area'),
+ ('overlay-toast','Temporary radio confirmation','Confirmation briefly covers the secondary strip'),
+ ('overlay-split','Secondary-VFO activity','Frequency and signal shown in the lower strip')],cols=2)
 (OUT/'frames.json').write_text(json.dumps(frames,separators=(',',':')))
 if (OUT/'review.template.html').exists():
     (OUT/'review.html').write_text((OUT/'review.template.html').read_text().replace('__FRAMES__',json.dumps(frames,separators=(',',':'))))

@@ -22,7 +22,8 @@ does not establish the MCU revision.
   Scan+Watch, VFO split, and existing radio functions remain in the source/build.
 - Approved custom home: large channel name for named memories, large frequency
   for VFOs and unnamed memories, smaller secondary VFO and battery percentage.
-  Existing scan, input, warning and toast displays remain for those states.
+  Scanning, frequency entry, split and temporary alerts use compact overlays
+  while keeping the home readout visible.
 - Brief incoming-message banners, plus a configurable sound defaulting ON;
   general beep OFF also silences APRS. Five-second timing is provisional.
 - On-radio APRS receiver: source callsign/SSID, uncompressed, timestamped,
@@ -34,7 +35,7 @@ does not establish the MCU revision.
 The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md) is implemented
 as a separate candidate (`ENABLE_APRS_MESSAGING=1`), with multi-tap entry, quick
 messages, send review and truthful blocked-send status. It exceeds flash by
-3,040 bytes before adding a working transmitter, so it is not enabled in the
+1,544 bytes before adding a working transmitter, so it is not enabled in the
 fitting receive profile. No final feature cuts have been selected. See the [flash feasibility work](docs/FLASH-FEASIBILITY.md). The message
 codec/ACK helpers have host tests; on-radio transport remains unimplemented.
 
@@ -42,9 +43,9 @@ All APRS settings, static position, quick-message edits and received history
 are session-only and reset at power-off. The fitting receive profile remains
 an all-traffic packet browser. The optional messaging candidate adds a separate
 personal inbox filtered by an operator-entered callsign/SSID, unread markers,
-and an all-traffic monitor. All received APRS messages still trigger brief
+a deduplicated station directory, and an all-traffic monitor. All received APRS messages still trigger brief
 banners and configured sound, regardless of addressee. **Currently implemented on-radio: receive.** Standard-compatible transmit is
-being investigated before publication, with messaging primary and a simple
+being investigated before release, with messaging primary and a simple
 static-position beacon also requested. TX release scope is not yet fixed; see the measured
 [transmit investigation](docs/APRS-TX-INVESTIGATION.md).
 

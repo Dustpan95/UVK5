@@ -1,5 +1,5 @@
 {
-  "source_fingerprint": "f27ccc16bb6169050d873e449b3a51eccfcfa90eac65b7a8ccc8a52aaa6bec4a",
+  "source_fingerprint": "f1bb062652ec003f73a596f3b48308ea1afdd3563042dd2a1891c46eb8caaf87",
   "compiler": "ARM GCC 10.3.1",
   "diagnostic_flash_limit": 131072,
   "real_flash_limit": 61440,
@@ -9,8 +9,8 @@
       "flags": [],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 61024,
-      "static_ram_bytes": 3832,
+      "flash_bytes": 58056,
+      "static_ram_bytes": 7188,
       "fits_60k": true,
       "delta_flash_bytes": 0
     },
@@ -21,10 +21,10 @@
       ],
       "kind": "build flag",
       "exit_code": 0,
-      "flash_bytes": 65092,
-      "static_ram_bytes": 4596,
+      "flash_bytes": 62984,
+      "static_ram_bytes": 8200,
       "fits_60k": false,
-      "delta_flash_bytes": 4068
+      "delta_flash_bytes": 4928
     }
   ]
 }

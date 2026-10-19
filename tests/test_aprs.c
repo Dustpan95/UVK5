@@ -63,6 +63,16 @@ int main(void) {
     frame[20]^=1;
     assert(!APRS_ParseFrame(frame,n,&r));
     assert(!APRS_DecodeBits(bits,1,&r));
+    n=packet("APRS",(const uint8_t*)":MYCALL   :HELLO{12345",22);
+    assert(APRS_ParseFrame(frame,n,&r) && r.kind==APRS_MESSAGE);
+    assert(!strcmp(r.text,"HELLO") && !strcmp(r.messageId,"12345"));
+    n=packet("APRS",(const uint8_t*)":MYCALL   :ack12345",19);
+    assert(APRS_ParseFrame(frame,n,&r) && r.kind==APRS_ACK && !strcmp(r.messageId,"12345"));
+    n=packet("APRS",(const uint8_t*)":MYCALL   :rejab1",17);
+    assert(APRS_ParseFrame(frame,n,&r) && r.kind==APRS_REJECT && !strcmp(r.messageId,"ab1"));
+    n=packet("APRS",(const uint8_t*)":MYCALL   :ackBAD!",18);
+    assert(APRS_ParseFrame(frame,n,&r) && r.kind==APRS_MESSAGE && !r.messageId[0]);
+    puts("PASS message ID/ACK/rejection parsing and malformed-ID handling");
     puts("PASS CRC, AX.25, HDLC/NRZI both polarities, corruption/truncation");
 
     const char *timestamp="/092345z4903.50S/07201.75E>";

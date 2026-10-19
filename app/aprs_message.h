@@ -27,6 +27,7 @@ typedef struct {
 extern APRS_Message gAPRS_Message;
 extern char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1];
 bool MESSAGE_ValidCall(const char *call);
+void MESSAGE_Init(void);
 void MESSAGE_EditCall(void);
 void MESSAGE_Open(const char *replyTo);
 void MESSAGE_Key(KEY_Code_t key);
@@ -40,5 +41,8 @@ size_t MESSAGE_BuildFrame(const char *sender, const char *recipient,
                          const char *text, const char *id, uint8_t *out, size_t capacity);
 size_t MESSAGE_BuildBeacon(const char *sender, int32_t latitude, int32_t longitude,
                            char table, char symbol, uint8_t *out, size_t capacity);
+/* ACK/reject controls are never numbered messages and never request an ACK. */
+size_t MESSAGE_BuildControl(const char *sender, const char *recipient,
+                            const char *id, bool rejected, uint8_t *out, size_t capacity);
 void MESSAGE_Draw(void);
 #endif

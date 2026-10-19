@@ -12,10 +12,10 @@ physical radio revision was not established.
 - Toolchain setup from the pinned Ubuntu image with signed packages: ARM GCC
   10.3.1, ARM binutils 2.38 and newlib 3.3.0. Cached setup was reused successfully.
 - Clean default-profile build with the existing warning-as-error flags and LTO.
-- Raw flash image **60,412 / 61,440 bytes**, leaving **1,028 bytes**.
-- Static `.data` + `.bss`: **3,832 bytes**. Linker stack reservation: **2,048
+- Raw flash image **58,056 / 61,440 bytes**, leaving **3,384 bytes**.
+- Static `.data` + `.bss`: **7,188 bytes**. Linker stack reservation: **2,048
   bytes**. The startup vector sets SP to **0x20003ff0**, preserving upstream's
-  16-byte top-of-SRAM reserve. 12,536 bytes lie between static data and that SP;
+  16-byte top-of-SRAM reserve. 9,180 bytes lie between static data and that SP;
   this is not a measured maximum stack margin.
 - ELF CPU attributes, Thumb reset vector, RAM/flash bounds and packed updater
   version/payload/CRC. Unpacking reproduced the exact raw image.
@@ -77,13 +77,12 @@ The separate `experiments/bell202_symbols.c` protocol encoder generates FCS,
 HDLC stuffing and NRZI symbols without linking into the firmware. Python turns
 those symbols into continuous-phase, ideal 48 kHz audio at 1200/2200 Hz.
 `tools/test-bell202.py` uses independent Dire Wolf `atest` with bit repair OFF.
-Position, addressed message and stuffing-heavy full-length message cases decode;
+Position, addressed message, ACK/reject and stuffing-heavy full-length message cases decode;
 corrupted-symbol cases must fail CRC and produce zero packets. Logs and WAVs
 are under ignored `build/bell202/`. These are synthetic fixtures, not recordings.
 
-This establishes protocol/audio encoding only. No BK4819 radio output, symbol
-scheduler, RF deviation, AX.25 message retry logic, operator configuration or
-hardware interoperability is validated by this experiment. Dire Wolf is an
+This establishes protocol/audio encoding only. No BK4819 radio output, MCU timer backend, RF deviation, AX.25 message retry
+logic or hardware interoperability is validated by this experiment. Dire Wolf is an
 optional investigation dependency, not needed for the default build/tests.
 
 ## Approved editor candidate
@@ -96,7 +95,7 @@ callsign/SSID/ID validation, message construction, receive-parser roundtrip and
 ACK/rejection correlation including SSID zero. The independent audio test's
 ordinary message is built with the actual C message builder before encoding.
 These are software checks, not successful radio messages. The current candidate
-with session inbox/monitor is 64,480 bytes (3,040 over flash); see `MESSAGING-IMPLEMENTATION.md`.
+with session inbox/monitor is 62,984 bytes (1,544 over flash); see `MESSAGING-IMPLEMENTATION.md`.
 
 The session-profile/inbox candidate additionally passes own-call keypad entry,
 validation/save/cancel, own-address filtering, SSID-zero normalization, unread
@@ -111,8 +110,8 @@ made; the profile code contains no EEPROM accesses.
 Compressed-coordinate scaling now uses exact bounded 32-bit arithmetic. The
 exhaustive C test compares 137,133,362 valid input/divisor pairs with the former
 64-bit expression. It passes, and all parser, receiver, editor and UI sanitizer
-checks pass after this change. Default flash falls by 612 bytes; static RAM is
-unchanged. The original-MCU ELF/vector/budget and updater checks pass.
+checks pass after this change. That optimization saved 612 flash bytes with static RAM unchanged. Subsequent
+shared UI and lossless resource work produced the current totals above. The original-MCU ELF/vector/budget and updater checks pass.
 
 The static-beacon builder passes coordinate/hemisphere bounds, nearest-hundredth
 minute rounding and degree-carry tests. The independent waveform test now uses
@@ -120,6 +119,32 @@ the actual C beacon builder as well as the actual C message builder before the
 C HDLC/NRZI encoder. Positive and corrupted-frame cases pass in Dire Wolf.
 No actual RF, timer, retries or radio handoff is tested by this waveform.
 
-The retained-protocol diagnostic build is 65,884 bytes, 4,444 over the real
+The retained-protocol diagnostic build is 65,012 bytes, 3,572 over the real
 application region, and still excludes the operational radio driver/service.
 See `FLASH-FEASIBILITY.md`; no larger diagnostic linker region is a hardware fix.
+
+## Shared home screen and lossless resources
+
+The single home rendering path covers scan/direction/rate, numeric entry, split,
+toast, VFO warnings, DTMF activity and bandscope overlays. Real main-screen tests
+also verify low-battery/key-lock/APRS priority, invalid VFO indices, refresh
+conditions, calibrated RSSI and degenerate S0/S9 calibration without division by
+zero. Radio scan/PTT algorithms were not replaced.
+
+All original font bytes (plain and optional bold) and menu hint bytes are
+compared against the expanded resources under sanitizers. Eleven actual
+framebuffer states are identical with packed and unpacked fonts. Compression
+trades flash for RAM; the current build has 7,188 static RAM bytes, excluding its
+2,048-byte stack reservation. Runtime maximum stack usage is unmeasured.
+
+The messaging candidate additionally passes station deduplication, retained
+positions, age counters and stable selection/eviction; repeated personal
+messages with identical source/ID/text do not consume another inbox slot.
+Received ACK/reject controls are parsed and correlated without generating text
+message alerts. The sender/ID/wait-state helpers remain simulated until a real
+transport is connected.
+
+The separate experimental timing scheduler uses absolute 40,000-cycle deadlines
+at an assumed 48 MHz. Host tests cover maximum stuffed frames, 32-bit clock wrap,
+cancellation and excessive latency/jitter. This scheduler is not linked to radio
+output; simulated timing is not hardware timing validation.

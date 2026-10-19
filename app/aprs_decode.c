@@ -67,6 +67,16 @@ static bool Address(const uint8_t *a, char out[10])
     return true;
 }
 
+static bool MessageId(const uint8_t *text, unsigned length, char out[6])
+{
+    if(!length || length>5) return false;
+    for(unsigned i=0;i<length;i++) {
+        uint8_t c=text[i];
+        if(!((c>='0' && c<='9') || (c>='A' && c<='Z') || (c>='a' && c<='z'))) return false;
+    }
+    memcpy(out,text,length);out[length]=0;return true;
+}
+
 bool APRS_ParseFrame(const uint8_t *frame, uint16_t len, APRS_Record *out)
 {
     if (!frame || !out || len < 19 || len > APRS_FRAME_MAX) return false;
@@ -93,6 +103,11 @@ bool APRS_ParseFrame(const uint8_t *frame, uint16_t len, APRS_Record *out)
             out->destination[i] = p[1+i] >= 32 && p[1+i] < 127 ? p[1+i] : '.';
         for (int i = 8; i >= 0 && out->destination[i] == ' '; --i) out->destination[i] = 0;
         p += 11; n -= 11;
+        if(n>=4 && n<=8 && (!memcmp(p,"ack",3) || !memcmp(p,"rej",3)) &&
+           MessageId(p+3,n-3,out->messageId)) {
+            out->kind=p[0]=='a' ? APRS_ACK : APRS_REJECT;
+            memcpy(out->text,p,n);return true;
+        }
     } else {
         const uint8_t type = *p;
         const bool position = type == '!' || type == '=' || type == '@' || type == '/' ||
@@ -112,6 +127,8 @@ bool APRS_ParseFrame(const uint8_t *frame, uint16_t len, APRS_Record *out)
         out->text[i] = p[i] >= 32 && p[i] < 127 ? p[i] : '.';
     }
     out->text[i] = 0;
+    if(out->kind==APRS_MESSAGE && i<n && p[i]=='{')
+        MessageId(p+i+1,n-i-1,out->messageId);
     return true;
 }
 bool APRS_DecodeBits(const uint8_t *capture, uint16_t count, APRS_Record *out)

@@ -34,10 +34,12 @@ RX capture is bounded to 240 raw bytes / 192 decoded frame bytes. One valid
 frame is returned per capture. The history holds recent packets, not a deduplicated
 station directory. The fitting receive profile exposes all addressees in one
 packet browser. The optional messaging candidate adds a separate RAM-only
-personal inbox and all-traffic monitor with an own-callsign editor; see
+personal inbox, deduplicated station directory and all-traffic monitor with
+an own-callsign editor; see
 `MESSAGING-IMPLEMENTATION.md`. Received history, callsign, position and quick
-messages are session-only; no power-off persistence is required. APRS transmit, beaconing and ACK handling are
-future integration goals; see `APRS-TX-INVESTIGATION.md` for the prototype
+messages are session-only; no power-off persistence is required. Received message-ID/ACK/reject parsing and correlation are implemented in the
+candidate; actual APRS transmit, beaconing and automatic ACK dispatch remain
+integration goals; see `APRS-TX-INVESTIGATION.md` for the prototype
 measurement and known upstream interoperability issue. Position ambiguity,
 objects/items and specialized weather/telemetry fields remain future work.
 
@@ -46,7 +48,9 @@ objects/items and specialized weather/telemetry fields remain future work.
 `ui/home.c` implements the approved custom home: prominent named memory or
 frequency, smaller secondary VFO, percentage battery and brief APRS banners.
 It uses inherited bitmap fonts and the existing voltage-to-percentage conversion.
-VUURWERK's scanning, input, warning, split and toast paths remain available.
+Scanning, input, warning, split and toast states use compact home overlays.
+The scan/PTT algorithms are preserved; key lock and low-battery popups keep
+their existing priority.
 This is a custom interface, not a complete F4HWN menu/settings port.
 
 `ui/aprs.c` renders source, destination, positions or up to 67 message characters

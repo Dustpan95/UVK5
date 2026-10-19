@@ -20,6 +20,24 @@
 #include <stdint.h>
 
 
+#ifdef ENABLE_FONT_PACKING
+typedef struct {
+    uint8_t big[94][14], digits[11][20], mini[96][3], small[94][6];
+#ifdef ENABLE_SMALL_BOLD
+    uint8_t bold[94][6];
+#endif
+} FONT_Storage;
+extern FONT_Storage gFonts;
+#define gFontBig gFonts.big
+#define gFontBigDigits gFonts.digits
+#define gFont3x5 gFonts.mini
+#define gFontSmall gFonts.small
+#ifdef ENABLE_SMALL_BOLD
+#define gFontSmallBold gFonts.bold
+#endif
+void FONT_Init(void);
+#else
+static inline void FONT_Init(void) {}
 extern const uint8_t gFontBig[95 - 1][16 - 2];
 extern const uint8_t gFontBigDigits[11][26 - 6];
 extern const uint8_t gFont3x5[96][3];
@@ -27,6 +45,8 @@ extern const uint8_t gFontSmall[95 - 1][6];
 #ifdef ENABLE_SMALL_BOLD
 	extern const uint8_t gFontSmallBold[95 - 1][6];
 #endif
+
+#endif /* ENABLE_FONT_PACKING */
 
 #endif
 
