@@ -49,6 +49,40 @@ instructions for the actual computer. The checker only reads local files. Equal
 size/hash and nonuniform calibration bytes do not prove every value is valid or
 that recovery has been tested. No backup has yet been obtained from the owner's radio.
 
+## Windows PC: CHIRP download procedure
+
+Use the current Windows build from [the official CHIRP download page](https://chirpmyradio.com/projects/chirp/wiki/Download).
+With a compatible two-pin cable attached, check Windows Device Manager for its
+actual COM port and USB serial driver. The radio's charging USB-C connection will
+not provide this programming port.
+
+1. Keep the existing Egzumer firmware running normally; this is not bootloader mode.
+2. In CHIRP choose **Radio → Download from Radio**, select the actual COM port,
+   Quansheng and the UV-K5 Egzumer variant (or let compatible auto-detection select
+   it). Confirm the detected firmware matches the radio. An original UV-K6 uses
+   this driver family; this selection alone does not identify its physical MCU.
+3. Use **File → Save As** to save `uvk6-before-1.img`. Save the actual radio image,
+   not a channel CSV export, and do not edit the downloaded settings first.
+4. Start a new **Download from Radio** and save `uvk6-before-2.img`. Two copies of
+   one download do not test read consistency. Preserve both files elsewhere too.
+5. If Python 3 is available on Windows, run the local file checker:
+
+   ```powershell
+   py tools/check-eeprom-backups.py --chirp uvk6-before-1.img uvk6-before-2.img
+   ```
+
+The official CHIRP UV-K5 download path reads all `0x2000` EEPROM bytes, including
+calibration. The Egzumer driver uses that full download. The **Upload calibration**
+setting governs writes; enabling it is not needed for downloading calibration.
+The `.img` file appends CHIRP metadata after those 8192 bytes, so its total size can
+be larger. `--chirp` validates the known trailer and compares only the EEPROM
+payload; it never strips or overwrites the originals. This was checked against
+[CHIRP source](https://github.com/kk7ds/chirp/blob/ec452b25de84be125ce933a79115d5428f7f2ba8/chirp/drivers/uvk5.py)
+and its image serializer, not against the owner's physical radio.
+
+These are download/save operations. Keep uploading and firmware flashing for the
+later installation step after backup, hardware and recovery checks are complete.
+
 ## Owner-controlled experimental installation
 
 After hardware identification, backups and recovery preparation, follow the

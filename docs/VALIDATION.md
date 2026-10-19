@@ -249,3 +249,10 @@ It does not validate a connected radio, every calibration field, or recovery.
 No owner backup exists in the workspace. The corrected installation-preparation
 guide distinguishes charging USB-C from two-pin serial programming, EEPROM reads
 from firmware dumps, and MCU evidence from model/version labels.
+
+Windows preparation now uses the official CHIRP Egzumer download path, whose
+source reads the full 8 KiB image. The checker additionally accepts recognized
+CHIRP UV-K5 images with valid trailers, comparing EEPROM payloads independently
+of metadata. Local fixtures confirm matching payloads with different valid
+metadata pass and missing/invalid trailers fail. These tests do not establish a
+real radio backup or Windows serial connection; no such hardware is connected.
