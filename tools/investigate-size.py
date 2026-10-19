@@ -39,6 +39,12 @@ profiles={
  'inline_limit_0':['-finline-limit=0'],
  'no_partial_inline':['-fno-partial-inlining'],
  'ipa_pta':['-fipa-pta'],
+ 'function_sections':['-ffunction-sections'],
+ 'data_sections':['-fdata-sections'],
+ 'split_sections':['-ffunction-sections','-fdata-sections'],
+ 'sort_sections':['SORT_SECTIONS'],
+ 'split_sorted_sections':['-ffunction-sections','-fdata-sections','SORT_SECTIONS'],
+ 'whole_program':['-fwhole-program'],
 }
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--profile',action='append',help='Measure only named profiles plus baseline')
@@ -58,7 +64,8 @@ def build(item):
  p=work/'firmware.ld';p.write_text(p.read_text().replace('LENGTH = 60K','LENGTH = 128K'))
  p=work/'Makefile';s=p.read_text()
  if 'ALLOW_BUILTINS' in flags:s=s.replace('-fno-builtin ','')
- flags=[f for f in flags if f!='ALLOW_BUILTINS']
+ if 'SORT_SECTIONS' in flags:s=s.replace('LDFLAGS += --specs=nano.specs','LDFLAGS += --specs=nano.specs -Wl,--sort-section=alignment')
+ flags=[f for f in flags if f not in {'ALLOW_BUILTINS','SORT_SECTIONS'}]
  s=s.replace('CFLAGS = $(CFLAGS_MESSAGING)','CFLAGS = $(CFLAGS_MESSAGING) '+' '.join(flags))
  p.write_text(s)
  result=subprocess.run(['docker','run','--rm','--user',f'{os.getuid()}:{os.getgid()}',

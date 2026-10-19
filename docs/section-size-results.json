@@ -1,0 +1,75 @@
+{
+  "source_fingerprint": "ae1e1d6376ec312f544c79760afa798f6631a267065a3a1be3bb31ffdbe1fc66",
+  "compiler": "ARM GCC 10.3.1",
+  "feature_flags": [
+    "ENABLE_APRS_MESSAGING=1"
+  ],
+  "real_flash_limit": 61440,
+  "diagnostic_flash_limit": 131072,
+  "profiles": [
+    {
+      "profile": "unchanged",
+      "flags": [],
+      "exit_code": 0,
+      "flash_bytes": 63000,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "function_sections",
+      "flags": [
+        "-ffunction-sections"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63000,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "data_sections",
+      "flags": [
+        "-fdata-sections"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63000,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "split_sections",
+      "flags": [
+        "-ffunction-sections",
+        "-fdata-sections"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63000,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "sort_sections",
+      "flags": [
+        "SORT_SECTIONS"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63000,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "split_sorted_sections",
+      "flags": [
+        "-ffunction-sections",
+        "-fdata-sections",
+        "SORT_SECTIONS"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63000,
+      "delta_bytes": 0
+    },
+    {
+      "profile": "whole_program",
+      "flags": [
+        "-fwhole-program"
+      ],
+      "exit_code": 0,
+      "flash_bytes": 63000,
+      "delta_bytes": 0
+    }
+  ]
+}

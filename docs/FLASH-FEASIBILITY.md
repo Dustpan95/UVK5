@@ -59,10 +59,10 @@ included in the totals below.
 
 | Current profile | Flash | Static RAM | Against 61,440 bytes |
 |---|---:|---:|---:|
-| Receive and approved home overlays | 58,056 | 7,188 | 3,384 free |
-| Editor, profile, inbox, stations, received ACK handling | 63,020 | 8,232 | 1,580 over |
-| Same plus retained TX protocol and timing helpers | 65,052 | diagnostic | 3,612 over |
-| Same plus frozen outbox, control FIFO, tone backend and radio owner | 67,760 | 8,520 | 6,320 over |
+| Receive and approved home overlays | 58,036 | 7,188 | 3,404 free |
+| Editor, profile, inbox, stations, received ACK handling | 63,000 | 8,232 | 1,560 over |
+| Same plus retained TX protocol and timing helpers | 65,028 | diagnostic | 3,588 over |
+| Same plus frozen outbox, control FIFO, tone backend and radio owner | 67,740 | 8,520 | 6,300 over |
 
 The receive profile passes the real 60 KiB linker, ARMv6S-M/Thumb-1 vector and
 packed updater/CRC checks. `receive-build-verification.json` records hashes and
@@ -80,7 +80,7 @@ the comparison is not additive to the current checkpoint.
 `tools/measure-protocol.py` retains actual message, static beacon and ACK/reject
 builders, FCS/HDLC/NRZI, ACK matching and the experimental absolute symbol
 scheduler under LTO. Its clock and tone callbacks operate only on synthetic RAM
-state. No BK4819 or GPIO write occurs. The probe adds 2,032 bytes to its exact
+state. No BK4819 or GPIO write occurs. The probe adds 2,028 bytes to its exact
 same-source candidate; `protocol-size-results.json` records the fingerprint.
 
 This is a lower-bound protocol/timing cost. Actual tone output, MCU clock backend,
@@ -124,7 +124,7 @@ A larger or different compiler alone has not solved the original-MCU budget.
 
 The final phase of `tools/measure-protocol.py` also retains the actual original-MCU
 clock, BK4819 tone backend, radio admission/muted PA ramp/RX restoration wrapper,
-and frozen outbox. It measures **67,760 bytes**, 6,320 over physical flash. These
+and frozen outbox. It measures **67,740 bytes**, 6,300 over physical flash. These
 modules pass host model tests and cross-compile, but are outside the normal
 Makefile and are never executed on hardware here. The probe still excludes normal
 send/configuration integration, automatic ACK dispatch, custom quick-message and
@@ -142,14 +142,14 @@ This option alone does not fund the remaining transport budget.
 Separating receive-session screens from the unfinished composer gives a fitting
 physical-test profile: **61,388 / 61,440 bytes**, 7,996 static RAM. It includes
 stations/positions, personal inbox, monitor and own-callsign entry, along with
-the approved home and existing radio features. The full editor remains 63,020,
-and retained transport/owner remains 67,760. This is a bench checkpoint and no
+the approved home and existing radio features. The full editor remains 63,000,
+and retained transport/owner remains 67,740. This is a bench checkpoint and no
 final TX/feature-cut decision follows from it. Only 52 flash bytes remain, so
 this profile is not evidence that the complete requested TX service fits.
 
-## Full-transport option comparisons
+## Full-transport option comparisons at the prior checkpoint
 
-The current same-source diagnostic freezes RF frequency, separates two pending
+The prior source checkpoint (`4ad1423`) diagnostic freezes RF frequency, separates two pending
 control replies, and rearms RX promptly. It is 67,760 bytes before the remaining
 UI/service integration. The following are measured combinations, **not adopted
 feature cuts or flashable firmware**:
@@ -168,7 +168,30 @@ scan options have real operating consequences. The compressor, adaptive squelch
 and other remaining radio features stay present in all these probes. No final
 removals follow from the measurement. The source defaults remain unchanged.
 Reproduce with `python3 tools/measure-protocol.py --transport-options`; exact
-flags, source fingerprint and static RAM are in `protocol-size-results.json`.
+flags, source fingerprint and static RAM are in `transport-option-costs.json`.
+The current protocol-only report is `protocol-size-results.json`.
 
 The RX bench rebuilt from the new development source still matches both frozen
 published images byte-for-byte. No TX probe is part of that package.
+
+## Optimal resource parsing follow-up
+
+The build-time LZSS parser now chooses minimum-byte token sequences, including
+flag-byte overhead, rather than taking each longest match greedily. The firmware
+format, decoder, font layout and menu text are unchanged. Packed plain fonts
+shrink from 1,784 to 1,765 bytes and hints from 646 to 644. ARM alignment produces
+20 bytes of net saving: default RX **58,036**, development RX-session bench
+**61,368** (72 free), editor **63,000**, retained full TX prototype **67,740**
+(**6,300 over**). Static RAM is unchanged. The frozen downloadable bench remains
+61,388 bytes at its own manifest source; it was not silently replaced.
+
+All original font/hint bytes and actual framebuffers still compare exactly.
+Additional guarded-decoder tests cover 65 generated streams, empty/short inputs,
+overlapping matches, incompressible data and the 4,096-byte window boundary.
+Alternate resource transforms and token splits did not justify a decoder change.
+A byte-column renderer matched the pixel output but added four flash bytes; it
+was not adopted. Nested-loop variants exceeded the RX bench budget. Splitting
+code/data sections, alignment sorting and whole-program compilation each saved
+zero bytes on the same editor candidate (`section-size-results.json`). The
+production compiler flags and radio features remain unchanged. These small
+savings do not solve the full firmware budget; no feature-cut decision follows.

@@ -83,7 +83,7 @@ handoff or acknowledgment occurred. The tested message builder and ACK matching
 APIs are not yet connected to a working TX/RX message service. There is no
 automatic ACK generation, retry scheduling or operational transport yet.
 
-The measured editor candidate with the separate inbox/monitor exceeds application flash by 1,580 bytes. It is
+The measured editor candidate with the separate inbox/monitor exceeds application flash by 1,560 bytes. It is
 not enabled in the fitting receive prototype and is not a flashable release.
 See `MESSAGING-IMPLEMENTATION.md` one directory above for costs and test limits.
 

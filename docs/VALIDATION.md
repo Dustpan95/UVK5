@@ -12,7 +12,7 @@ physical radio revision was not established.
 - Toolchain setup from the pinned Ubuntu image with signed packages: ARM GCC
   10.3.1, ARM binutils 2.38 and newlib 3.3.0. Cached setup was reused successfully.
 - Clean default-profile build with the existing warning-as-error flags and LTO.
-- Raw flash image **58,056 / 61,440 bytes**, leaving **3,384 bytes**.
+- Raw flash image **58,036 / 61,440 bytes**, leaving **3,404 bytes**.
 - Static `.data` + `.bss`: **7,188 bytes**. Linker stack reservation: **2,048
   bytes**. The startup vector sets SP to **0x20003ff0**, preserving upstream's
   16-byte top-of-SRAM reserve. 9,180 bytes lie between static data and that SP;
@@ -95,7 +95,7 @@ callsign/SSID/ID validation, message construction, receive-parser roundtrip and
 ACK/rejection correlation including SSID zero. The independent audio test's
 ordinary message is built with the actual C message builder before encoding.
 These are software checks, not successful radio messages. The current candidate
-with session inbox/monitor is 63,020 bytes (1,580 over flash); see `MESSAGING-IMPLEMENTATION.md`.
+with session inbox/monitor is 63,000 bytes (1,560 over flash); see `MESSAGING-IMPLEMENTATION.md`.
 
 The session-profile/inbox candidate additionally passes own-call keypad entry,
 validation/save/cancel, own-address filtering, SSID-zero normalization, unread
@@ -119,7 +119,7 @@ the actual C beacon builder as well as the actual C message builder before the
 C HDLC/NRZI encoder. Positive and corrupted-frame cases pass in Dire Wolf.
 No actual RF, timer, retries or radio handoff is tested by this waveform.
 
-The retained-protocol diagnostic build is 65,052 bytes, 3,612 over the real
+The retained-protocol diagnostic build is 65,028 bytes, 3,588 over the real
 application region, and still excludes the operational radio driver/service.
 See `FLASH-FEASIBILITY.md`; no larger diagnostic linker region is a hardware fix.
 
@@ -171,9 +171,10 @@ FIFO ordering/deduplication/full/expiry behavior, wrapping deadlines, busy
 controls without starving own-job expiry, and whole-TX cancellation. No packet
 currently triggers automatic RF acknowledgment in the normal firmware.
 
-The retained owner/transport diagnostic is 67,760 bytes, 6,320 over the physical
+The retained owner/transport diagnostic is 67,740 bytes, 6,300 over the physical
 application limit, and still misses remaining configuration/send integration.
-The default receive binary is unchanged at 58,056 bytes with the recorded hashes.
+The current default receive binary is 58,036 bytes; its updated hashes are in
+`receive-build-verification.json`. The frozen published bench remains unchanged.
 
 ## Fitting receive-session bench image
 
@@ -207,3 +208,14 @@ also runs it against the frozen published source while development continues.
 The artifact-publication commit's initial GitHub run 39289755235 passed host
 tests and both real-limit build/package checks; later workflow results must be
 checked separately. None of these checks is a physical radio/RF test.
+
+## Resource-parser follow-up
+
+Minimum-byte LZSS token selection retains the existing on-radio format/decoder.
+The complete sanitizer suite, plain/bold font bytes, all hints and actual LCD
+frame comparisons pass. A further 65 deterministic generated streams decode
+with the actual C decoder under ASan/UBSan, checking exact output and untouched
+output guards for empty/short, repeated, overlapping, random and window-boundary
+inputs. The development bench passes real flash/RAM/vector/updater checks at
+61,368 bytes; the previously published 61,388-byte bench and its manifest remain
+frozen. `tools/test-packer.py` reproduces the new stream cases.

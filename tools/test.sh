@@ -48,6 +48,9 @@ build/test_session_receiver build/session-receiver
 "$compiler" -std=c11 -O2 -Wall -Wextra -Werror -I . tests/test_scale.c -o build/test_scale
 build/test_scale
 
+"$compiler" "${flags[@]}" tests/test_packed_stream.c helper/packed.c -o build/test_packed_stream
+python3 tools/test-packer.py
+
 ./tools/test-fonts.sh
 mkdir -p build/font-compression/frames
 frame_names=(aprs-position aprs-message home-memory home-unnamed home-vfo message-compose message-review message-blocked personal-inbox personal-message personal-unconfigured own-callsign)

@@ -1,16 +1,37 @@
-"""Deterministic 4096-byte-window, 3..18-byte-match LZSS for trusted resources."""
+"""Deterministic 4096-byte-window, 3..18-byte-match LZSS for trusted resources.
+
+Choose the smallest complete byte stream, including each eight-token flag byte.
+The firmware format and decoder are unchanged. Only the build-time parser varies.
+"""
 def pack(data):
- result=bytearray();i=0
- while i<len(data):
-  flagpos=len(result);result.append(0)
-  for bit in range(8):
-   if i==len(data):break
-   best=0;distance=0
-   for j in range(max(0,i-4096),i):
-    n=0
-    while n<18 and i+n<len(data) and data[j+n]==data[i+n]:n+=1
-    if n>best:best=n;distance=i-j
-   if best>=3:
-    result+=bytes([(distance-1)&255,((distance-1)>>8)<<4|(best-3)]);i+=best
-   else:result[flagpos]|=1<<bit;result.append(data[i]);i+=1
+ n=len(data)
+ lengths=[0]*n;distances=[0]*n
+ for i in range(n):
+  limit=min(18,n-i)
+  for j in range(i-1,max(-1,i-4097),-1):
+   count=0
+   while count<limit and data[j+count]==data[i+count]:count+=1
+   if count>lengths[i]:lengths[i]=count;distances[i]=i-j
+   if count==limit:break
+ # Phase zero pays for the next flag byte; a partial final group needs no pad.
+ costs=[[0]*8 for _ in range(n+1)]
+ choices=[[1]*8 for _ in range(n)]
+ for i in range(n-1,-1,-1):
+  for phase in range(8):
+   next_phase=(phase+1)%8
+   cost=1+costs[i+1][next_phase];length=1
+   for count in range(3,lengths[i]+1):
+    candidate=2+costs[i+count][next_phase]
+    if candidate<=cost:cost=candidate;length=count
+   costs[i][phase]=cost+(phase==0);choices[i][phase]=length
+ result=bytearray();i=0;phase=0
+ while i<n:
+  if phase==0:flagpos=len(result);result.append(0)
+  count=choices[i][phase]
+  if count==1:result[flagpos]|=1<<phase;result.append(data[i])
+  else:
+   distance=distances[i]-1
+   result+=bytes([distance&255,(distance>>8)<<4|(count-3)])
+  i+=count;phase=(phase+1)%8
+ assert len(result)==costs[0][0]
  return result

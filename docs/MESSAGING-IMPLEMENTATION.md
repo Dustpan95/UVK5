@@ -32,8 +32,8 @@ ARM GCC 10.3.1, same radio features and real 16 KiB SRAM layout:
 
 | Profile | Flash | Static RAM | Against 61,440-byte limit |
 |---|---:|---:|---:|
-| Existing receive/home prototype | 58,056 | 7,188 | 3,384 free |
-| With editor, session profile and separate inbox/monitor | 63,020 | 8,232 | 1,580 over |
+| Existing receive/home prototype | 58,036 | 7,188 | 3,404 free |
+| With editor, session profile and separate inbox/monitor | 63,000 | 8,232 | 1,560 over |
 
 Delta: 4,964 flash bytes, 1,044 static RAM bytes. This measures the reachable
 editor, profile, inbox and UI, not the complete TX service. LTO removes unused builder/ACK
@@ -118,13 +118,13 @@ The list shows age; details show callsign, position and time since last heard.
 An open detail remains attached to its station as new packets arrive; eviction
 returns to the list. Entries and their positions disappear on power-off.
 
-The retained protocol/timing probe now uses 65,052 bytes, 3,612 over flash. It
+The retained protocol/timing probe now uses 65,028 bytes, 3,588 over flash. It
 includes message/beacon/control builders, FCS/HDLC/NRZI and the experimental
 absolute-deadline scheduler, with a RAM-only callback. It excludes actual radio
 output, MCU clock backend, arbitration, automatic ACK dispatch and retries.
 ACK/reject builder output independently decodes as ideal audio in Dire Wolf.
 
-The further frozen-outbox/tone/owner diagnostic uses 67,760 bytes (6,320 over).
+The further frozen-outbox/tone/owner diagnostic uses 67,740 bytes (6,300 over).
 It adds tested policy-driven retries, immutable pending frames, conservative
 radio admission, muted PA soft-start and RX restoration. These parts are not
 connected to the normal editor or default firmware. User policy choices,
