@@ -78,6 +78,8 @@ From the manifest's exact source revision, run:
 ./tools/build-transport.sh
 ```
 
+The retained development banner/version is `VUURWERK rx-dev` in both profiles;
+identify this complete candidate by its manifest and file hashes.
 The pinned compiler is ARM GCC 10.3.1. The package is generated in
 `build/transport-candidate/`; strict flash/RAM, vectors, payload and CRC checks
 must pass. The historical RX-only bench package remains separate and unchanged.
