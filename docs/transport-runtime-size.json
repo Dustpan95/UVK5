@@ -1,11 +1,11 @@
 {
-  "source_fingerprint": "8f538736158b77eb1afd3abfdbe62b3f4213ecce7fa4dceb7244d1c03d71cdfa",
+  "source_fingerprint": "2387011a92d6518c34471609164c9cf8545b64cb3de523d9d56f1241e1384424",
   "compiler": "ARM GCC 10.3.1",
   "static_ram_bytes": 11644,
   "reserved_stack_bytes": 2048,
-  "flash_bytes": 65752,
+  "flash_bytes": 64388,
   "flash_limit": 61440,
-  "over_by": 4312,
+  "over_by": 2948,
   "diagnostic_only": true,
   "source_patches": "linker capacity only",
   "profile": [

@@ -4,10 +4,18 @@ cd "$(dirname "$0")/.."
 mkdir -p build
 bash tools/test-format.sh
 bash tools/test-settings.sh
+bash tools/test-compact-memory.sh
+python3 tools/test-compact-division.py
 python3 tools/pack-display-text.py --test
 text_support=(ui/display_text.c tests/init_display_text.c)
 compiler=${CC:-gcc}
 flags=(-DENABLE_VFO_SPLIT -DENABLE_TONE_SEARCH -std=gnu11 -Wall -Wextra -Werror -g -I .)
+# Exercise the same compact memory/string bodies throughout the application
+# suite without interposing on ASan's own libc implementation.
+flags+=(helper/compact_memory.c -fno-builtin)
+for function in memcpy memmove memset memcmp strlen strcmp strcpy strncpy; do
+    flags+=(-D"$function=FIRMWARE_$function")
+done
 if [[ ${SANITIZE:-1} == 1 ]]; then
     flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer)
 fi
@@ -52,6 +60,9 @@ build/test_bell202_timing
 
 "$compiler" "${flags[@]}" -I tests/clock_mock tests/test_clock.c driver/systick.c -o build/test_clock
 build/test_clock
+"$compiler" "${flags[@]}" -ffunction-sections -fdata-sections tests/test_scheduler.c misc.c \
+    -Wl,--gc-sections -o build/test_scheduler
+build/test_scheduler
 
 "$compiler" -I tests/radio_mock "${flags[@]}" tests/test_bell202_radio.c experiments/bell202_radio.c experiments/bell202_symbols.c experiments/bell202_timing.c -o build/test_bell202_radio
 build/test_bell202_radio

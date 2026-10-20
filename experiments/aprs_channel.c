@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Separate-frequency APRS ownership/ACK-wait orchestration. Hardware operations
- * are injected; no default firmware build calls this model or retunes a radio.
+ * are injected; the optional transport runtime binds the real radio adapter.
  */
 #include "aprs_channel.h"
 static bool Due(uint32_t now,uint32_t deadline) {return !((now-deadline)&0x80000000u);}

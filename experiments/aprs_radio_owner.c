@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Experimental normal-radio TX acquisition, PA ramp and guaranteed RX restore.
- * No user interface or default task calls this code. No remote hardware access.
+ * Bound by the optional APRS transport runtime. No remote hardware access.
  */
 #include "aprs_radio_owner.h"
 #include "bell202_radio.h"

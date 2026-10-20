@@ -319,3 +319,12 @@ The full candidate is **65,752 bytes**, **4,312 over**. Lossless packing of
 Static RAM is 11,644 bytes plus the unchanged 2,048-byte stack reserve.
 [DISPLAY-RESOURCES.md](DISPLAY-RESOURCES.md) records exact-byte tests, unchanged
 LCD comparisons, startup initialization and the RAM tradeoff.
+
+## Compact runtime follow-up
+
+The full candidate is **64,388 bytes**, **2,948 over**. Small standard-compatible
+memory/string routines save 752 bytes; compact arithmetic plus division-free
+interrupt cadence save a further 612. Total recovery since the 67,896-byte
+audit baseline is **3,508 bytes without additional feature removals**.
+[COMPACT-RUNTIME.md](COMPACT-RUNTIME.md) records libc/native comparisons,
+Cortex-M0 register-ABI tests, IRQ wrap/cadence checks and physical-test limits.

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Approved automatic personal ACKs and three-attempt message policy.
- * Session RAM only. No EEPROM, hardware, implicit frequency or normal UI binding.
+ * Session RAM only. Runtime supplies explicit configuration and hardware binding;
+ * no EEPROM writes or implicit frequency selection.
  */
 #include "aprs_service.h"
 #include "app/aprs_session.h"

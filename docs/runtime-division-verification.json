@@ -1,0 +1,28 @@
+{
+  "compiler": "ARM GCC 10.3.1",
+  "cpu": "QEMU Cortex-M0 / microbit CPU model",
+  "vectors": 1924,
+  "original_libgcc": "passed",
+  "compact": "passed",
+  "source_sha256": {
+    "helper/compact_division.c": "51bdb4e942b98576e0f237fca0937d966aad2f9cc8fe9004ca3536e6324d5864",
+    "helper/compact_division.h": "14db9ea1654cbe47e7d9012320b4e572c7cdab62a06b6ce18492231023f2fd47",
+    "helper/compact_division_glue.S": "0da542f27173f231387a8034f1cb6daf9b823aae91b0a105277717601f9b31bf",
+    "tests/test_compact_division.c": "6bbbd8cdfd353a53674491ce3a83a85fa1e3b9d2199d52773c7b34efb46d0250"
+  },
+  "elf_sha256": {
+    "original": "6cabd467a431f9f173482ca24248c66796bd6eae986d5fc34aa7125b7b984c42",
+    "compact": "efc2647c8bf3a6860ea9cacca6bd2e437f53711156b67046a9067e1143fbd53b"
+  },
+  "covers": [
+    "all six ARM EABI/GCC entry names",
+    "r0 quotient and r1 remainder",
+    "compiler-generated division/modulo consumers",
+    "signed boundaries",
+    "existing divide-zero and INT_MIN/-1 runtime behavior"
+  ],
+  "not_covered": [
+    "radio peripherals",
+    "RF or cycle-accurate hardware timing"
+  ]
+}

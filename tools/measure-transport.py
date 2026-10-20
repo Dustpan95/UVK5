@@ -18,7 +18,7 @@ def ignore(directory,names):
 shutil.copytree(root,work,ignore=ignore)
 fingerprint=hashlib.sha256()
 for source in sorted(work.rglob('*')):
-    if source.is_file() and (source.suffix in {'.c','.h','.ld','.inc'} or source.name=='Makefile'):
+    if source.is_file() and (source.suffix in {'.c','.h','.S','.ld','.inc'} or source.name=='Makefile'):
         fingerprint.update(str(source.relative_to(work)).encode());fingerprint.update(source.read_bytes())
 p=work/'firmware.ld';p.write_text(p.read_text().replace('LENGTH = 60K','LENGTH = 128K'))
 build_command='set -e; make -j2 ENABLE_APRS_TRANSPORT=1 "$@"; arm-none-eabi-size -A uvk6-experimental; arm-none-eabi-nm -S --size-sort uvk6-experimental > symbols.txt'

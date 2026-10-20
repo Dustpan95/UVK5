@@ -279,3 +279,15 @@ The original-MCU default RX and RX-session builds verify at 53,632 and 56,308
 bytes respectively. The complete transport profile remains oversized at
 65,752 bytes with 11,644 static RAM bytes plus 2,048 reserved stack bytes.
 No RF or physical-radio test was performed.
+
+## Compact runtime checks
+
+Memory/string helpers pass 1,374,283 libc comparison cases under ASan/UBSan.
+The application suite runs their same bodies under test-prefixed names to
+avoid interposing on sanitizer internals. Compact division passes 10,390,468
+native oracle checks and 1,924 Cortex-M0 vectors through original and replacement
+runtime entry names and compiler-generated consumers. The real SysTick ISR
+passes 1,033,250 cadence/wrap/timeout checks with division removed from the IRQ.
+The complete host suite and 56 stored LCD comparisons pass. Current verified
+RX/RX-session images are 52,380/54,936 bytes; the complete transport is still
+oversized at 64,388 bytes. No physical RF/hardware validation was performed.

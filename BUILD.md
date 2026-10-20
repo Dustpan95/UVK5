@@ -14,6 +14,7 @@ newer MCU variants. No firmware flashing is performed by the build scripts.
 
 The setup script uses a digest-pinned Ubuntu 22.04 image and signed Ubuntu
 packages. ARM GCC is pinned to **10.3.1**, with pinned ARM binutils and newlib.
+QEMU supplies the Cortex-M0 arithmetic/ABI checks; it does not model the radio.
 The container image is local, contains no project checkout, and is never pushed
 to a registry. Existing matching toolchain images are reused. `UVK6_BUILD_IMAGE`
 overrides the local image tag, default `uvk6-build:jammy`.
@@ -34,7 +35,8 @@ sanitizer support, but those runs do not validate sanitizer coverage.
 ## Native toolchain
 
 ARM GCC 10.3.1, ARM binutils, newlib-nano, Make, Python 3 and `crcmod` must be on
-PATH. Then run the same test/build scripts. `UVK6_USE_DOCKER=1` forces Docker even
+PATH, along with `qemu-system-arm` for CPU-helper tests. Then run the same
+test/build scripts. `UVK6_USE_DOCKER=1` forces Docker even
 when a native ARM compiler is present. The script builds with four jobs and
 always cleans first, since upstream feature flags are not encoded in object
 filenames.
@@ -61,8 +63,9 @@ counts describe upstream, not this fork.
 
 ## Messaging development candidate
 
-`ENABLE_APRS_MESSAGING=1` adds the approved editor flow. It currently overflows
-the 60 KiB production linker region; it is not a supported flashable profile.
+`ENABLE_APRS_MESSAGING=1` adds the approved editor flow without the full data-TX
+runtime. It is not the requested complete firmware; historical editor-only
+overflow measurements are not current fit bounds after the size work.
 `tools/test.sh` nevertheless exercises its actual sources and framebuffer paths
 on the host with sanitizers. To measure its current overflow in an isolated
 nonflashable diagnostic copy, run:

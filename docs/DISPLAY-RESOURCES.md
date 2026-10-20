@@ -1,6 +1,6 @@
 # Lossless display resources
 
-The full transport candidate uses **65,752 / 61,440 flash bytes**, **4,312
+This checkpoint used **65,752 / 61,440 flash bytes**, **4,312
 bytes over**. This follows the shared-implementation checkpoint at 66,796
 bytes and preserves its retained radio features, screen layouts and controls.
 The original audit baseline was 67,896 bytes: **2,144 bytes recovered** so far.
@@ -48,3 +48,6 @@ The complete transport image is still oversized. Historical frozen bench
 binaries remain unchanged, and no radio was flashed. Physical RF timing,
 deviation, external-TNC interoperability and actual hardware operation remain
 unverified.
+
+The subsequent [compact runtime](COMPACT-RUNTIME.md) reduces the full
+candidate to 64,388 bytes, still 2,948 over.

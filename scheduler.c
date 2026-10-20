@@ -43,6 +43,7 @@
 	} while (0)
 
 static volatile uint32_t gGlobalSysTickCounter;
+static uint8_t gTickModulo50;
 
 /* Monotonic epoch for the experimental modem's absolute symbol clock. The
  * caller masks interrupts while sampling this with SysTick VAL/pending state.
@@ -62,7 +63,10 @@ void SystickHandler(void)
 	
 	gNextTimeslice = true;
 
-	if ((gGlobalSysTickCounter % 50) == 0) {
+	/* Avoid software division inside the modem's timing-sensitive interrupt.
+	 * Reset at epoch wrap too, preserving the original modulo-50 cadence. */
+	if (++gTickModulo50 == 50 || gGlobalSysTickCounter == 0) {
+		gTickModulo50 = 0;
 		gNextTimeslice_500ms = true;
 		
 		DECREMENT_AND_TRIGGER(gTxTimerCountdown_500ms, gTxTimeoutReached);

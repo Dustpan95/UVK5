@@ -15,7 +15,8 @@
 
 /* Modified for UVK5: passive RX only, shared-radio arbitration and four
  * recent packets. BK4819 programming and capture flow adapted from TA1JS.
- * No APRS transmit, beacon, acknowledgment or EEPROM write path is present.
+ * The optional transport receives decoded frames before mailbox filtering;
+ * default RX does not dispatch data TX. No APRS EEPROM writes are introduced.
  */
 #include "aprs_rx.h"
 #ifdef ENABLE_APRS_TRANSPORT

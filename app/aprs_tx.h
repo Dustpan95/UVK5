@@ -2,7 +2,7 @@
 #ifndef UVK5_APRS_TX_H
 #define UVK5_APRS_TX_H
 #include "aprs_message.h"
-/* Transport model only; not connected to a normal firmware send action yet.
+/* Session-only transport for the optional ENABLE_APRS_TRANSPORT profile.
  * Policy is explicit: the caller chooses retries and bounded queue lifetime.
  * Time is wrapping 10 ms scheduler ticks, not coalescing foreground flags.
  * Every queued frame freezes its requested frequency in radio-native 10 Hz

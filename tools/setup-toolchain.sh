@@ -6,7 +6,9 @@ base=ubuntu@sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898
 if docker image inspect "$image" >/dev/null 2>&1; then
     version=$(docker run --rm "$image" arm-none-eabi-gcc -dumpfullversion)
     [[ "$version" == 10.3.1 ]] || { echo "Unexpected compiler in $image: $version" >&2; exit 1; }
-    exit 0
+    if docker run --rm "$image" bash -c 'command -v qemu-system-arm >/dev/null'; then
+        exit 0
+    fi
 fi
 # A normal container also works on cloud hosts where BuildKit has no egress.
 # No project checkout, credentials or runtime authentication is copied in.

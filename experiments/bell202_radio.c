@@ -2,7 +2,7 @@
  * Experimental original-DP32G030/BK4819 Bell 202 tone backend.
  * Ordinary tone generator replaces the incompatible 1200/1800 FSK TX engine.
  * Register conventions follow the existing complete firmware BK4819 driver.
- * No normal build or user interface calls this function yet.
+ * Used by the optional transport candidate; physical RF verification is pending.
  */
 #include "bell202_radio.h"
 #include "driver/bk4819.h"

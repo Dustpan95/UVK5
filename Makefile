@@ -84,7 +84,7 @@ BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
 BSP_HEADERS     := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
 BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
-OBJS = ui/display_text.o app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
+OBJS = helper/compact_memory.o helper/compact_division.o helper/compact_division_glue.o ui/display_text.o app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
 ifeq ($(ENABLE_APRS_TRANSPORT),1)
 override ENABLE_APRS_MESSAGING := 1
 OBJS += app/aprs_runtime.o app/aprs_setup.o ui/aprs_setup.o app/aprs_tx.o
@@ -470,6 +470,7 @@ INC += -I $(TOP)/external/CMSIS_5/Device/ARM/ARMCM0/Include
 
 LIBS =
 
+
 DEPS = $(OBJS:.o=.d)
 
 
@@ -535,3 +536,11 @@ clean:
 
 doxygen:
 	doxygen
+
+# Keep the small libc-compatible byte loops shared and visible to the linker.
+# LTO must not duplicate these routines into their many application callers.
+helper/compact_memory.o: helper/compact_memory.c
+	$(CC) $(CFLAGS) -fno-lto -ffunction-sections -fdata-sections $(INC) -c $< -o $@
+
+helper/compact_division.o: helper/compact_division.c helper/compact_division.h
+	$(CC) $(CFLAGS) -fno-lto -ffunction-sections -fdata-sections $(INC) -c $< -o $@

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Temporarily configure a RAM VFO for the selected APRS frequency, retaining
  * normal calibration and TX admission. Restore the complete saved VFO afterward.
- * No normal build invokes this adapter yet. No hardware is accessed remotely.
+ * Bound by the optional transport runtime. No hardware is accessed remotely.
  */
 #include "aprs_hardware.h"
 #include "app/app.h"
