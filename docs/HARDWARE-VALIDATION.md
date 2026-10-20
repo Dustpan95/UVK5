@@ -5,10 +5,10 @@ that revision 2 was locally flashed and boots; home display, controls, saved
 channels and voice receive checks pass. A clear APRS beacon burst is audible,
 but no packet decodes despite enabling APRS. MCU identity, voice TX, data TX,
 RF timing/deviation and recovery remain unverified. The temporary
-[D2 capture export](../release/rx-diagnostics-d2/README.md) collects
-receiver/modem evidence. D1 photos show eligible/armed state, full 240-byte
-captures, 15 flags, zero complete frame candidates and zero valid checksums.
-This narrows the failure to capture/framing; D2 exports the full bitstreams.
+[D3 modem comparison](../release/rx-diagnostics-d3/README.md) follows D2 capture
+collection. Three owner-exported 240-byte captures yield no valid frame across
+12 byte/bit/coding interpretations. D3 compares four documented RX mode/filter
+combinations; no physical decoding improvement has yet been demonstrated.
 The following checklist is a validation plan; do not
 interpret every item as completed.
 

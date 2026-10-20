@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>UV-K6 D2 receive capture reader</title>
+<title>UV-K6 D3 receive capture reader</title>
 <style>body{font:18px system-ui;max-width:780px;margin:40px auto;padding:0 20px;background:#f4f6f8;color:#142230}button{font:inherit;padding:12px 18px;margin:6px 8px 6px 0}pre{white-space:pre-wrap;background:white;padding:20px;border:1px solid #cad2da}li{margin:10px 0}</style>
-<h1>UV-K6 D2 receive capture reader</h1>
-<p>Reads diagnostic capture bytes from D2 firmware through your existing two-pin programming cable. It sends no EEPROM-write, firmware-update, tuning or transmit commands. Data stays in this browser until you save it.</p>
-<ol><li>Boot the radio normally with D2 installed. Enable APRS, use MAIN ONLY and your active FM beacon channel.</li><li>Press F then 5, then press 1 to start collecting fresh captures. Send a beacon and wait three seconds.</li><li>Close CHIRP and the firmware updater so they release the COM port.</li><li>Click Connect, select your programming cable, then Read captures and Save JSON. Send that JSON file back in the chat.</li></ol>
+<h1>UV-K6 D3 receive capture reader</h1>
+<p>Reads diagnostic capture bytes from D3 firmware (D2 also supported) through your existing two-pin programming cable. It sends no EEPROM-write, firmware-update, tuning or transmit commands. Data stays in this browser until you save it.</p>
+<ol><li>Boot the radio normally with D3 installed. Enable APRS, use MAIN ONLY and your active FM beacon channel.</li><li>Press F then 5, then press 2 to select mode B (then C for a second test). Press 1 to clear/unfreeze captures. Send a beacon and wait three seconds.</li><li>Close CHIRP and the firmware updater so they release the COM port.</li><li>Click Connect, select your programming cable, then Read captures and Save JSON. Send that JSON file back in the chat.</li></ol>
 <p>To collect another beacon after reading, press 1 on the radio again. Reading freezes the stored captures; the live receive counters continue.</p>
 <button id="connect">Connect cable</button><button id="read" disabled>Read captures</button><button id="save" disabled>Save JSON</button><button id="disconnect" disabled>Disconnect</button>
 <pre id="status" role="status" aria-live="polite">Use Chrome or Edge. Open this downloaded HTML file locally. No installation or internet connection is needed.</pre>
@@ -36,21 +36,21 @@ const CaptureProtocol=(()=>{
  function reply(frame,offset,encrypted=true){
   const n=u16(frame,2);if(frame.length!==n+8||frame[0]!==0xab||frame[1]!==0xcd||frame[n+6]!==0xdc||frame[n+7]!==0xba)fail('Invalid reply envelope');
   const bytes=encrypted?xor(frame.slice(4,n+6)):frame.slice(4,n+6);
-  if(u16(bytes,0)!==0x0541||u16(bytes,2)!==n-4||u16(bytes,4)!==offset||bytes[7]!==1||bytes[6]>64||n!==bytes[6]+8||bytes[n]!==255||bytes[n+1]!==255)fail('Unexpected D2 reply');
+  if(u16(bytes,0)!==0x0541||u16(bytes,2)!==n-4||u16(bytes,4)!==offset||bytes[7]!==1||bytes[6]>64||n!==bytes[6]+8||bytes[n]!==255||bytes[n+1]!==255)fail('Unexpected D3 reply');
   return bytes.slice(8,n);
  }
  function decodeDump(bytes){
-  if(bytes.length!==1008||String.fromCharCode(...bytes.slice(0,4))!=='UVRX'||bytes[4]!==1||bytes[5]>4||bytes[6]>3||bytes[7]!==1||u16(bytes,12)!==240||u16(bytes,14)!==248)fail('Invalid D2 capture header');
+  if(bytes.length!==1008||String.fromCharCode(...bytes.slice(0,4))!=='UVRX'||![1,2].includes(bytes[4])||bytes[5]>4||bytes[6]>3||bytes[7]!==1||u16(bytes,12)!==240||u16(bytes,14)!==248)fail('Invalid D3 capture header');
   const captures=[];
   for(let i=0;i<4;i++){
    const at=16+i*248,sequence=u32(bytes,at),length=u16(bytes,at+4),reason=bytes[at+6];
    if(!sequence)continue;
-   if(length>240||![1,2].includes(reason)||bytes[at+7])fail('Invalid capture record');
-   captures.push({sequence,length,reason:reason===1?'rx-finished':'timeout',raw_hex:hex(bytes.slice(at+8,at+8+length))});
+   if(length>240||![1,2].includes(reason)||(bytes[4]===1?bytes[at+7]!==0:bytes[at+7]>3))fail('Invalid capture record');
+   captures.push({sequence,length,modem_mode:String.fromCharCode(65+bytes[at+7]),reg58_configured:[0x3fc3,0x3fc9,0x33c9,0x33c3][bytes[at+7]],reason:reason===1?'rx-finished':'timeout',raw_hex:hex(bytes.slice(at+8,at+8+length))});
   }
   if(captures.length!==bytes[5])fail('Capture count mismatch');
   captures.sort((a,b)=>a.sequence-b.sequence);
-  return {format:'UVK6_RX_CAPTURE_V1',reader:'D2',captured_at:new Date().toISOString(),last_sequence:u32(bytes,8),captures,raw_dump_hex:hex(bytes)};
+  return {format:'UVK6_RX_CAPTURE_V1',reader:'D3',wire_version:bytes[4],captured_at:new Date().toISOString(),last_sequence:u32(bytes,8),captures,raw_dump_hex:hex(bytes)};
  }
  function hex(bytes){return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');}
  return {crc16,xor,request,takeFrame,reply,decodeDump};
@@ -63,7 +63,7 @@ async function pump(){try{while(connected){const {value,done}=await reader.read(
 async function readChunk(offset,n,encrypted){
  await writer.write(CaptureProtocol.request(offset,n,encrypted));const deadline=Date.now()+2500;
  while(Date.now()<deadline){const next=CaptureProtocol.takeFrame(buffer);buffer=next.rest;if(next.frame)return CaptureProtocol.reply(next.frame,offset,encrypted);await new Promise(resolve=>setTimeout(resolve,15));}
- throw Error('No D2 reply. Confirm D2 is installed, the radio is on normally, and other serial applications are closed.');
+ throw Error('No D3 reply. Confirm D3 is installed, the radio is on normally, and other serial applications are closed.');
 }
 el('connect').onclick=async()=>{busy=true;buttons();try{
  if(!navigator.serial)throw Error('Web Serial is unavailable here. Open this downloaded HTML file in desktop Chrome or Edge.');
@@ -72,11 +72,11 @@ el('connect').onclick=async()=>{busy=true;buttons();try{
 el('read').onclick=async()=>{busy=true;result=null;buttons();try{
  buffer=new Uint8Array();let encrypted=true,first;
  try{first=await readChunk(0,64,true);}catch(e){buffer=new Uint8Array();encrypted=false;first=await readChunk(0,64,false);}
- if(first.length!==64)throw Error('D2 returned a short header.');
+ if(first.length!==64)throw Error('D3 returned a short header.');
  const bytes=new Uint8Array(1008);bytes.set(first);
  for(let offset=64;offset<bytes.length;offset+=64){const n=Math.min(64,bytes.length-offset);const part=await readChunk(offset,n,encrypted);if(part.length!==n)throw Error('Short capture reply');bytes.set(part,offset);status(`Reading captures: ${offset+n} / ${bytes.length} bytes`);}
  result=CaptureProtocol.decodeDump(bytes);status(result.captures.length?`Read ${result.captures.length} captures (${result.captures.map(x=>x.length).join(', ')} bytes). Click Save JSON and send the file in chat.`:'No captures stored. Press 1 on the radio, send a beacon, wait three seconds and read again.');
 }catch(e){status(e.message);}finally{busy=false;buttons();}};
-el('save').onclick=()=>{if(!result)return;const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='uvk6-d2-captures.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+el('save').onclick=()=>{if(!result)return;const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='uvk6-d3-captures.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 el('disconnect').onclick=async()=>{busy=true;buttons();try{connected=false;await reader.cancel();reader.releaseLock();writer.releaseLock();await port.close();status('Disconnected.');}catch(e){status(e.message);}finally{busy=false;buttons();}};
 </script></html>

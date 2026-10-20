@@ -56,10 +56,14 @@ static uint16_t saved[sizeof(registers)];
 APRS_RxDiagnostics gAPRS_RxDiagnostics;
 uint8_t gAPRS_DiagnosticPage;
 /* Explicit little-endian wire format: 16-byte header, four 248-byte slots.
- * Each slot holds sequence:u32, length:u16, reason:u8, reserved:u8, raw[240]. */
+ * Each slot holds sequence:u32, length:u16, reason:u8, modem-mode:u8, raw[240]. */
 static uint8_t captureDump[16+4*248],captureReason;
 static uint32_t captureSequence;
 static bool captureFrozen;
+static uint8_t diagnosticMode;
+/* BK4819 register manual: RX mode bits12:10, bandwidth bits3:1.
+ * Gray-code order changes only one field between adjacent tests. */
+static const uint16_t diagnosticReg58[]={0x3fc3,0x3fc9,0x33c9,0x33c3};
 static void StoreLE(uint8_t *out,uint32_t value,unsigned bytes)
 {
     for(unsigned i=0;i<bytes;i++) {out[i]=value;value>>=8;}
@@ -70,7 +74,7 @@ static void StoreDiagnosticCapture(void)
     uint8_t *slot=captureDump+16+(captureSequence%4)*248;
     ++captureSequence;
     StoreLE(slot,captureSequence,4);StoreLE(slot+4,captureCount,2);
-    slot[6]=captureReason;slot[7]=0;
+    slot[6]=captureReason;slot[7]=diagnosticMode;
     memset(slot+8,0,240);memcpy(slot+8,capture,captureCount);
 }
 uint8_t APRS_ReadDiagnosticCapture(uint16_t offset,uint8_t size,uint8_t *out)
@@ -80,7 +84,7 @@ uint8_t APRS_ReadDiagnosticCapture(uint16_t offset,uint8_t size,uint8_t *out)
     if(size>sizeof(captureDump)-offset) size=sizeof(captureDump)-offset;
     if(!offset) {
         captureFrozen=true;
-        memcpy(captureDump,"UVRX",4);captureDump[4]=1;
+        memcpy(captureDump,"UVRX",4);captureDump[4]=2;
         captureDump[5]=captureSequence<4 ? captureSequence:4;
         captureDump[6]=captureSequence%4;captureDump[7]=1;
         StoreLE(captureDump+8,captureSequence,4);
@@ -94,7 +98,7 @@ void APRS_GetDiagnostics(APRS_RxDiagnostics *out)
     *out=gAPRS_RxDiagnostics;
     out->ready=APRS_CanListen();out->armed=armed;out->capturing=capturing;
     out->bytes=captureCount;
-    out->frozen=captureFrozen;
+    out->frozen=captureFrozen;out->mode=diagnosticMode;
     out->reg58=BK4819_ReadRegister(BK4819_REG_58);
     out->reg59=BK4819_ReadRegister(BK4819_REG_59);
     out->reg3f=BK4819_ReadRegister(BK4819_REG_3F);
@@ -139,6 +143,9 @@ static void Arm(void)
         (1u <<  1) |   // FSK RX bandwidth FFSK 1200/1800
         (1u <<  0));   // FSK enable
 
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    BK4819_WriteRegister(BK4819_REG_58,diagnosticReg58[diagnosticMode]);
+#endif
     BK4819_WriteRegister(BK4819_REG_5A, 0xFEFE);  // NRZI'd flag-run pattern
     BK4819_WriteRegister(BK4819_REG_5C, 0xAA30);  // engine CRC off
     BK4819_WriteRegister(BK4819_REG_5D, (uint16_t)((240u - 1u) << 8));
@@ -312,6 +319,12 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
 #ifdef ENABLE_APRS_RX_DIAGNOSTICS
     if(key==KEY_1 && !held) {
         captureFrozen=false;captureSequence=0;memset(captureDump,0,sizeof(captureDump));
+        gUpdateDisplay=true;return true;
+    }
+    if(key==KEY_2 && !held) {
+        /* Drop any partial capture before changing the demodulator. Preserve
+         * completed captures (including frozen exports) and radio registers. */
+        APRS_Stop();diagnosticMode=(diagnosticMode+1)%4;APRS_Resume();
         gUpdateDisplay=true;return true;
     }
     if(key==KEY_MENU && !held) {

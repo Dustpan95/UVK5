@@ -24,7 +24,7 @@ void APRS_DrawRecord(const APRS_Record *record);
 typedef struct {
     uint16_t sync, fifo, end, timeout, good, bad, lastBytes, full;
     uint16_t flags, frames, crc, lastIrq, bytes, reg58, reg59, reg3f;
-    uint8_t prefix[8];
+    uint8_t prefix[8], mode;
     bool ready, armed, capturing, frozen;
 } APRS_RxDiagnostics;
 extern APRS_RxDiagnostics gAPRS_RxDiagnostics;

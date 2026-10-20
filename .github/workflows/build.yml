@@ -44,5 +44,5 @@ jobs:
         run: ./tools/build-rx-diagnostics.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: uvk6-rx-diagnostics-d2
-          path: build/rx-diagnostics-d2/
+          name: uvk6-rx-diagnostics-d3
+          path: build/rx-diagnostics-d3/

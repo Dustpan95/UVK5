@@ -24,13 +24,13 @@ static void DrawDiagnostics(void)
     APRS_RxDiagnostics d;char line[48];
     APRS_GetDiagnostics(&d);UI_DisplayClear();
     if(gAPRS_DiagnosticPage==0) {
-        UI_PrintLine("APRS RX DIAG D2",0);
+        UI_PrintLine("APRS RX DIAG D3",0);
         sprintf(line,"EN%u RD%u AR%u CP%u",gAPRS_Enabled,d.ready,d.armed,d.capturing);UI_PrintLine(line,1);
         sprintf(line,"S%u F%u E%u",d.sync,d.fifo,d.end);UI_DisplaySmallest(line,0,16,false,true);
-        sprintf(line,"B%u L%u X%u H%u",d.bytes,d.lastBytes,d.full,d.frozen);UI_DisplaySmallest(line,0,24,false,true);
+        sprintf(line,"%c %s B%u L%u",'A'+d.mode,d.frozen?"HELD":"COLLECT",d.bytes,d.lastBytes);UI_DisplaySmallest(line,0,24,false,true);
         sprintf(line,"OK%u BAD%u TO%u",d.good,d.bad,d.timeout);UI_DisplaySmallest(line,0,32,false,true);
         sprintf(line,"FL%u FR%u CRC%u",d.flags,d.frames,d.crc);UI_DisplaySmallest(line,0,40,false,true);
-        UI_PrintLine("1:ARM MENU:REG",6);
+        UI_PrintLine("1:CLR 2:MODE MENU",6);
     } else {
         UI_PrintLine("APRS REG / RAW",0);
         sprintf(line,"58=%05u 59=%05u",d.reg58,d.reg59);UI_PrintLine(line,1);
@@ -45,7 +45,7 @@ static void DrawDiagnostics(void)
             }
             line[12]=0;UI_PrintLine(line,row+4);
         }
-        UI_PrintLine("1:ARM MENU:LOG",6);
+        UI_PrintLine("1:CLR 2:MODE MENU",6);
     }
     ST7565_BlitFullScreen();
 }

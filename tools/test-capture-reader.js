@@ -26,3 +26,8 @@ for(const offset of [-1,65536,NaN,0.5])assert.throws(()=>p.request(offset,1));
 assert.throws(()=>p.request(0,65));assert.throws(()=>p.decodeDump(dump.slice(1)));
 for(const at of [0,4,5,6,7,12,14,16+4,16+6]){const bad=Buffer.from(dump);bad[at]=255;assert.throws(()=>p.decodeDump(bad));}
 console.log('PASS capture reader:',cases,'fragmented XOR/plain replies, CRC requests, ring records and corrupt/truncated/range rejection cases');
+
+assert.strictEqual(decoded.wire_version,2);assert(decoded.captures.every(c=>c.modem_mode==='A'&&c.reg58_configured===0x3fc3));
+const legacy=Buffer.from(dump);legacy[4]=1;assert.strictEqual(p.decodeDump(legacy).wire_version,1);
+for(let mode=0;mode<4;mode++){const b=Buffer.from(dump);b[23]=mode;const c=p.decodeDump(b).captures[0];assert.strictEqual(c.modem_mode,'ABCD'[mode]);assert.strictEqual(c.reg58_configured,[0x3fc3,0x3fc9,0x33c9,0x33c3][mode]);}
+const badMode=Buffer.from(legacy);badMode[23]=1;assert.throws(()=>p.decodeDump(badMode));
