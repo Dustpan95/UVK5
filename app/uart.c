@@ -37,6 +37,10 @@
 #include "misc.h"
 #include "settings.h"
 #include "version.h"
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+#include "app/aprs_rx.h"
+static uint16_t diagnosticCommandLength;
+#endif
 
 #if defined(ENABLE_OVERLAY)
 	#include "sram-overlay.h"
@@ -481,6 +485,21 @@ static void CMD_0602_WriteBK4819Reg(const uint8_t *pBuffer)
 }
 #endif
 
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+/* Diagnostic RAM only: no session init, EEPROM access, tuning or TX commands. */
+static void CMD_0540(void)
+{
+    struct {Header_t header;uint16_t offset;uint8_t size,version;uint8_t data[64];} reply={0};
+    if(diagnosticCommandLength!=8 || UART_Command.Header.Size!=4 || UART_Command.Data[3]!=0) return;
+    reply.header.ID=0x0541;
+    reply.offset=UART_Command.Data[0]|((uint16_t)UART_Command.Data[1]<<8);
+    reply.version=1;
+    reply.size=APRS_ReadDiagnosticCapture(reply.offset,UART_Command.Data[2],reply.data);
+    reply.header.Size=reply.size+4;
+    SendReply(&reply,reply.size+8);
+}
+#endif
+
 bool UART_IsCommandAvailable(void)
 {
 	uint16_t Index;
@@ -571,13 +590,23 @@ bool UART_IsCommandAvailable(void)
 	
 	CRC = UART_Command.Buffer[Size] | (UART_Command.Buffer[Size + 1] << 8);
 
-	return (CRC_Calculate(UART_Command.Buffer, Size) != CRC) ? false : true;
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    if(CRC_Calculate(UART_Command.Buffer,Size)!=CRC) return false;
+    diagnosticCommandLength=Size;
+    return true;
+#else
+    return (CRC_Calculate(UART_Command.Buffer, Size) != CRC) ? false : true;
+#endif
 }
 
 void UART_HandleCommand(void)
 {
 	switch (UART_Command.Header.ID)
 	{
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+        case 0x0540:
+            CMD_0540();break;
+#endif
 		case 0x0514:
 			CMD_0514(UART_Command.Buffer);
 			break;

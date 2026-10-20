@@ -191,12 +191,42 @@ int main(int argc,char **argv) {
     for(unsigned i=0;i<3;i++) APRS_Tick500ms();
     fifo_active=false;APRS_GetDiagnostics(&d);
     assert(d.timeout==1 && d.bad==2 && d.lastBytes==24 && d.armed && !d.capturing);
+    uint8_t dump[1008],frozen_dump[1008],guard[66];
+    memset(guard,0xa5,sizeof(guard));
+    assert(APRS_ReadDiagnosticCapture(0,255,guard+1)==64 && guard[0]==0xa5 && guard[65]==0xa5);
+    for(unsigned offset=0;offset<sizeof(dump);offset+=64) {
+        unsigned want=sizeof(dump)-offset;if(want>64) want=64;
+        assert(APRS_ReadDiagnosticCapture(offset,want,dump+offset)==want);
+    }
+    assert(!memcmp(dump,"UVRX",4) && dump[4]==1 && dump[5]==4 && dump[6]==0 && dump[7]==1 && dump[8]==8);
+    for(unsigned slot=0;slot<4;slot++) {
+        uint8_t *r=dump+16+slot*248;assert(r[0]==slot+5 && !r[1] && !r[2] && !r[3]);
+        unsigned length=r[4]|r[5]<<8;assert(length==(slot==3 ? 24:240));
+        assert(r[6]==(slot==3 ? 2:1) && !r[7]);
+        assert(!memcmp(r+8,slot==2 ? corrupt:capture_fixture,length));
+        for(unsigned i=length;i<240;i++) assert(!r[8+i]);
+    }
+    assert(APRS_ReadDiagnosticCapture(1007,64,guard)==1);
+    assert(!APRS_ReadDiagnosticCapture(1008,1,guard) && !APRS_ReadDiagnosticCapture(65535,255,guard));
+    assert(!APRS_ReadDiagnosticCapture(0,1,NULL));
+    fifo_capture=capture_fixture;fifo=0;fifo_active=true;
+    APRS_Interrupt(BK4819_REG_02_FSK_RX_SYNC);
+    while(fifo<224) APRS_Interrupt(BK4819_REG_02_FSK_FIFO_ALMOST_FULL);
+    APRS_Interrupt(BK4819_REG_02_FSK_RX_FINISHED);fifo_active=false;
+    for(unsigned offset=0;offset<sizeof(dump);offset+=64) {
+        unsigned want=sizeof(dump)-offset;if(want>64) want=64;
+        APRS_ReadDiagnosticCapture(offset,want,frozen_dump+offset);
+    }
+    assert(!memcmp(dump,frozen_dump,sizeof(dump)));
+    char dump_path[256];snprintf(dump_path,sizeof(dump_path),"%s/captures.bin",argv[1]);
+    FILE *dump_file=fopen(dump_path,"wb");assert(dump_file);assert(fwrite(dump,1,sizeof(dump),dump_file)==sizeof(dump));fclose(dump_file);
+    APRS_Open();assert(APRS_Key(KEY_1,true,false));APRS_GetDiagnostics(&d);assert(!d.frozen);
     APRS_Open();assert(gAPRS_DiagnosticPage==0);
     char diagnostic_path[256];
     for(unsigned page=0;page<3;page++) {
         assert(gAPRS_DiagnosticPage==page);
         uint8_t expected_title[128];
-        if(page<2) {UI_DisplayClear();UI_PrintLine(page==0 ? "APRS RX DIAG D1":"APRS REG / RAW",0);memcpy(expected_title,gFrameBuffer[0],128);}
+        if(page<2) {UI_DisplayClear();UI_PrintLine(page==0 ? "APRS RX DIAG D2":"APRS REG / RAW",0);memcpy(expected_title,gFrameBuffer[0],128);}
         diagnostic_writes=writes;APRS_Draw();assert(writes==diagnostic_writes);
         if(page<2) assert(!memcmp(expected_title,gFrameBuffer[0],128));
         snprintf(diagnostic_path,sizeof(diagnostic_path),"%s/diagnostics-%u.pbm",argv[1],page);image(diagnostic_path);

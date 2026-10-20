@@ -25,10 +25,12 @@ typedef struct {
     uint16_t sync, fifo, end, timeout, good, bad, lastBytes, full;
     uint16_t flags, frames, crc, lastIrq, bytes, reg58, reg59, reg3f;
     uint8_t prefix[8];
-    bool ready, armed, capturing;
+    bool ready, armed, capturing, frozen;
 } APRS_RxDiagnostics;
 extern APRS_RxDiagnostics gAPRS_RxDiagnostics;
 extern uint8_t gAPRS_DiagnosticPage;
 void APRS_GetDiagnostics(APRS_RxDiagnostics *out);
+/* Frozen diagnostic ring only; no EEPROM, RF or general memory access. */
+uint8_t APRS_ReadDiagnosticCapture(uint16_t offset,uint8_t size,uint8_t *out);
 #endif
 #endif

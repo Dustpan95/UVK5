@@ -4,6 +4,9 @@ cd "$(dirname "$0")/.."
 mkdir -p build
 python3 tools/test-firmware-limits.py
 bash tools/test-rx-diagnostics.sh
+bash tools/test-uart-diagnostics.sh
+node tools/test-capture-reader.js
+python3 tools/test-capture-analysis.py
 bash tools/test-format.sh
 bash tools/test-settings.sh
 bash tools/test-menu-render.sh

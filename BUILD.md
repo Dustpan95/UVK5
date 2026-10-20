@@ -33,7 +33,7 @@ same installation instructions are available as:
 docker build -t uvk6-build:jammy -f tools/Dockerfile .
 ```
 
-Host GCC is required for `tools/test.sh`; tests run with AddressSanitizer and
+Host GCC and Node.js are required for `tools/test.sh`; tests run with AddressSanitizer and
 UndefinedBehaviorSanitizer by default. `SANITIZE=0` is available for hosts without
 sanitizer support, but those runs do not validate sanitizer coverage.
 

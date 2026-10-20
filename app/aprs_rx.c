@@ -55,11 +55,46 @@ static uint16_t saved[sizeof(registers)];
 #ifdef ENABLE_APRS_RX_DIAGNOSTICS
 APRS_RxDiagnostics gAPRS_RxDiagnostics;
 uint8_t gAPRS_DiagnosticPage;
+/* Explicit little-endian wire format: 16-byte header, four 248-byte slots.
+ * Each slot holds sequence:u32, length:u16, reason:u8, reserved:u8, raw[240]. */
+static uint8_t captureDump[16+4*248],captureReason;
+static uint32_t captureSequence;
+static bool captureFrozen;
+static void StoreLE(uint8_t *out,uint32_t value,unsigned bytes)
+{
+    for(unsigned i=0;i<bytes;i++) {out[i]=value;value>>=8;}
+}
+static void StoreDiagnosticCapture(void)
+{
+    if(captureFrozen) return;
+    uint8_t *slot=captureDump+16+(captureSequence%4)*248;
+    ++captureSequence;
+    StoreLE(slot,captureSequence,4);StoreLE(slot+4,captureCount,2);
+    slot[6]=captureReason;slot[7]=0;
+    memset(slot+8,0,240);memcpy(slot+8,capture,captureCount);
+}
+uint8_t APRS_ReadDiagnosticCapture(uint16_t offset,uint8_t size,uint8_t *out)
+{
+    if(!out || offset>=sizeof(captureDump) || !size) return 0;
+    if(size>64) size=64;
+    if(size>sizeof(captureDump)-offset) size=sizeof(captureDump)-offset;
+    if(!offset) {
+        captureFrozen=true;
+        memcpy(captureDump,"UVRX",4);captureDump[4]=1;
+        captureDump[5]=captureSequence<4 ? captureSequence:4;
+        captureDump[6]=captureSequence%4;captureDump[7]=1;
+        StoreLE(captureDump+8,captureSequence,4);
+        StoreLE(captureDump+12,240,2);StoreLE(captureDump+14,248,2);
+    }
+    if(!captureFrozen) return 0;
+    memcpy(out,captureDump+offset,size);return size;
+}
 void APRS_GetDiagnostics(APRS_RxDiagnostics *out)
 {
     *out=gAPRS_RxDiagnostics;
     out->ready=APRS_CanListen();out->armed=armed;out->capturing=capturing;
     out->bytes=captureCount;
+    out->frozen=captureFrozen;
     out->reg58=BK4819_ReadRegister(BK4819_REG_58);
     out->reg59=BK4819_ReadRegister(BK4819_REG_59);
     out->reg3f=BK4819_ReadRegister(BK4819_REG_3F);
@@ -143,6 +178,7 @@ static void Decode(void)
 {
     APRS_Record record;
 #ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    StoreDiagnosticCapture();
     gAPRS_RxDiagnostics.lastBytes=captureCount;
     memset(gAPRS_RxDiagnostics.prefix,0,sizeof(gAPRS_RxDiagnostics.prefix));
     memcpy(gAPRS_RxDiagnostics.prefix,capture,
@@ -198,6 +234,9 @@ void APRS_Interrupt(uint16_t bits)
         Drain(4);
     }
     if (bits & BK4819_REG_02_FSK_RX_FINISHED) {
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+        captureReason=1;
+#endif
         Drain(8);
         Decode();
         Arm();
@@ -226,6 +265,7 @@ void APRS_Tick500ms(void)
     } else if (capturing && ++stuckTicks > 2) {
 #ifdef ENABLE_APRS_RX_DIAGNOSTICS
         ++gAPRS_RxDiagnostics.timeout;
+        captureReason=2;
 #endif
         Drain(8);
         Decode();
@@ -270,6 +310,10 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
     }
     if (!pressed) return true;
 #ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    if(key==KEY_1 && !held) {
+        captureFrozen=false;captureSequence=0;memset(captureDump,0,sizeof(captureDump));
+        gUpdateDisplay=true;return true;
+    }
     if(key==KEY_MENU && !held) {
         gAPRS_DiagnosticPage=(gAPRS_DiagnosticPage+1)%3;
         gUpdateDisplay=true;return true;

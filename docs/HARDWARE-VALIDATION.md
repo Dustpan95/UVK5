@@ -5,8 +5,11 @@ that revision 2 was locally flashed and boots; home display, controls, saved
 channels and voice receive checks pass. A clear APRS beacon burst is audible,
 but no packet decodes despite enabling APRS. MCU identity, voice TX, data TX,
 RF timing/deviation and recovery remain unverified. The temporary
-[D1 receive diagnostic image](../release/rx-diagnostics-d1/README.md) collects
-receiver/modem evidence. The following checklist is a validation plan; do not
+[D2 capture export](../release/rx-diagnostics-d2/README.md) collects
+receiver/modem evidence. D1 photos show eligible/armed state, full 240-byte
+captures, 15 flags, zero complete frame candidates and zero valid checksums.
+This narrows the failure to capture/framing; D2 exports the full bitstreams.
+The following checklist is a validation plan; do not
 interpret every item as completed.
 
 1. Identify the MCU as **DP32G030** using reliable board/revision evidence.

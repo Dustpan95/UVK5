@@ -12,25 +12,26 @@ PY
 ((${#settings[@]})) || { echo 'No boolean build settings found.' >&2; exit 1; }
 settings+=(ENABLE_APRS_TRANSPORT=0 ENABLE_APRS_MESSAGING=0 ENABLE_APRS_SESSION=0 ENABLE_APRS_RX_DIAGNOSTICS=1)
 ./tools/build.sh "${settings[@]}"
-mkdir -p build/rx-diagnostics-d1
-cp uvk6-experimental.bin build/rx-diagnostics-d1/uvk6-rx-diagnostics-d1.bin
-cp uvk6-experimental.packed.bin build/rx-diagnostics-d1/uvk6-rx-diagnostics-d1.packed.bin
-cp uvk6-experimental.map build/rx-diagnostics-d1/firmware.map
-cp build/verification.json build/rx-diagnostics-d1/verification.json
+mkdir -p build/rx-diagnostics-d2
+cp uvk6-experimental.bin build/rx-diagnostics-d2/uvk6-rx-diagnostics-d2.bin
+cp uvk6-experimental.packed.bin build/rx-diagnostics-d2/uvk6-rx-diagnostics-d2.packed.bin
+cp uvk6-experimental.map build/rx-diagnostics-d2/firmware.map
+cp build/verification.json build/rx-diagnostics-d2/verification.json
+cp tools/read-rx-capture.html build/rx-diagnostics-d2/read-rx-capture.html
 python3 - "${settings[@]}" <<'PY'
 import json,subprocess,sys
 from pathlib import Path
-out=Path('build/rx-diagnostics-d1')
-assert b'APRS RX DIAG D1\0' in (out/'uvk6-rx-diagnostics-d1.bin').read_bytes(), 'diagnostic feature missing from image'
+out=Path('build/rx-diagnostics-d2')
+assert b'APRS RX DIAG D2\0' in (out/'uvk6-rx-diagnostics-d2.bin').read_bytes(), 'diagnostic feature missing from image'
 report=json.loads((out/'verification.json').read_text())
 sha=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
 report.update({
- 'profile':'D1 temporary APRS receive diagnostics; standard voice features and packet browser',
+ 'profile':'D2 temporary APRS receive diagnostics; standard voice features and packet browser',
  'source_commit':sha,'source_tree_clean':not bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip()),
  'source_url':'https://github.com/Dustpan95/UVK5/tree/'+sha,
  'make_settings':dict(setting.split('=',1) for setting in sys.argv[1:]),
  'not_in_this_diagnostic_image':['APRS transmit','message composition','session station directory and personal inbox'],
- 'purpose':'Observe unchanged receiver gating, modem sync/FIFO/end interrupts, capture size, HDLC frames and CRC acceptance before changing modem behavior',
+ 'purpose':'D2 observes unchanged receive processing and exports four frozen complete/timeout raw captures through bounded diagnostic RAM reads',
  'physical_evidence':'Owner reports revision 2 boots, controls/channels/voice receive work and a clear beacon burst is audible, but no APRS decode. This diagnostic image has not been run on hardware.',
  'license':'GPL-3.0 complete modified VUURWERK fork; upstream notices/licenses and corresponding source at source_url',
 })
