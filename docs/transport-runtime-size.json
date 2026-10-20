@@ -1,0 +1,14 @@
+{
+  "source_fingerprint": "451407dbf5857ac9957535e713aca643d1f89664490213939c811c47139cc1cd",
+  "compiler": "ARM GCC 10.3.1",
+  "static_ram_bytes": 8736,
+  "reserved_stack_bytes": 2048,
+  "flash_bytes": 72088,
+  "flash_limit": 61440,
+  "over_by": 10648,
+  "diagnostic_only": true,
+  "source_patches": "linker capacity only",
+  "profile": [
+    "ENABLE_APRS_TRANSPORT=1"
+  ]
+}

@@ -6,6 +6,9 @@
 #include "aprs_rx.h"
 #include "misc.h"
 #include <string.h>
+#ifdef ENABLE_APRS_TRANSPORT
+#include "aprs_setup.h"
+#endif
 APRS_Profile gAPRS_Profile;
 APRS_Station gAPRS_Stations[APRS_STATION_CAPACITY];
 uint8_t gAPRS_StationCount,gAPRS_StationSelected;
@@ -90,7 +93,7 @@ void SESSION_Receive(const APRS_Record *r)
     if(!r || !MESSAGE_ValidCall(r->source)) return;
     Heard(r);
     if(r->kind==APRS_ACK || r->kind==APRS_REJECT) {
-#ifndef ENABLE_APRS_CALLSIGN_ONLY
+#if !defined(ENABLE_APRS_CALLSIGN_ONLY) && !defined(ENABLE_APRS_TRANSPORT)
         MESSAGE_Acknowledge(r->source,r->destination,r->messageId,r->kind==APRS_REJECT);
 #endif
         return;
@@ -113,6 +116,9 @@ void SESSION_Receive(const APRS_Record *r)
 void SESSION_Open(void)
 {
     gAPRS_View=APRS_HUB;gAPRS_HubSelected=0;
+#ifdef ENABLE_APRS_TRANSPORT
+    gAPRS_Setup.page=SETUP_CLOSED;
+#endif
     gAPRS_Message.page=MESSAGE_CLOSED;
 }
 void SESSION_Key(KEY_Code_t key)
@@ -127,6 +133,9 @@ void SESSION_Key(KEY_Code_t key)
             else if(gAPRS_HubSelected==2) {gAPRS_View=APRS_STATIONS;gAPRS_StationSelected=0;}
 #ifndef ENABLE_APRS_CALLSIGN_ONLY
             else if(gAPRS_HubSelected==3) MESSAGE_Open(0);
+#endif
+            #ifdef ENABLE_APRS_TRANSPORT
+            else if(gAPRS_HubSelected==5) SETUP_Open();
 #endif
             else MESSAGE_EditCall();
         }

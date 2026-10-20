@@ -6,12 +6,16 @@ channel entry/restore are RAM models, not a hardware adapter. Never execute,
 flash or distribute the resulting diagnostic image as usable firmware.
 """
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import os
 import shutil
 import subprocess
-root=Path(__file__).resolve().parents[1];work=root/'build/service-size'
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--hardware',action='store_true',help='Retain the actual radio retune/restore adapter; still an oversized diagnostic, never execute or flash')
+args=parser.parse_args()
+root=Path(__file__).resolve().parents[1];work=root/('build/service-hardware-size' if args.hardware else 'build/service-size')
 if work.exists():shutil.rmtree(work)
 def ignore(directory,names):
  return [n for n in names if n in {'.git','build','__pycache__'} or n.endswith(('.o','.d','.map','.pyc')) or n.startswith('uvk6-experimental')]
@@ -64,6 +68,15 @@ void APRS_RuntimeProbe(void) {
  if(gAPRS_TX.state==APRS_TX_REJECTED) gAPRS_Message.delivery=MESSAGE_REJECTED;
 }
 ''')
+if args.hardware:
+ p=work/'Makefile';p.write_text(p.read_text().replace('OBJS += app/aprs_runtime_probe.o','OBJS += experiments/aprs_hardware.o app/aprs_runtime_probe.o'))
+ p=work/'app/aprs_runtime_probe.c';code=p.read_text().replace('#include "experiments/aprs_radio_owner.h"','#include "experiments/aprs_hardware.h"\nstatic APRS_Hardware hardware;')
+ start=code.index('static APRS_ChannelAdmission Enter(');end=code.index('bool APRS_RuntimeSendDraft',start)
+ code=code[:start]+code[end:]
+ code=code.replace('const APRS_ChannelOps ops={Now,Enter,Send,Restore,Interrupted,0};CHANNEL_Configure(&channel,&ops);',
+  'CHANNEL_Interrupt(&channel); hardware.radio=(APRS_RadioConfig){probeEnabled,probeToneGain}; hardware.power=probePower;\n   const APRS_ChannelOps ops={HARDWARE_Now,HARDWARE_Enter,HARDWARE_Send,HARDWARE_Restore,HARDWARE_Interrupted,&hardware};CHANNEL_Configure(&channel,&ops);')
+ code=code.replace('probeToneGain,probeAdmission;', 'probeToneGain,probeAdmission,probePower;')
+ p.write_text(code)
 p=work/'app/app.c';s=p.read_text();needle='void APP_TimeSlice10ms(void)\n{';assert needle in s
 p.write_text(s.replace(needle,needle+'\n    extern void APRS_RuntimeProbe(void); APRS_RuntimeProbe();',1))
 p=work/'app/aprs_rx.c';s=p.read_text().replace('#include "aprs_rx.h"','#include "aprs_rx.h"\n#include "experiments/aprs_service.h"\nextern uint32_t SCHEDULER_GetTicks10ms(void);')
@@ -85,9 +98,9 @@ for line in result.stdout.splitlines():
  if len(f)==3 and f[0] in {'.data','.bss'}:sizes[f[0]]=int(f[1])
 used=(work/'uvk6-experimental.bin').stat().st_size
 report={'source_fingerprint':fingerprint.hexdigest(),'compiler':'ARM GCC 10.3.1',
- 'real_flash_limit':61440,'diagnostic_flash_limit':131072,'model_bound_service_bytes':used,
+ 'real_flash_limit':61440,'diagnostic_flash_limit':131072,('hardware_bound_service_bytes' if args.hardware else 'model_bound_service_bytes'):used,
  'over_flash_bytes':used-61440,'static_ram_bytes':sum(sizes.values()),
- 'scope':'Diagnostic UI/RX/foreground hooks and RAM channel model; not operational firmware',
- 'still_excludes':['actual separate-frequency hardware adapter','position/quick-message editing screens',
+ 'scope':('Diagnostic UI/RX/foreground hooks with actual retune adapter' if args.hardware else 'Diagnostic UI/RX/foreground hooks and RAM channel model')+'; not operational firmware',
+ 'still_excludes':(['normal foreground/key/save/serial ownership binding'] if args.hardware else ['actual separate-frequency hardware adapter'])+['position/quick-message editing screens',
  'unique outgoing ID allocation','complete delivery-state UI','relay paths','hardware carrier-sense/RF validation']}
 (work/'results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))

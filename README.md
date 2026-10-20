@@ -33,26 +33,27 @@ does not establish the MCU revision.
   characters. Callsigns, positions and text appear on the radio's LCD. A phone,
   computer, external MCU or TNC is not required by the firmware's receive path.
 
-The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md) is implemented
-as a separate candidate (`ENABLE_APRS_MESSAGING=1`), with multi-tap entry, quick
-messages, send review and truthful blocked-send status. It exceeds flash by
-1,560 bytes before adding a working transmitter, so it is not enabled in the
-minimal default receive profile. No final feature cuts have been selected. See the [flash feasibility work](docs/FLASH-FEASIBILITY.md). The message
-codec/ACK helpers have host tests. Experimental tone, radio-control and outbox
-modules also pass register/model tests, but normal on-radio send/configuration
-integration and RF validation remain unfinished; retaining those parts measures
-67,740 bytes, still 6,300 over flash. The new service/channel model and copied
-UI/RX/foreground hooks have a separate diagnostic measurement of **67,692 bytes**
-(**6,252 over**); it still lacks the actual retuning adapter and remaining UI.
-These diagnostics include scaffolding and are not final firmware-size forecasts.
+The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md)
+remain available separately (`ENABLE_APRS_MESSAGING=1`). The new
+`ENABLE_APRS_TRANSPORT=1` candidate binds the actual setup screens, session
+service, separate-frequency hardware adapter, tone sender and delivery status.
+It measures **72,088 bytes: 10,648 over the original MCU's 61,440-byte limit**.
+It is **not a flashable build**; the production linker rejects it. No feature
+removals have been adopted. The fitting default and receive-session bench keep
+this candidate disabled. See [transport implementation](docs/APRS-RUNTIME.md)
+and [flash feasibility](docs/FLASH-FEASIBILITY.md). The current
+[itemized feature costs](docs/FLASH-CHOICES.md) are ready for owner selection.
 
-Selected TX policy: a separate APRS frequency, automatic ACKs for personal
-numbered messages, up to three total message attempts and a configurable ACK
-listen period defaulting to **10 seconds**, then restoration of voice operation.
-This is a single-receiver radio: dual watch alternates frequencies. Those
-mechanisms have service/model tests; an operational on-radio binding remains
-unfinished. The USB-C socket charges the original radio; programming/backups
-require its two-pin serial adapter. See [backup preparation](FLASHING.md).
+The candidate implements a separate APRS frequency, automatic ACKs for personal
+numbered messages, up to three total sends, a configurable **10-second default
+ACK wait**, and **30 seconds on voice between attempts**. It includes approved
+degrees/minutes static-position entry, editable quick messages and separate
+beacon review/send. These paths have software tests; radio retuning, RF audio
+level, on-air interoperability and physical recovery remain untested. One RF
+receiver alternates channels; voice reception pauses during data operation.
+
+The USB-C socket charges the original radio; programming/backups require its
+two-pin serial adapter. See [backup preparation](FLASHING.md).
 
 All APRS settings, static position, quick-message edits and received history
 are session-only and reset at power-off. The minimal default receive profile remains

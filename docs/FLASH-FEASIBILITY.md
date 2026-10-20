@@ -220,3 +220,31 @@ position/quick-message editing, ID allocation, relay paths and RF/carrier-sense
 validation remain. **Never execute, flash or distribute either diagnostic as
 usable firmware.** The normal Makefile/editor/receiver remain unchanged, and
 no operational automatic transmitter is enabled by this checkpoint.
+
+
+## Actual foreground, hardware and setup candidate
+
+`ENABLE_APRS_TRANSPORT=1` retains the real runtime binding rather than injected
+measurement probes: on-radio setup, sender IDs, receive callbacks, actual RAM
+VFO retuning/restoration, normal radio TX admission, delivery status and the
+approved 30-second voice interval. It measures **72,088 / 61,440 bytes**, a
+**10,648-byte excess**, with **8,736 static RAM + 2,048 reserved stack**. RAM
+fits; flash does not. No linker capacity change was made to production source.
+
+Reproduce with `python3 tools/measure-transport.py`; it changes only the linker
+capacity in an ignored copy and records its source fingerprint. Its binary
+must never be flashed. `transport-runtime-size.json` contains this snapshot.
+Earlier 6–7 KB deficits above measured incomplete paths and are historical.
+
+For perspective, the default RX remains **58,036 bytes** with identical raw
+and packed hashes. Development receive-session remains a distinct fitting
+profile; the frozen public bench stays unchanged. The complete requested TX
+firmware is not finished merely because these RX profiles fit.
+
+A diagnostic with UART, wide RX, AM fix, adaptive scanning, scan ranges,
+flashlight and several smaller optional flags disabled still used **68,412
+bytes** at an intermediate source snapshot. This was not a selected profile
+and did not fit. The owner requested an itemized current-source feature cost
+review before selecting removals. Individual savings interact under LTO and
+must be remeasured together. Receiver histories and station tables mainly use
+RAM; reducing their counts is not a solution to a 10 KB flash deficit.

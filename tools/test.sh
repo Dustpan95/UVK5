@@ -30,6 +30,19 @@ build/test_aprs_service
     app/aprs_session.c app/aprs_decode.c app/aprs_position.c -Wl,--gc-sections -o build/test_aprs_channel
 build/test_aprs_channel
 
+"$compiler" "${flags[@]}" -DENABLE_APRS_SESSION -DENABLE_APRS_MESSAGING -DENABLE_APRS_TRANSPORT -ffunction-sections -fdata-sections \
+    tests/test_aprs_runtime.c app/aprs_runtime.c experiments/aprs_channel.c experiments/aprs_service.c app/aprs_tx.c \
+    app/aprs_message.c app/aprs_session.c app/aprs_decode.c app/aprs_position.c -Wl,--gc-sections -o build/test_aprs_runtime
+build/test_aprs_runtime
+
+mkdir -p build/setup-ui
+"$compiler" "${flags[@]}" -DENABLE_APRS_TRANSPORT -DPRINTF_INCLUDE_CONFIG_H tests/test_aprs_setup_ui.c \
+    ui/aprs_setup.c ui/aprs_message.c ui/helper.c font.c external/printf/printf.c -o build/test_aprs_setup_ui
+build/test_aprs_setup_ui build/setup-ui
+
+"$compiler" "${flags[@]}" -DENABLE_APRS_TRANSPORT tests/test_aprs_setup.c app/aprs_setup.c -o build/test_aprs_setup
+build/test_aprs_setup
+
 "$compiler" "${flags[@]}" tests/test_bell202_timing.c experiments/bell202_symbols.c experiments/bell202_timing.c -o build/test_bell202_timing
 build/test_bell202_timing
 
@@ -41,6 +54,9 @@ build/test_bell202_radio
 
 "$compiler" -O1 -I tests/radio_mock "${flags[@]}" tests/test_radio_owner.c experiments/aprs_radio_owner.c -o build/test_radio_owner
 build/test_radio_owner
+
+"$compiler" -O1 -I tests/radio_mock "${flags[@]}" tests/test_aprs_hardware.c experiments/aprs_hardware.c -o build/test_aprs_hardware
+build/test_aprs_hardware
 
 "$compiler" "${flags[@]}" -DENABLE_APRS_MESSAGING -DENABLE_APRS_SESSION -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
     app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \

@@ -2,6 +2,9 @@
  * UVK5 passive packet browser. No external screen or controller required.
  */
 #include "app/aprs_rx.h"
+#ifdef ENABLE_APRS_TRANSPORT
+#include "app/aprs_setup.h"
+#endif
 #ifdef ENABLE_APRS_SESSION
 #include "app/aprs_message.h"
 #include "app/aprs_session.h"
@@ -49,6 +52,9 @@ void APRS_Draw(void)
 {
 #ifdef ENABLE_APRS_SESSION
     if (gAPRS_Message.page != MESSAGE_CLOSED) { MESSAGE_Draw(); return; }
+#ifdef ENABLE_APRS_TRANSPORT
+    if(gAPRS_Setup.page!=SETUP_CLOSED) {SETUP_Draw();return;}
+#endif
     if (gAPRS_View != APRS_MONITOR) { SESSION_Draw(); return; }
 #endif
     char line[22];

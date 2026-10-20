@@ -18,6 +18,10 @@
  * No APRS transmit, beacon, acknowledgment or EEPROM write path is present.
  */
 #include "aprs_rx.h"
+#ifdef ENABLE_APRS_TRANSPORT
+#include "aprs_runtime.h"
+#include "aprs_setup.h"
+#endif
 #ifdef ENABLE_APRS_SESSION
 #include "aprs_message.h"
 #include "aprs_session.h"
@@ -129,6 +133,9 @@ static void Decode(void)
     record.frequency=gRxVfo->pRX ? gRxVfo->pRX->Frequency : 0;
 #endif
 #ifdef ENABLE_APRS_SESSION
+#ifdef ENABLE_APRS_TRANSPORT
+    RUNTIME_Receive(&record);
+#endif
     SESSION_Receive(&record);
 #endif
     memmove(gAPRS_Log + 1, gAPRS_Log, (APRS_LOG_CAPACITY - 1) * sizeof(record));
@@ -214,6 +221,9 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
     if (key == KEY_PTT) {
 #ifdef ENABLE_APRS_SESSION
         gAPRS_Message.page = MESSAGE_CLOSED;
+#ifdef ENABLE_APRS_TRANSPORT
+        gAPRS_Setup.page=SETUP_CLOSED;
+#endif
 #endif
         gAPRS_Browser = false;
         gUpdateDisplay = true;
@@ -227,6 +237,10 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
         gUpdateDisplay = true;
         return true;
     }
+#ifdef ENABLE_APRS_TRANSPORT
+    if(gAPRS_Setup.page!=SETUP_CLOSED) SETUP_Key(key);
+    else
+#endif
     SESSION_Key(key);
     gUpdateDisplay = true;
     return true;

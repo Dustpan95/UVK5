@@ -13,7 +13,7 @@ typedef struct {
 } APRS_ChannelOps;
 typedef struct {
     APRS_ChannelOps ops;
-    uint32_t frequency,deadline;
+    uint32_t frequency,deadline,voiceTicks;
     bool configured,leased,waiting,ownSent,fault;
 } APRS_Channel;
 /* Caller zero-initializes this foreground-only state. Hardware enter must save

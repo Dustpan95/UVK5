@@ -45,6 +45,7 @@ ENABLE_BYP_RAW_DEMODULATORS   ?= 0
 ENABLE_BLMIN_TMP_OFF          ?= 0
 ENABLE_SCAN_RANGES            ?= 1
 # Candidate editor measured separately until the complete profile fits flash.
+ENABLE_APRS_TRANSPORT         ?= 0
 ENABLE_APRS_MESSAGING         ?= 0
 ENABLE_APRS_SESSION           ?= 0
 ENABLE_FONT_PACKING           ?= 1
@@ -82,6 +83,13 @@ BSP_HEADERS     := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
 BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
 OBJS = app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
+ifeq ($(ENABLE_APRS_TRANSPORT),1)
+override ENABLE_APRS_MESSAGING := 1
+OBJS += app/aprs_runtime.o app/aprs_setup.o ui/aprs_setup.o app/aprs_tx.o
+OBJS += experiments/aprs_service.o experiments/aprs_channel.o experiments/aprs_hardware.o
+OBJS += experiments/aprs_radio_owner.o experiments/bell202_radio.o experiments/bell202_timing.o experiments/bell202_symbols.o
+CFLAGS_TRANSPORT = -DENABLE_APRS_TRANSPORT
+endif
 ifeq ($(ENABLE_APRS_MESSAGING),1)
 override ENABLE_APRS_SESSION := 1
 CFLAGS_MESSAGING = -DENABLE_APRS_MESSAGING
@@ -263,7 +271,7 @@ ifeq ($(ENABLE_OVERLAY),1)
 	ASFLAGS += -DENABLE_OVERLAY
 endif
 
-CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_FONTS)
+CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_TRANSPORT) $(CFLAGS_FONTS)
 ifeq ($(ENABLE_CLANG),0)
 	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD

@@ -42,6 +42,7 @@ bool TX_QueueControl(uint32_t frequency,const char *sender,const char *recipient
                      bool rejected,uint32_t lifetimeTicks,uint32_t now);
 /* Control replies have their own priority FIFO; true means queued, not sent. */
 uint8_t TX_PendingControls(void);
+void TX_Tick(uint32_t now);
 void TX_Process(const APRS_TX_Link *link);
 bool TX_Acknowledge(const char *source,const char *addressee,const char *id,bool rejected);
 void TX_Cancel(void);

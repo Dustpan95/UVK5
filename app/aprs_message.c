@@ -6,6 +6,18 @@
 #include "aprs_session.h"
 #endif
 #include <string.h>
+#ifdef ENABLE_APRS_TRANSPORT
+#include "aprs_runtime.h"
+static char quickEdit[APRS_MESSAGE_MAX+1];
+void MESSAGE_EditQuick(unsigned slot)
+{
+    if(slot>=APRS_QUICK_COUNT) return;
+    MESSAGE_Init();strcpy(quickEdit,gAPRS_Quick[slot]);
+    gAPRS_Message.selected=slot;gAPRS_Message.page=MESSAGE_QUICK_EDIT;
+    gAPRS_Message.error=MESSAGE_OK;gAPRS_Message.tapTicks=0;
+}
+const char *MESSAGE_QuickEditText(void) {return quickEdit;}
+#endif
 APRS_Message gAPRS_Message;
 char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1];
 void MESSAGE_Init(void)
@@ -123,14 +135,25 @@ void MESSAGE_Key(KEY_Code_t key)
     }
     if (m->page==MESSAGE_REVIEW) {
         if (key==KEY_MENU) {
-            /* No operational transport exists yet: never report this as sent. */
+            #ifdef ENABLE_APRS_TRANSPORT
+            if(RUNTIME_SendDraft()) m->page=MESSAGE_STATUS;
+            else m->error=MESSAGE_TX_BLOCKED;
+#else
+            /* Receiver/editor-only build has no transport. */
             m->delivery=MESSAGE_TX_UNAVAILABLE; m->page=MESSAGE_STATUS;
+#endif
         }
         return;
     }
+    #ifdef ENABLE_APRS_TRANSPORT
+    if(m->page==MESSAGE_STATUS && key==KEY_MENU) RUNTIME_Cancel();
+#endif
     if (m->page==MESSAGE_STATUS || m->page==MESSAGE_CLOSED) return;
     const bool call=m->page==MESSAGE_RECIPIENT || m->page==MESSAGE_CALLSIGN;
     char *text=m->page==MESSAGE_CALLSIGN ? m->editCall : call ? m->recipient : m->text;
+    #ifdef ENABLE_APRS_TRANSPORT
+    if(m->page==MESSAGE_QUICK_EDIT) text=quickEdit;
+#endif
     const unsigned limit=call ? 9 : APRS_MESSAGE_MAX;
 #else
     if(m->page!=MESSAGE_CALLSIGN) return;
@@ -147,6 +170,11 @@ void MESSAGE_Key(KEY_Code_t key)
 #endif
         }
 #ifndef ENABLE_APRS_CALLSIGN_ONLY
+        #ifdef ENABLE_APRS_TRANSPORT
+        else if(m->page==MESSAGE_QUICK_EDIT) {
+            if(SESSION_SetQuick(m->selected,text)) m->page=MESSAGE_CLOSED;
+        }
+#endif
         else if (m->page==MESSAGE_RECIPIENT) {
             if (MESSAGE_ValidCall(text)) { text[CallLength(text)]=0; m->page=MESSAGE_COMPOSE; }
             else m->error=MESSAGE_BAD_CALL;

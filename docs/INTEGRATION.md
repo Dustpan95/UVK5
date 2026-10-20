@@ -12,8 +12,9 @@ UVK5 APRS releases. No custom prerelease has been published yet.
 `app/aprs_rx.c` adapts TA1JS's BK4819 FSK receive setup and FIFO capture flow.
 `app/aprs_decode.c` adapts TA1JS's CRC, NRZI and HDLC deframing. The parser checks
 FCS, address boundaries, UI control/PID and coordinate limits before adding a
-packet to the four-entry RAM log. The receiver does not call any APRS transmit
-code and introduces no EEPROM layout changes or APRS EEPROM writes.
+packet to the four-entry RAM log. The default receiver does not call APRS transmit code. The optional oversized
+transport candidate routes validated packets into the session service before
+mailbox duplicate filtering. Neither path introduces APRS EEPROM writes.
 
 Coordinate decoding is implemented in `app/aprs_position.c` using the APRS
 coordinate formats: decimal degrees/minutes, timestamped position payloads,
@@ -91,3 +92,13 @@ The experimental radio owner also defers while APRS capture is active, even if
 no BK4819 interrupt is pending. The receive module exposes that state without
 changing capture behavior. Host tests verify capture transitions and the owner
 admission guard; the normal receive image does not include a transmitter.
+
+
+## Optional transport binding
+
+`ENABLE_APRS_TRANSPORT=1` now connects the approved setup/editor to the actual
+radio adapter and service. It is disabled by default and exceeds original-MCU
+flash. [APRS-RUNTIME.md](APRS-RUNTIME.md) describes the binding and its software
+checks. Earlier prototype-only descriptions above refer to the default RX
+profile or historical development checkpoints. No diagnostic oversized image
+is a usable firmware release, and no RF validation has occurred.

@@ -101,6 +101,13 @@ static void Frequency(uint32_t f, unsigned y)
     Text(s + 7, 109, y + 8, 1, false);
 }
 
+#ifdef ENABLE_APRS_TRANSPORT
+#include "app/aprs_runtime.h"
+static const VFO_Info_t *HomeVfo(unsigned index) {return RUNTIME_VoiceVfo(index);}
+#else
+static const VFO_Info_t *HomeVfo(unsigned index) {return &gEeprom.VfoInfo[index];}
+#endif
+
 static unsigned Primary(void)
 {
     return gCurrentFunction==FUNCTION_TRANSMIT || gInputBoxIndex || gDTMF_InputMode || !gRxVfoIsActive ?
@@ -126,7 +133,7 @@ static void Input(bool memory)
     Rect(0,16,128,31,false);
     if(memory) sprintf(s,"CH-%.3s",ascii);
     else {
-        const unsigned digits=gEeprom.VfoInfo[gEeprom.TX_VFO].pRX->Frequency>=100000000 ? 4 : 3;
+        const unsigned digits=HomeVfo(gEeprom.TX_VFO)->pRX->Frequency>=100000000 ? 4 : 3;
         sprintf(s,"%.*s.%s",digits,ascii,ascii+digits);
     }
     Center(s,20,2);Center(memory ? "CHANNEL ENTRY" : "FREQUENCY ENTRY",40,0);
@@ -158,6 +165,10 @@ static void Overlays(unsigned primary)
         sprintf(s,"SCAN %s %uc/s",gScanPauseMode ? "HOLD" : gScanStateDir>0 ? "UP" : "DOWN",SCAN_RATE_ChannelsPerSec());
         Rect(0,47,128,17,false);Rect(0,47,128,1,true);Text(s,2,49,1,false);
         Text("MENU/EXIT:STOP  UP/DN:DIR",16,58,0,false);
+#ifdef ENABLE_APRS_TRANSPORT
+    } else if(RUNTIME_Leased()) {
+        Banner("APRS ACTIVE","PTT:RETURN TO VOICE");
+#endif
     } else if(gAPRS_BannerTicks) {
         sprintf(s,"MSG %s",gAPRS_BannerSource);Banner(s,gAPRS_BannerText);
     } else if(gSetting_live_DTMF_decoder && gDTMF_RX_live[0]) {
@@ -171,7 +182,7 @@ void UI_HomeStatus(void)
 {
     memset(gStatusLine, 0xff, sizeof(gStatusLine));
     const unsigned active = UI_HomeEligible() ? Primary() : 0;
-    const VFO_Info_t *v = &gEeprom.VfoInfo[active];
+    const VFO_Info_t *v = HomeVfo(active);
     const char *state = gCurrentFunction == FUNCTION_TRANSMIT ? "TX" :
                         FUNCTION_IsRx() ? "RX" : "";
     Text(state, 2, 1, 0, true);
@@ -193,7 +204,7 @@ bool UI_HomeDraw(void)
     if (!UI_HomeEligible()) return false;
     const bool tx = gCurrentFunction == FUNCTION_TRANSMIT;
     const unsigned primary = Primary();
-    const VFO_Info_t *v = &gEeprom.VfoInfo[primary];
+    const VFO_Info_t *v = HomeVfo(primary);
     const uint32_t f = tx ? v->pTX->Frequency : v->pRX->Frequency;
     char s[32], name[17] = {0};
     const bool memory = IS_MR_CHANNEL(gEeprom.ScreenChannel[primary]);
@@ -227,7 +238,7 @@ bool UI_HomeDraw(void)
         for(unsigned i=0;i<9;i++) if(level>i) Rect(100+i*3,y+1,2,4,true);
     }
     const unsigned secondary = primary ^ 1;
-    const uint32_t other = gEeprom.VfoInfo[secondary].pRX->Frequency;
+    const uint32_t other = HomeVfo(secondary)->pRX->Frequency;
     sprintf(s, "%c %3u.%05u", 'A' + secondary, (unsigned)(other / 100000), (unsigned)(other % 100000));
     Text(s, 4, 49, 1, false);
     if (tx) {

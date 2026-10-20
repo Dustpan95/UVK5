@@ -93,5 +93,14 @@ int main(void)
     APRS_ChannelOps invalid=ops;invalid.restore=0;
     assert(!CHANNEL_Configure(&channel,&invalid) && channel.leased && !restores);
     CHANNEL_Interrupt(&channel);assert(restores==1);
+    Init(UINT32_MAX-500);channel.voiceTicks=3000;Message();CHANNEL_Process(&channel);
+    now=channel.deadline;CHANNEL_Process(&channel);
+    assert(restores==1 && gAPRS_TX.nextTick==now+3000 && frequency==14652000);
+    now+=2999;CHANNEL_Process(&channel);assert(sends==1);
+    ++now;CHANNEL_Process(&channel);assert(sends==2 && channel.waiting);
+    /* PTT also guarantees time back on voice, without losing late ACKs. */
+    now+=100;CHANNEL_Interrupt(&channel);assert(gAPRS_TX.nextTick==now+3000);
+    assert(TX_Acknowledge("N0CALL-7","MYCALL","123",false));
+    now+=3000;CHANNEL_Process(&channel);assert(sends==2 && gAPRS_TX.state==APRS_TX_ACKED);
     puts("PASS separate-channel model: tune before send, 10-second ACK deadline after handoff, early ACK/PTT/fault/disable restoration, three attempts and wrap-safe waits");
 }

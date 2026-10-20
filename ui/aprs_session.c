@@ -15,10 +15,25 @@ void SESSION_Draw(void)
 #ifndef ENABLE_APRS_CALLSIGN_ONLY
             "NEW MESSAGE",
 #endif
-            "MY CALLSIGN"};
-        for(unsigned i=0;i<APRS_HUB_ITEMS;i++) {
+            "MY CALLSIGN"
+#ifdef ENABLE_APRS_TRANSPORT
+            ,"SETUP"
+#endif
+        };
+        #ifdef ENABLE_APRS_TRANSPORT
+        const unsigned first=gAPRS_HubSelected/4*4;
+#else
+        const unsigned first=0;
+#endif
+        for(unsigned i=first;i<APRS_HUB_ITEMS && i<first+
+#ifdef ENABLE_APRS_TRANSPORT
+            4
+#else
+            APRS_HUB_ITEMS
+#endif
+            ;i++) {
             sprintf(line,"%c%s",i==gAPRS_HubSelected ? '>' : ' ',items[i]);
-            UI_PrintStringSmallNormal(line,0,0,i+1);
+            UI_PrintStringSmallNormal(line,0,0,i-first+1);
         }
     } else if(gAPRS_View==APRS_STATIONS) {
         sprintf(line,"STATIONS %u HEARD",gAPRS_StationCount);UI_PrintStringSmallNormal(line,0,0,0);

@@ -71,17 +71,21 @@ bool TX_QueueControl(uint32_t frequency,const char *sender,const char *recipient
     if(controlCount==APRS_CONTROL_CAPACITY) return false;
     controls[controlCount++]=c;return true; /* Queued, not yet transmitted. */
 }
-void TX_Process(const APRS_TX_Link *link)
+void TX_Tick(uint32_t now)
 {
     APRS_TX_Job *j=&gAPRS_TX;
-    if(!link || !link->send || !link->now) return;
-    const uint32_t now=link->now(link->context);
     if(Active() && Due(now,j->expiresTick)) {
         j->state=j->attempts ? APRS_TX_UNCONFIRMED : APRS_TX_EXPIRED;
     }
     if(Active() && j->attempts==j->policy.maxAttempts && Due(now,j->nextTick))
         j->state=APRS_TX_UNCONFIRMED;
     PurgeControls(now);
+}
+void TX_Process(const APRS_TX_Link *link)
+{
+    APRS_TX_Job *j=&gAPRS_TX;
+    if(!link || !link->send || !link->now) return;
+    const uint32_t now=link->now(link->context);TX_Tick(now);
     if(controlCount) {
         Control *c=&controls[0];
         if(!Due(now,c->nextTick)) return;

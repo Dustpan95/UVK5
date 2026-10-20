@@ -7,6 +7,11 @@ static bool Due(uint32_t now,uint32_t deadline) {return !((now-deadline)&0x80000
 void CHANNEL_Interrupt(APRS_Channel *c)
 {
     if(!c || !c->leased) return;
+    if(c->waiting && c->voiceTicks && gAPRS_TX.state==APRS_TX_WAIT_ACK &&
+       gAPRS_TX.attempts<gAPRS_TX.policy.maxAttempts) {
+        uint32_t resume=c->ops.now(c->ops.context)+c->voiceTicks;
+        if(Due(resume,gAPRS_TX.nextTick)) gAPRS_TX.nextTick=resume;
+    }
     c->leased=c->waiting=false;
     c->ops.restore(c->ops.context);
 }

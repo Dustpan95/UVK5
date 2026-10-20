@@ -140,3 +140,25 @@ adapter, normal receive/foreground/UI binding and RF validation are unfinished;
 these policy mechanisms do not enable a transmitter in the published bench.
 PTT restores voice while keeping existing pending retry deadlines. A dedicated
 cancel action can stop retries; neither action pretends an ACK was received.
+
+
+## Degrees/minutes and retry spacing approved
+
+The owner selected the proposed setup flow with **degrees/minutes** entry:
+latitude `DD MM.mm N/S`, longitude `DDD MM.mm E/W`. Save follows a position
+review and does not transmit. A separate beacon review requires an explicit
+Send. Quick-message editing uses separate scratch storage and preserves the
+composition draft. Configuration and received history remain session-only.
+Actual host-rendered pages are in `../screenshots/setup/`.
+
+The ACK wait remains configurable with a 10-second default. After a missed or
+interrupted wait, voice resumes for **30 seconds before the next attempt**.
+There are at most three total sends. A late matching ACK can still complete the
+job while on voice. PTT restores voice before normal key dispatch.
+
+The transport candidate now binds setup, receive, foreground service and the
+actual RAM VFO retune/restore adapter. This supersedes the earlier "unfinished
+binding" descriptions above. It remains oversized and physically untested;
+none of these TX paths is enabled in the fitting RX bench. The owner requested
+a feature-by-feature space review before deciding any removals; a compact-menu
+redesign has not been selected.

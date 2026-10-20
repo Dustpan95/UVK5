@@ -6,6 +6,9 @@
 #include "external/printf/printf.h"
 #include "ui/helper.h"
 #include <string.h>
+#ifdef ENABLE_APRS_TRANSPORT
+#include "app/aprs_tx.h"
+#endif
 #ifndef ENABLE_APRS_CALLSIGN_ONLY
 static void Body(const char *text, unsigned first)
 {
@@ -44,13 +47,24 @@ void MESSAGE_Draw(void)
         UI_PrintStringSmallNormal("*:DELETE",0,0,5);
         if(m->page==MESSAGE_CALLSIGN) footer="MENU:SAVE  EXIT:CANCEL";
     }
-    else if(m->page==MESSAGE_COMPOSE || m->page==MESSAGE_REVIEW) {
+    else if(m->page==MESSAGE_COMPOSE || m->page==MESSAGE_REVIEW
+#ifdef ENABLE_APRS_TRANSPORT
+        || m->page==MESSAGE_QUICK_EDIT
+#endif
+    ) {
         sprintf(line,"%s %s",m->page==MESSAGE_REVIEW ? "SEND" : "TO",m->recipient);
         UI_PrintStringSmallNormal(line,0,0,0);
-        Body(m->text,1);
-        sprintf(line,"%u/67%s",(unsigned)strlen(m->text),m->tapTicks ? " ABC_" : " ABC");
+        const char *text=m->text;
+#ifdef ENABLE_APRS_TRANSPORT
+        if(m->page==MESSAGE_QUICK_EDIT) {text=MESSAGE_QuickEditText();UI_PrintStringSmallNormal("EDIT QUICK MESSAGE",0,0,0);}
+#endif
+        Body(text,1);
+        sprintf(line,"%u/67%s",(unsigned)strlen(text),m->tapTicks ? " ABC_" : " ABC");
         UI_DisplaySmallest(line,0,42,false,true);
         footer=m->page==MESSAGE_REVIEW ? "MENU:SEND  EXIT:EDIT" : "MENU:OPTIONS  EXIT:BACK";
+#ifdef ENABLE_APRS_TRANSPORT
+        if(m->page==MESSAGE_QUICK_EDIT) footer="MENU:SAVE EXIT:CANCEL";
+#endif
     } else if(m->page==MESSAGE_OPTIONS || m->page==MESSAGE_QUICK) {
         const bool quick=m->page==MESSAGE_QUICK;
         UI_PrintStringSmallNormal(quick ? "QUICK MESSAGES" : "MESSAGE OPTIONS",0,0,0);
@@ -61,6 +75,14 @@ void MESSAGE_Draw(void)
         }
         footer="MENU:SELECT  EXIT:BODY";
     } else {
+#ifdef ENABLE_APRS_TRANSPORT
+        const char *const states[]={"IDLE","QUEUED","WAITING FOR ACK","BEACON SENT","ACK RECEIVED",
+            "MESSAGE REJECTED","UNCONFIRMED","TX BLOCKED","TX FAILED","CANCELLED","EXPIRED"};
+        sprintf(line,gAPRS_TX.needsAcknowledgment ? "TO %s" : "STATIC BEACON",gAPRS_TX.recipient);UI_PrintStringSmallNormal(line,0,0,0);
+        UI_PrintStringSmallNormal(states[gAPRS_TX.state],0,0,2);
+        sprintf(line,"ATTEMPTS %u/%u",gAPRS_TX.attempts,gAPRS_TX.policy.maxAttempts);UI_PrintStringSmallNormal(line,0,0,4);
+        footer="MENU:CANCEL EXIT:BACK";
+#else
         sprintf(line,"TO %s",m->recipient);UI_PrintStringSmallNormal(line,0,0,0);
         const char *status=m->delivery==MESSAGE_ACKED ? "ACK RECEIVED" :
             m->delivery==MESSAGE_WAIT_ACK ? "WAITING FOR ACK" :
@@ -69,6 +91,7 @@ void MESSAGE_Draw(void)
         if(m->delivery==MESSAGE_TX_UNAVAILABLE)
             UI_PrintStringSmallNormal("TX UNAVAILABLE",0,0,4);
         footer="EXIT:PACKETS";
+#endif
     }
 #endif
     if(m->error!=MESSAGE_OK) {
@@ -76,7 +99,7 @@ void MESSAGE_Draw(void)
         const char *error=m->error==MESSAGE_BAD_CALL ? "CHECK CALL/SSID" : "CALLSIGN FULL";
 #else
         const char *error=m->error==MESSAGE_BAD_CALL ? "CHECK CALL/SSID" :
-                          m->error==MESSAGE_EMPTY ? "EMPTY MESSAGE" : "MESSAGE FULL";
+                          m->error==MESSAGE_EMPTY ? "EMPTY MESSAGE" : m->error==MESSAGE_TX_BLOCKED ? "CHECK TX SETUP / BUSY" : "MESSAGE FULL";
 #endif
         UI_DisplaySmallest(error,0,42,false,true);
     }

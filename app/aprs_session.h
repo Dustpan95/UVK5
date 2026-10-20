@@ -5,7 +5,9 @@
 #include "driver/keyboard.h"
 #define APRS_INBOX_CAPACITY 4 /* Measured prototype capacity; not a release limit. */
 #define APRS_STATION_CAPACITY 8
-#ifdef ENABLE_APRS_CALLSIGN_ONLY
+#ifdef ENABLE_APRS_TRANSPORT
+#define APRS_HUB_ITEMS 6
+#elif defined(ENABLE_APRS_CALLSIGN_ONLY)
 #define APRS_HUB_ITEMS 4
 #else
 #define APRS_HUB_ITEMS 5

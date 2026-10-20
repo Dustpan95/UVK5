@@ -17,6 +17,9 @@
 
 /* UVK5 integration: passive APRS hooks. */
 #include "app/aprs_rx.h"
+#ifdef ENABLE_APRS_TRANSPORT
+#include "app/aprs_runtime.h"
+#endif
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
@@ -100,6 +103,17 @@
 static bool flagSaveVfo;
 static bool flagSaveSettings;
 static bool flagSaveChannel;
+
+bool APP_HasPendingWrites(void)
+{
+    return flagSaveVfo || flagSaveSettings || flagSaveChannel ||
+        gRequestSaveVFO || gRequestSaveSettings || gRequestSaveChannel
+#ifdef ENABLE_FMRADIO
+        || gRequestSaveFM || gFlagSaveFM
+#endif
+        ;
+}
+
 
 static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 
@@ -846,6 +860,9 @@ static void HandleVox(void)
 
 void APP_Update(void)
 {
+#ifdef ENABLE_APRS_TRANSPORT
+    if(RUNTIME_Leased()) return;
+#endif
 #ifdef ENABLE_VOICE
 	if (gFlagPlayQueuedVoice) {
 			AUDIO_PlayQueuedVoice();
@@ -1181,6 +1198,19 @@ static void CheckKeys(void)
 void APP_TimeSlice10ms(void)
 {
 	gNextTimeslice = false;
+#ifdef ENABLE_APRS_TRANSPORT
+    if(RUNTIME_Leased()) {
+#ifdef ENABLE_UART
+        if(UART_IsCommandAvailable()) RUNTIME_Interrupt();
+#endif
+        if(RUNTIME_Leased()) {
+            CheckKeys();CheckRadioInterrupts();RUNTIME_Process();
+            if(gUpdateDisplay) {GUI_DisplayScreen();gUpdateDisplay=false;}
+            if(gUpdateStatus) {UI_DisplayStatus();gUpdateStatus=false;}
+            return;
+        }
+    }
+#endif
 	gFlashLightBlinkCounter++;
 
 	// === VUURWERK v1.2.5 Toast subsystem tick ===
@@ -1436,6 +1466,9 @@ void APP_TimeSlice10ms(void)
 	}
 
 	CheckKeys();
+#ifdef ENABLE_APRS_TRANSPORT
+    RUNTIME_Process();
+#endif
 }
 
 void cancelUserInputModes(void)
@@ -1464,6 +1497,9 @@ void APP_TimeSlice500ms(void)
 {
     APRS_Tick500ms();
 	gNextTimeslice_500ms = false;
+#ifdef ENABLE_APRS_TRANSPORT
+    if(RUNTIME_Leased()) {BATTERY_TimeSlice500ms();return;}
+#endif
 	bool exit_menu = false;
 
 	// Skipped authentic device check
@@ -1744,6 +1780,9 @@ static void ALARM_Off(void)
 
 static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
+#ifdef ENABLE_APRS_TRANSPORT
+    RUNTIME_Interrupt();
+#endif
 	if (Key == KEY_EXIT && !BACKLIGHT_IsOn() && gEeprom.BACKLIGHT_TIME > 0)
 	{	// just turn the light on for now so the user can see what's what
 		BACKLIGHT_TurnOn();
