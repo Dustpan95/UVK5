@@ -16,7 +16,7 @@
       "packed_sha256": "deaf0b6c3b6bdffb4bf9c33e020edb4e93181560ce51482c7575c528837efded"
     }
   },
-  "decoder_sha256": "2c60c4b90c316ecb2e353f15fe160171b530525416d4f58db8fc798f21a813cb",
-  "elf_sha256": "7d6592c0552c81ee60563c36a94998ce14ca950d5359e31d4c00ebb59aa9da22",
+  "decoder_sha256": "1a329d68aba661f3df3d2204f124a08f3af917c947a7b397ffaa28aaa130730e",
+  "elf_sha256": "3b4ebc006c1a107c4d936321684903ec9b44cffa8ef61d2734b1bc82042271ef",
   "limitations": "CPU/decoder execution only; no radio peripherals, physical hardware or RF validation."
 }

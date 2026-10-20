@@ -1,16 +1,33 @@
 # Complete original-MCU candidate fits
 
-The full APRS transport profile uses **61,440 / 61,440 bytes** with the unchanged
+The full APRS transport profile uses **61,432 / 61,440 bytes** with the unchanged
 60 KiB production linker. Static RAM is **12,268 bytes**, with **2,048 bytes
-reserved for stack** in the original 16 KiB SRAM. There is no flash growth margin;
+reserved for stack** in the original 16 KiB SRAM. There are eight physical flash bytes free and seven bytes below the updater limit;
 every subsequent change must be rebuilt and checked. No flash extension, RAM
 code overlay, calibration storage or different MCU is assumed.
 
-The 67,896-byte architecture-audit baseline is reduced by **6,456 bytes**, with
+The 67,896-byte architecture-audit baseline is reduced by **6,464 bytes**, with
 no additional feature removals. The previously selected removals remain automatic
 CTCSS/DCS search, flashlight and secondary-VFO background activity scanning.
 Manual tones, A/B VFOs, dual watch, crossband, ordinary scanning, Scan+Watch,
 compressor, adaptive squelch and the agreed APRS controls remain.
+
+## Updater compatibility correction
+
+The first 61,440-byte candidate fit physical flash but was rejected by Egzumer
+UV Tools. Its warning, flash-button handler and final flash guard all require
+`length <= 0xEFFF` (61,439). Our earlier validation missed that stricter boundary.
+Revision 2 saves eight bytes using a shared bit-at-a-time resource reader;
+all decoded bytes and features remain unchanged. `tools/firmware_limits.py`
+and the normal verifier now enforce 61,439, with an explicit regression test
+that accepts 61,439 and rejects 61,440 before packaging.
+
+The actual pinned Egzumer JavaScript unpacker and flash-loop logic pass against
+revision 2 with serial calls mocked: CRC, exact raw payload, repacking, strict
+boundary rejection, all 240 packet addresses/payloads and final zero padding.
+No USB device or radio is accessed. See [updater-compatibility.json](updater-compatibility.json).
+Reproduce using `node tools/test-updater-compat.js /path/to/egzumer-uvtools uvk6-experimental.packed.bin uvk6-experimental.bin build/updater-compatibility.json`;
+checkout upstream commit `7148b01f11357cb28e74fff3a9591b12a656ea13` first.
 
 ## Changes after the 63,832-byte checkpoint
 

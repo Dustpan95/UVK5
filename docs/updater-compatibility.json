@@ -1,0 +1,18 @@
+{
+  "upstream": "egzumer/uvtools",
+  "revision": "7148b01f11357cb28e74fff3a9591b12a656ea13",
+  "updater_limit_bytes": 61439,
+  "firmware_bytes": 61432,
+  "packed_bytes": 61450,
+  "flash_packets": 240,
+  "checks": [
+    "actual unpacker CRC and exact payload",
+    "exact repack",
+    "61440/61441 rejected before serial calls",
+    "61439 accepted",
+    "candidate accepted",
+    "all packet addresses, payload and zero padding"
+  ],
+  "status": "passed",
+  "limitations": "JavaScript with mocked serial only; no browser UI, USB, physical radio or RF test"
+}

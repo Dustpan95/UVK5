@@ -2,14 +2,16 @@
   "status": "experimental; RF and physical hardware not tested",
   "hardware_target": "original DP32G030 UV-K5 / UV-K6; not other MCU revisions",
   "compiler": "10.3.1",
-  "flash_bytes": 61440,
+  "flash_bytes": 61432,
   "flash_limit_bytes": 61440,
-  "flash_free_bytes": 0,
+  "flash_free_bytes": 8,
+  "updater_limit_bytes": 61439,
+  "updater_free_bytes": 7,
   "static_ram_bytes": 12268,
   "reserved_stack_bytes": 2048,
   "ram_limit_bytes": 16384,
   "initial_stack_pointer": "0x20003ff0",
   "ram_after_static_bytes": 4100,
-  "raw_sha256": "1c51e6f64e9a2f12e1847e1725ab9214ac155ffae98a0ea3509b8e9e55665c0f",
-  "packed_sha256": "05bc884c4a7e806ddf267c14ac1bb6a96096e50ab828f344b3dda429888c41c2"
+  "raw_sha256": "e100a8e5f660c4b643bb6c7b948e74bbe7abd11a91d310ab50b3f47631f1dbb3",
+  "packed_sha256": "b587ccd19f7683942326b037035b3bb42ab69e5c56ebfcb17539326cfd474c08"
 }

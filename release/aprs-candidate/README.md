@@ -1,18 +1,22 @@
 # Complete APRS candidate — original DP32G030
 
+**Revision 2 replaces the first candidate, which Egzumer UV Tools rejected as one byte too large.**
+The new updater file is 61,450 bytes including packing metadata; its decoded
+firmware is 61,432 bytes. Discard the old 61,458-byte packed file.
+
 This is a **flash-size-verified experimental firmware candidate**, including the
 approved UI, retained radio features and complete APRS receive/message/beacon
 paths. Physical boot and RF interoperability have not been tested. The intended
 Bell 202 tones are 1200/2200 Hz; on-air timing, deviation and independent TNC
 results are still required. No cloud command flashes your radio.
 
-- **Updater file:** [uvk6-aprs-candidate.packed.bin](uvk6-aprs-candidate.packed.bin).
-- [Raw image](uvk6-aprs-candidate.bin) is for reproduction/inspection; use the
+- **Updater file:** [uvk6-aprs-candidate-r2.packed.bin](uvk6-aprs-candidate-r2.packed.bin).
+- [Raw image](uvk6-aprs-candidate-r2.bin) is for reproduction/inspection; use the
   packed file with the compatible updater.
 - [Manifest](manifest.json) identifies exact source, build options, hashes and
   remaining physical checks. [SHA256SUMS](SHA256SUMS) lists file hashes.
-- **Flash:** 61,440 / 61,440 bytes. **Static RAM:** 12,268 bytes; **stack reserve:**
-  2,048 bytes. No flash growth margin remains. Original 60 KiB linker enforced.
+- **Flash:** 61,432 / 61,440 bytes. **Static RAM:** 12,268 bytes; **stack reserve:**
+  2,048 bytes. The updater limit is 61,439 bytes (seven bytes free). Original 60 KiB linker enforced.
 - Source retains all upstream history/notices. See [project credits](../../NOTICE)
   and [licenses](../../LICENSES). No additional feature cuts were made to fit.
 
@@ -31,7 +35,8 @@ plug, enter the original radio's bootloader by holding PTT while powering on.
 Use a supported Chrome/Edge Web Serial updater such as
 [Egzumer UV Tools](https://egzumer.github.io/uvtools/), choose the correct COM port
 and **this package's packed image**, and complete the local update without
-interrupting power. Power-cycle normally afterward. Preserve the original
+interrupting power. Select your own firmware file and leave all optional
+patches/modifications disabled for this custom firmware. Power-cycle normally afterward. Preserve the original
 calibration; do not upload another radio's EEPROM. Installation is experimental;
 bootloader availability alone does not establish that recovery has been tested.
 

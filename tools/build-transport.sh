@@ -13,8 +13,8 @@ PY
 settings+=(ENABLE_APRS_TRANSPORT=1)
 ./tools/build.sh "${settings[@]}"
 mkdir -p build/transport-candidate
-cp uvk6-experimental.bin build/transport-candidate/uvk6-aprs-candidate.bin
-cp uvk6-experimental.packed.bin build/transport-candidate/uvk6-aprs-candidate.packed.bin
+cp uvk6-experimental.bin build/transport-candidate/uvk6-aprs-candidate-r2.bin
+cp uvk6-experimental.packed.bin build/transport-candidate/uvk6-aprs-candidate-r2.packed.bin
 cp uvk6-experimental.map build/transport-candidate/firmware.map
 cp build/verification.json build/transport-candidate/verification.json
 python3 - "${settings[@]}" <<'PY'

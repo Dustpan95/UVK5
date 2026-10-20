@@ -10,5 +10,6 @@
   "source_patches": "linker capacity only",
   "profile": [
     "ENABLE_APRS_TRANSPORT=1"
-  ]
+  ],
+  "checkpoint": "Historical first candidate; superseded by revision 2 updater correction in FINAL-FIT.md"
 }

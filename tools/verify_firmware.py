@@ -8,12 +8,13 @@ import pathlib
 import struct
 import subprocess
 import sys
+from firmware_limits import FLASH_LIMIT, UPDATER_LIMIT, check_image_size
 
 root = pathlib.Path(__file__).resolve().parents[1]
 target = root / 'uvk6-experimental'
 raw = target.with_suffix('.bin').read_bytes()
 packed = target.with_suffix('.packed.bin').read_bytes()
-assert 8192 <= len(raw) <= 60 * 1024, f'raw firmware length out of range: {len(raw)}'
+check_image_size(len(raw))
 sp, reset = struct.unpack_from('<II', raw)
 assert sp == 0x20003ff0, f'unexpected DP32G030 initial stack: {sp:#x}'
 assert reset & 1 and (reset & ~1) < len(raw), f'invalid Thumb reset vector: {reset:#x}'
@@ -44,7 +45,7 @@ for line in programs.splitlines():
     fields = line.split()
     if fields and fields[0] == 'LOAD':
         physical, file_bytes = int(fields[3], 16), int(fields[4], 16)
-        if physical < 61440:
+        if physical < FLASH_LIMIT:
             flash = max(flash, physical + file_bytes)
 static_ram = section_sizes.get('.data', 0) + section_sizes.get('.bss', 0)
 reserved_stack = section_sizes.get('._user_heap_stack', 0)
@@ -55,7 +56,8 @@ report = {
     'status': 'experimental; RF and physical hardware not tested',
     'hardware_target': 'original DP32G030 UV-K5 / UV-K6; not other MCU revisions',
     'compiler': subprocess.check_output(['arm-none-eabi-gcc', '-dumpfullversion'], text=True).strip(),
-    'flash_bytes': flash, 'flash_limit_bytes': 61440, 'flash_free_bytes': 61440 - flash,
+    'flash_bytes': flash, 'flash_limit_bytes': FLASH_LIMIT, 'flash_free_bytes': FLASH_LIMIT - flash,
+    'updater_limit_bytes': UPDATER_LIMIT, 'updater_free_bytes': UPDATER_LIMIT - flash,
     'static_ram_bytes': static_ram, 'reserved_stack_bytes': reserved_stack,
     'ram_limit_bytes': 16384, 'initial_stack_pointer': hex(sp),
     'ram_after_static_bytes': sp - 0x20000000 - static_ram,

@@ -2,7 +2,7 @@
 
 `ENABLE_APRS_TRANSPORT=1` selects the actual foreground/UI/RX/hardware binding.
 It forces messaging and session support. It is disabled by default. The complete
-candidate now fits **61,440 / 61,440 bytes**, with 12,268 static RAM bytes and
+candidate now fits **61,432 / 61,440 bytes**, with 12,268 static RAM bytes and
 2,048 reserved stack bytes. `tools/build-transport.sh` selects this full profile,
 uses the unchanged production linker and packages verified raw/updater images.
 Physical boot and RF interoperability remain untested. The historical RX bench

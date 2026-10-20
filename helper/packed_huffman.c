@@ -7,12 +7,14 @@
 typedef struct {const uint8_t *in;uint32_t bits;unsigned available;} BitReader;
 static unsigned ReadBits(BitReader *r,unsigned count)
 {
-    while(r->available<count) {
-        r->bits|=(uint32_t)*r->in++<<r->available;r->available+=8;
+    unsigned result=0;
+    for(unsigned bit=0;bit<count;bit++) {
+        if(!r->available) {r->bits=*r->in++;r->available=8;}
+        result|=(r->bits&1)<<bit;r->bits>>=1;--r->available;
     }
-    unsigned value=r->bits & ((1u<<count)-1);
-    r->bits>>=count;r->available-=count;return value;
+    return result;
 }
+
 static unsigned ReadSymbol(BitReader *r,const uint8_t *counts,const uint8_t *symbols)
 {
     unsigned first=0,code=0,index=0;

@@ -6,7 +6,7 @@ newer MCU variants. No firmware flashing is performed by the build scripts.
 
 The complete APRS candidate is selected by `tools/build-transport.sh`; the
 minimal receive-only build remains `tools/build.sh`. The complete profile now
-fits 61,440 bytes with no growth margin. See [FINAL-FIT.md](docs/FINAL-FIT.md)
+fits 61,432 bytes with no growth margin. See [FINAL-FIT.md](docs/FINAL-FIT.md)
 and the [candidate package](release/aprs-candidate/README.md).
 
 ## Reusable container toolchain
@@ -49,7 +49,8 @@ filenames.
 ## Outputs and enforced checks
 
 - `uvk6-experimental`: ELF with symbols.
-- `uvk6-experimental.bin`: raw application image, at most **61,440 bytes**.
+- `uvk6-experimental.bin`: raw application image, at most **61,439 bytes** for Egzumer UV Tools
+  (the physical application region is 61,440 bytes).
 - `uvk6-experimental.packed.bin`: updater image with version header and CRC.
 - `uvk6-experimental.map`: linker map.
 - `build/verification.json`: exact size, RAM reservations, tool version and SHA-256 hashes.

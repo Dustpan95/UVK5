@@ -333,3 +333,13 @@ These augment the existing decoder, runtime, RF-adapter, timing-fault, restorati
 ACK/retry, compact memory and Cortex-M0 arithmetic/ABI checks. CPU modeling and
 pin traces do not establish physical RF timing, deviation, interoperability,
 boot or recovery. No hardware was flashed. See [FINAL-FIT.md](FINAL-FIT.md).
+
+## Egzumer updater limit correction — revision 2
+
+The initial full candidate's 61,440 bytes passed physical flash checks but exceeded
+the updater's 61,439-byte guard. Revision 2 is **61,432 raw / 61,450 packed bytes**,
+with unchanged features and RAM. The build verifier now enforces the updater
+limit as well. Native guarded resource streams and Cortex-M0 font/text execution
+pass after the eight-byte decoder saving. Actual pinned upstream unpacking,
+repacking, size guard and all flash packets pass with serial mocks; physical
+flashing/RF remain untested. See [FINAL-FIT.md](FINAL-FIT.md).

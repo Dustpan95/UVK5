@@ -38,9 +38,9 @@ does not establish the MCU revision.
 The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md), setup,
 separate-frequency radio adapter and delivery service are included by
 `./tools/build-transport.sh` (`ENABLE_APRS_TRANSPORT=1`). The complete candidate
-uses **61,440 / 61,440 flash bytes**, with **12,268 bytes of static RAM** and the
+uses **61,432 / 61,440 flash bytes**, with **12,268 bytes of static RAM** and the
 unchanged **2,048-byte stack reserve**. It passes the production linker; the
-flash limit has not been enlarged. This leaves no flash growth margin.
+flash limit has not been enlarged. The updater permits at most 61,439 bytes; seven bytes remain below that limit.
 The three owner-selected removals remain the only additional feature cuts.
 The default minimal receive profile and historical receive-session image remain
 separate. See [feature-preserving size work](docs/FINAL-FIT.md) and
