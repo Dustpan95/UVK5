@@ -14,6 +14,7 @@
  *     limitations under the License.
  */
 
+#include "ui/display_text.h"
 #include <string.h>
 
 #include "bsp/dp32g030/gpio.h"
@@ -36,13 +37,13 @@ void UI_DisplayReleaseKeys(void)
 	memset(gStatusLine,  0, sizeof(gStatusLine));
 	UI_DisplayClear();
 
-	UI_PrintString("RELEASE", 0, 127, 1, 10);
-	UI_PrintString("ALL KEYS", 0, 127, 3, 10);
+	UI_PrintString(DISPLAY_TEXT("RELEASE"), 0, 127, 1, 10);
+	UI_PrintString(DISPLAY_TEXT("ALL KEYS"), 0, 127, 3, 10);
 
 	char buf[6];
 	const char *n = NULL;
 	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
-		n = "PTT";
+		n = DISPLAY_TEXT("PTT");
 	} else {
 		KEY_Code_t k = KEYBOARD_Poll();
 		if (k <= KEY_9) {
@@ -51,14 +52,14 @@ void UI_DisplayReleaseKeys(void)
 			n = buf;
 		} else {
 			switch (k) {
-				case KEY_SIDE1: n = "SIDE1"; break;
-				case KEY_SIDE2: n = "SIDE2"; break;
-				case KEY_MENU:  n = "MENU";  break;
-				case KEY_EXIT:  n = "EXIT";  break;
-				case KEY_UP:    n = "UP";    break;
-				case KEY_DOWN:  n = "DOWN";  break;
-				case KEY_STAR:  n = "STAR";  break;
-				case KEY_F:     n = "F";     break;
+				case KEY_SIDE1: n = DISPLAY_TEXT("SIDE1"); break;
+				case KEY_SIDE2: n = DISPLAY_TEXT("SIDE2"); break;
+				case KEY_MENU:  n = DISPLAY_TEXT("MENU");  break;
+				case KEY_EXIT:  n = DISPLAY_TEXT("EXIT");  break;
+				case KEY_UP:    n = DISPLAY_TEXT("UP");    break;
+				case KEY_DOWN:  n = DISPLAY_TEXT("DOWN");  break;
+				case KEY_STAR:  n = DISPLAY_TEXT("STAR");  break;
+				case KEY_F:     n = DISPLAY_TEXT("F");     break;
 				default: break;
 			}
 		}
@@ -81,9 +82,9 @@ void UI_DisplayWelcome(void)
 
 	if (BOOT_HEALTH_HasFault()) {
 		const bool eep_only = BOOT_HEALTH_HasEepromFault() && !BOOT_HEALTH_HasBk4819Fault();
-		UI_PrintString(eep_only ? "EEPROM" : "BK4819", 0, 127, 0, 12);
-		UI_PrintString("FAULT", 0, 127, 3, 12);
-		UI_PrintStringSmallNormal(eep_only ? "calib lost" : "RX/TX disabled", 0, 128, 6);
+		UI_PrintString(eep_only ? DISPLAY_TEXT("EEPROM") : DISPLAY_TEXT("BK4819"), 0, 127, 0, 12);
+		UI_PrintString(DISPLAY_TEXT("FAULT"), 0, 127, 3, 12);
+		UI_PrintStringSmallNormal(eep_only ? DISPLAY_TEXT("calib lost") : DISPLAY_TEXT("RX/TX disabled"), 0, 128, 6);
 	} else if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_NONE) {
 		// VUURWERK v1.3.2: blank boot -- fall through to the blit pair
 		// with the already-cleared buffer (stock NONE semantics). The
@@ -96,8 +97,8 @@ void UI_DisplayWelcome(void)
 		// strcpy and sprintf both null-terminate within the 16-byte
 		// buffer; the prior memset-to-zero is redundant defensive
 		// zeroing and is omitted.
-		strcpy(WelcomeString0, "VOLTAGE");
-		sprintf(WelcomeString1, "%u.%02uV %u%%",
+		strcpy(WelcomeString0, DISPLAY_TEXT("VOLTAGE"));
+		sprintf(WelcomeString1, DISPLAY_TEXT("%u.%02uV %u%%"),
 			gBatteryVoltageAverage / 100,
 			gBatteryVoltageAverage % 100,
 			BATTERY_VoltsToPercent(gBatteryVoltageAverage));
@@ -108,9 +109,9 @@ void UI_DisplayWelcome(void)
 	} else {
 		// VUURWERK branding boot screen (FULL_SCREEN and MESSAGE both
 		// land here as of v1.3.2 -- FULL is the factory-default byte)
-		UI_PrintString("VUURWERK", 0, 127, 0, 10);
+		UI_PrintString(DISPLAY_TEXT("VUURWERK"), 0, 127, 0, 10);
 		UI_PrintStringSmallNormal(VERSION_STRING, 0, 128, 3);
-		UI_PrintStringSmallNormal("Precision RF", 0, 128, 5);
+		UI_PrintStringSmallNormal(DISPLAY_TEXT("Precision RF"), 0, 128, 5);
 	}
 
 	ST7565_BlitStatusLine();

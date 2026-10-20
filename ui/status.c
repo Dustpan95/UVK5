@@ -15,6 +15,7 @@
  */
 
 /* Modified for UVK5: approved home status and percentage battery readout. */
+#include "ui/display_text.h"
 #include "ui/home.h"
 #include <string.h>
 
@@ -90,24 +91,24 @@ void UI_DisplayStatus()
 #endif
 	{ // SCAN indicator
 		if (gScanStateDir != SCAN_OFF || SCANNER_IsScanning()) {
-			char * s = "";
+			char * s = DISPLAY_TEXT("");
 			if (SCANWATCH_IsActive()) {
-				s = "S+W";  // Scan+Watch active
+				s = DISPLAY_TEXT("S+W");  // Scan+Watch active
 			}
 			// === VUURWERK v1.2.7 CSS scan glyph ===
 			else if (SCANNER_IsScanning()) {
-				s = "Cs";  // CSS (CTCSS/DCS) scan distinguished from channel scan
+				s = DISPLAY_TEXT("Cs");  // CSS (CTCSS/DCS) scan distinguished from channel scan
 			}
 			// === END VUURWERK v1.2.7 ===
 			else if (IS_MR_CHANNEL(gNextMrChannel)) {
 				switch(gEeprom.SCAN_LIST_DEFAULT) {
-					case 0: s = "1"; break;
-					case 1: s = "2"; break;
-					case 2: s = "*"; break;
+					case 0: s = DISPLAY_TEXT("1"); break;
+					case 1: s = DISPLAY_TEXT("2"); break;
+					case 2: s = DISPLAY_TEXT("*"); break;
 				}
 			}
 			else {
-				s = "S";
+				s = DISPLAY_TEXT("S");
 			}
 			UI_PrintStringSmallBufferNormal(s, line + x + 1);
 			x1 = x + 10;
@@ -143,7 +144,7 @@ void UI_DisplayStatus()
 	// radio by itself must announce itself on screen. Slot x=35..50 is
 	// unconditionally free in this build (VOX compiled out, lock floor 61).
 	if (VFO_SPLIT_IsEnabled()) {
-		UI_PrintStringSmallBufferNormal("SP", line + x + 1);
+		UI_PrintStringSmallBufferNormal(DISPLAY_TEXT("SP"), line + x + 1);
 		x1 = x + 16;
 	}
 	x += 16;
@@ -194,7 +195,7 @@ void UI_DisplayStatus()
     /* Reserve the rightmost 28 pixels for 0..100%, including in menus. */
     memset(line + 100, 0, LCD_WIDTH - 100);
     char battery[5];
-    sprintf(battery, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+    sprintf(battery, DISPLAY_TEXT("%u%%"), BATTERY_VoltsToPercent(gBatteryVoltageAverage));
     UI_PrintStringSmallBufferNormal(battery, line + LCD_WIDTH - strlen(battery) * 7);
 
 	// **************

@@ -41,7 +41,7 @@ The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md)
 remain available separately (`ENABLE_APRS_MESSAGING=1`). The new
 `ENABLE_APRS_TRANSPORT=1` candidate binds the actual setup screens, session
 service, separate-frequency hardware adapter, tone sender and delivery status.
-It measures **66,796 bytes: 5,356 over the original MCU's 61,440-byte limit**.
+It measures **65,752 bytes: 4,312 over the original MCU's 61,440-byte limit**.
 It is **not a flashable build**; the production linker rejects it. The three owner-selected removals are applied. The fitting default and receive-session bench keep
 this candidate disabled. See [transport implementation](docs/APRS-RUNTIME.md)
 and [flash feasibility](docs/FLASH-FEASIBILITY.md). The current

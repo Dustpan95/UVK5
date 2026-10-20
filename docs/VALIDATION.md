@@ -267,3 +267,15 @@ comparisons remain identical after the formatter and shared APRS row changes.
 The full host suite passes. Default RX and RX-session images were rebuilt and
 verified sequentially; the complete transport build remains oversized at
 66,796 bytes. These checks do not establish physical/RF interoperability.
+
+## Packed display resources
+
+The production resource stream expands exactly to all 234 display literals,
+921 hint bytes and 15 original compiled fixed-width choice tables, including
+their zero padding and dimensions. Literal offsets are verified as C constant
+initializers; unregistered literals must fail compilation. ASan/UBSan and
+the complete host suite pass, and all 56 stored LCD comparisons remain identical.
+The original-MCU default RX and RX-session builds verify at 53,632 and 56,308
+bytes respectively. The complete transport profile remains oversized at
+65,752 bytes with 11,644 static RAM bytes plus 2,048 reserved stack bytes.
+No RF or physical-radio test was performed.

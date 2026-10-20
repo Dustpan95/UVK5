@@ -33,7 +33,7 @@ bool RUNTIME_Enable(bool enabled)
        TX_freq_check(gAPRS_Runtime.frequency))) return false;
     if(!SERVICE_Configure(&config)) return false;
     hardware.radio=(APRS_RadioConfig){enabled,gAPRS_Runtime.audioLevel};
-    const APRS_ChannelOps ops={HARDWARE_Now,HARDWARE_Enter,HARDWARE_Send,HARDWARE_Restore,HARDWARE_Interrupted,&hardware};
+    static const APRS_ChannelOps ops={HARDWARE_Now,HARDWARE_Enter,HARDWARE_Send,HARDWARE_Restore,HARDWARE_Interrupted,&hardware};
     CHANNEL_Configure(&channel,&ops);channel.voiceTicks=3000;gUpdateDisplay=true;return true;
 }
 bool RUNTIME_Configure(uint32_t frequency,uint16_t seconds,uint8_t level)

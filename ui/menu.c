@@ -16,6 +16,7 @@
  */
 
 /* UVK5 integration: passive APRS hooks. */
+#include "ui/display_text.h"
 #include "app/aprs_rx.h"
 #include <string.h>
 #include <stdlib.h>
@@ -40,7 +41,6 @@
 #include "menu.h"
 #include "ui.h"
 #include "vuurwerk_menu.h"
-
 
 const t_menu_item MenuList[] =
 {
@@ -154,56 +154,6 @@ const t_menu_item MenuList[] =
 
 const uint8_t FIRST_HIDDEN_MENU_ITEM = MENU_F_LOCK;
 
-const char gSubMenu_TXP[][5] =
-{
-	"LOW",
-	"MID",
-	"HIGH"
-};
-
-const char gSubMenu_SFT_D[][4] =
-{
-	"OFF",
-	"+",
-	"-"
-};
-
-const char gSubMenu_W_N[][7] =
-{
-	"WIDE",
-	"NARROW"
-};
-
-const char gSubMenu_OFF_ON[][4] =
-{
-	"OFF",
-	"ON"
-};
-
-const char gSubMenu_SAVE[][4] =
-{
-	"OFF",
-	"1:1",
-	"1:2",
-	"1:3",
-	"1:4"
-};
-
-const char gSubMenu_TOT[][7] =
-{
-	"30 sec",
-	"1 min",
-	"2 min",
-	"3 min",
-	"4 min",
-	"5 min",
-	"6 min",
-	"7 min",
-	"8 min",
-	"9 min",
-	"15 min"
-};
-
 const char* const gSubMenu_RXMode[] =
 {
 	"MAIN\nONLY", 		// TX and RX on main only
@@ -220,13 +170,6 @@ const char* const gSubMenu_RXMode[] =
 		"ENG"
 	};
 #endif
-
-const char gSubMenu_SC_REV[][8] =
-{
-	"TIMEOUT",
-	"CARRIER",
-	"STOP"
-};
 
 const char* const gSubMenu_MDF[] =
 {
@@ -263,27 +206,6 @@ const char* const gSubMenu_PTT_ID[] =
 	"APOLLO\nQUINDAR"
 };
 
-const char gSubMenu_PONMSG[][8] =
-{
-	"FULL",
-	"MESSAGE",
-	"VOLTAGE",
-	"NONE"
-};
-
-const char gSubMenu_ROGER[][6] =
-{
-	"OFF",
-	"ROGER",
-	"MDC"
-};
-
-const char gSubMenu_RESET[][4] =
-{
-	"VFO",
-	"ALL"
-};
-
 const char * const gSubMenu_F_LOCK[] =
 {
 	"DEFAULT+\n137-174\n400-470",
@@ -294,54 +216,6 @@ const char * const gSubMenu_F_LOCK[] =
 	"137-174\n400-438",
 	"DISABLE\nALL",
 	"UNLOCK\nALL",
-};
-
-const char gSubMenu_BACKLIGHT[][7] =
-{
-	"OFF",
-	"5 sec",
-	"10 sec",
-	"20 sec",
-	"1 min",
-	"2 min",
-	"4 min",
-	"ON"
-};
-
-const char gSubMenu_RX_TX[][6] =
-{
-	"OFF",
-	"TX",
-	"RX",
-	"TX/RX"
-};
-
-const char gSubMenu_BAT_TXT[][8] =
-{
-	"NONE",
-	"VOLTAGE",
-	"PERCENT"
-};
-
-const char gSubMenu_BATTYP[][9] =
-{
-	"1600mAh",
-	"2200mAh"
-};
-
-const char gSubMenu_SCRAMBLER[][7] =
-{
-	"OFF",
-	"2600Hz",
-	"2700Hz",
-	"2800Hz",
-	"2900Hz",
-	"3000Hz",
-	"3100Hz",
-	"3200Hz",
-	"3300Hz",
-	"3400Hz",
-	"3500Hz"
 };
 
 /* Shared with the input bounds so disabled features cannot remain selectable. */
@@ -444,7 +318,7 @@ void UI_DisplayMenu(void)
 			if (c >= visCount)
 				break;
 
-			sprintf(String, "%d %s", c + 1, VUURWERK_MENU_GetCategoryName(c));
+			sprintf(String, DISPLAY_TEXT("%d %s"), c + 1, VUURWERK_MENU_GetCategoryName(c));
 			UI_PrintStringSmallNormal(String, 2, 0, row);
 
 			if (c == gCategoryPickerCursor) {
@@ -508,9 +382,9 @@ void UI_DisplayMenu(void)
 			UI_DisplaySmallest(hint, 0, 50, false, true);
 		} else {
 			if (gSelectedCategory >= 0)
-				sprintf(String, "%s %u/%u", VUURWERK_MENU_GetCategoryName(gSelectedCategory), gCategoryItemIdx + 1, gCategoryItemCount);
+				sprintf(String, DISPLAY_TEXT("%s %u/%u"), VUURWERK_MENU_GetCategoryName(gSelectedCategory), gCategoryItemIdx + 1, gCategoryItemCount);
 			else
-				sprintf(String, "%2u.%u", 1 + gMenuCursor, gMenuListCount);
+				sprintf(String, DISPLAY_TEXT("%2u.%u"), 1 + gMenuCursor, gMenuListCount);
 			UI_PrintStringSmallNormal(String, 2, 0, 6);
 		}
 	}
@@ -530,13 +404,13 @@ void UI_DisplayMenu(void)
 	switch (UI_MENU_GetCurrentMenuId())
 	{
 		case MENU_SQL:
-			sprintf(String, "%d", gSubMenuSelection);
+			sprintf(String, DISPLAY_TEXT("%d"), gSubMenuSelection);
 			break;
 
 		case MENU_MIC:
 			{	// display the mic gain in actual dB rather than just an index number
 				const uint8_t mic = gMicGain_dB2[gSubMenuSelection];
-				sprintf(String, "+%u.%01udB", mic / 2, mic % 2);
+				sprintf(String, DISPLAY_TEXT("+%u.%01udB"), mic / 2, mic % 2);
 			}
 			break;
 
@@ -548,7 +422,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_STEP: {
 			uint16_t step = gStepFrequencyTable[FREQUENCY_GetStepIdxFromSortedIdx(gSubMenuSelection)];
-			sprintf(String, "%d.%02ukHz", step / 100, step % 100);
+			sprintf(String, DISPLAY_TEXT("%d.%02ukHz"), step / 100, step % 100);
 			break;
 		}
 
@@ -559,20 +433,20 @@ void UI_DisplayMenu(void)
 		case MENU_R_DCS:
 		case MENU_T_DCS:
 			if (gSubMenuSelection == 0)
-				strcpy(String, "OFF");
+				strcpy(String, DISPLAY_TEXT("OFF"));
 			else if (gSubMenuSelection < 105)
-				sprintf(String, "D%03oN", DCS_Options[gSubMenuSelection -   1]);
+				sprintf(String, DISPLAY_TEXT("D%03oN"), DCS_Options[gSubMenuSelection -   1]);
 			else
-				sprintf(String, "D%03oI", DCS_Options[gSubMenuSelection - 105]);
+				sprintf(String, DISPLAY_TEXT("D%03oI"), DCS_Options[gSubMenuSelection - 105]);
 			break;
 
 		case MENU_R_CTCS:
 		case MENU_T_CTCS:
 		{
 			if (gSubMenuSelection == 0)
-				strcpy(String, "OFF");
+				strcpy(String, DISPLAY_TEXT("OFF"));
 			else
-				sprintf(String, "%u.%uHz", CTCSS_Options[gSubMenuSelection - 1] / 10, CTCSS_Options[gSubMenuSelection - 1] % 10);
+				sprintf(String, DISPLAY_TEXT("%u.%uHz"), CTCSS_Options[gSubMenuSelection - 1] / 10, CTCSS_Options[gSubMenuSelection - 1] % 10);
 			break;
 		}
 
@@ -583,17 +457,17 @@ void UI_DisplayMenu(void)
 		case MENU_OFFSET:
 			if (!gIsInSubMenu || gInputBoxIndex == 0)
 			{
-				sprintf(String, "%3d.%05u", gSubMenuSelection / 100000, abs(gSubMenuSelection) % 100000);
+				sprintf(String, DISPLAY_TEXT("%3d.%05u"), gSubMenuSelection / 100000, abs(gSubMenuSelection) % 100000);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
 			}
 			else
 			{
 				const char * ascii = INPUTBOX_GetAscii();
-				sprintf(String, "%.3s.%.3s  ",ascii, ascii + 3);
+				sprintf(String, DISPLAY_TEXT("%.3s.%.3s  "),ascii, ascii + 3);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
 			}
 
-			UI_PrintString("MHz",  menu_item_x1, menu_item_x2, 3, 8);
+			UI_PrintString(DISPLAY_TEXT("MHz"),  menu_item_x1, menu_item_x2, 3, 8);
 
 			already_printed = true;
 			break;
@@ -615,9 +489,9 @@ void UI_DisplayMenu(void)
 		#ifdef ENABLE_VOX
 			case MENU_VOX:
 				if (gSubMenuSelection == 0)
-					strcpy(String, "OFF");
+					strcpy(String, DISPLAY_TEXT("OFF"));
 				else
-					sprintf(String, "%d", gSubMenuSelection);
+					sprintf(String, DISPLAY_TEXT("%d"), gSubMenuSelection);
 				break;
 		#endif
 
@@ -629,7 +503,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_ABR_MIN:
 		case MENU_ABR_MAX:
-			sprintf(String, "%d", gSubMenuSelection);
+			sprintf(String, DISPLAY_TEXT("%d"), gSubMenuSelection);
 			if(gIsInSubMenu)
 				BACKLIGHT_SetBrightness(gSubMenuSelection);
 			else if(BACKLIGHT_GetBrightness() < 4)
@@ -641,7 +515,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_AUTOLK:
-			strcpy(String, (gSubMenuSelection == 0) ? "OFF" : "AUTO");
+			strcpy(String, (gSubMenuSelection == 0) ? DISPLAY_TEXT("OFF") : DISPLAY_TEXT("AUTO"));
 			break;
 
 		case MENU_COMPAND:
@@ -685,12 +559,12 @@ void UI_DisplayMenu(void)
 			if (valid && !gAskForConfirmation)
 			{	// show the frequency so that the user knows the channels frequency
 				const uint32_t frequency = SETTINGS_FetchChannelFrequency(gSubMenuSelection);
-				sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
+				sprintf(String, DISPLAY_TEXT("%u.%05u"), frequency / 100000, frequency % 100000);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
 			}
 
 			SETTINGS_FetchChannelName(String, gSubMenuSelection);
-			UI_PrintString(String[0] ? String : "--", menu_item_x1, menu_item_x2, 2, 8);
+			UI_PrintString(String[0] ? String : DISPLAY_TEXT("--"), menu_item_x1, menu_item_x2, 2, 8);
 			already_printed = true;
 			break;
 		}
@@ -709,19 +583,19 @@ void UI_DisplayMenu(void)
 				if (!gIsInSubMenu || edit_index < 0)
 				{	// show the channel name
 					SETTINGS_FetchChannelName(String, gSubMenuSelection);
-					char *pPrintStr = String[0] ? String : "--";
+					char *pPrintStr = String[0] ? String : DISPLAY_TEXT("--");
 					UI_PrintString(pPrintStr, menu_item_x1, menu_item_x2, 2, 8);
 				}
 				else
 				{	// show the channel name being edited
 					UI_PrintString(edit, menu_item_x1, 0, 2, 8);
 					if (edit_index < 10)
-						UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8);  // show the cursor
+						UI_PrintString(DISPLAY_TEXT("^"), menu_item_x1 + (8 * edit_index), 0, 4, 8);  // show the cursor
 				}
 
 				if (!gAskForConfirmation)
 				{	// show the frequency so that the user knows the channels frequency
-					sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
+					sprintf(String, DISPLAY_TEXT("%u.%05u"), frequency / 100000, frequency % 100000);
 					UI_PrintString(String, menu_item_x1, menu_item_x2, 4 + (gIsInSubMenu && edit_index >= 0), 8);
 				}
 			}
@@ -758,16 +632,16 @@ void UI_DisplayMenu(void)
 
 		case MENU_RP_STE:
 			if (gSubMenuSelection == 0)
-				strcpy(String, "OFF");
+				strcpy(String, DISPLAY_TEXT("OFF"));
 			else
-				sprintf(String, "%d*100ms", gSubMenuSelection);
+				sprintf(String, DISPLAY_TEXT("%d*100ms"), gSubMenuSelection);
 			break;
 
 		case MENU_S_LIST:
 			if (gSubMenuSelection < 2)
-				sprintf(String, "LIST%u", 1 + gSubMenuSelection);
+				sprintf(String, DISPLAY_TEXT("LIST%u"), 1 + gSubMenuSelection);
 			else
-				strcpy(String, "ALL");
+				strcpy(String, DISPLAY_TEXT("ALL"));
 			break;
 
 		#ifdef ENABLE_ALARM
@@ -782,11 +656,11 @@ void UI_DisplayMenu(void)
 			break;
 #endif
 		case MENU_UPCODE:
-			sprintf(String, "%.8s\n%.8s", gEeprom.DTMF_UP_CODE, gEeprom.DTMF_UP_CODE + 8);
+			sprintf(String, DISPLAY_TEXT("%.8s\n%.8s"), gEeprom.DTMF_UP_CODE, gEeprom.DTMF_UP_CODE + 8);
 			break;
 
 		case MENU_DWCODE:
-			sprintf(String, "%.8s\n%.8s", gEeprom.DTMF_DOWN_CODE, gEeprom.DTMF_DOWN_CODE + 8);
+			sprintf(String, DISPLAY_TEXT("%.8s\n%.8s"), gEeprom.DTMF_DOWN_CODE, gEeprom.DTMF_DOWN_CODE + 8);
 			break;
 
 #ifdef ENABLE_DTMF_CALLING
@@ -795,11 +669,11 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_D_HOLD:
-			sprintf(String, "%ds", gSubMenuSelection);
+			sprintf(String, DISPLAY_TEXT("%ds"), gSubMenuSelection);
 			break;
 #endif
 		case MENU_D_PRE:
-			sprintf(String, "%d*10ms", gSubMenuSelection);
+			sprintf(String, DISPLAY_TEXT("%d*10ms"), gSubMenuSelection);
 			break;
 
 		case MENU_PTT_ID:
@@ -814,7 +688,7 @@ void UI_DisplayMenu(void)
 		case MENU_D_LIST:
 			gIsDtmfContactValid = DTMF_GetContact((int)gSubMenuSelection - 1, Contact);
 			if (!gIsDtmfContactValid)
-				strcpy(String, "NULL");
+				strcpy(String, DISPLAY_TEXT("NULL"));
 			else
 				memcpy(String, Contact, 8);
 			break;
@@ -829,7 +703,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_VOL:
-			sprintf(String, "%u.%02uV\n%u%%",
+			sprintf(String, DISPLAY_TEXT("%u.%02uV\n%u%%"),
 				gBatteryVoltageAverage / 100, gBatteryVoltageAverage % 100,
 				BATTERY_VoltsToPercent(gBatteryVoltageAverage));
 			break;
@@ -840,7 +714,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_F_LOCK:
 			if(!gIsInSubMenu && gUnlockAllTxConfCnt>0 && gUnlockAllTxConfCnt<10)
-				strcpy(String, "READ\nMANUAL");
+				strcpy(String, DISPLAY_TEXT("READ\nMANUAL"));
 			else
 				strcpy(String, gSubMenu_F_LOCK[gSubMenuSelection]);
 			break;
@@ -853,7 +727,7 @@ void UI_DisplayMenu(void)
 
 					writeXtalFreqCal(gSubMenuSelection, false);
 
-					sprintf(String, "%d\n%u.%06u\nMHz",
+					sprintf(String, DISPLAY_TEXT("%d\n%u.%06u\nMHz"),
 						gSubMenuSelection,
 						xtal_Hz / 1000000, xtal_Hz % 1000000);
 				}
@@ -863,7 +737,7 @@ void UI_DisplayMenu(void)
 		case MENU_BATCAL:
 		{
 			const uint16_t vol = (uint32_t)gBatteryVoltageAverage * gBatteryCalibration[3] / gSubMenuSelection;
-			sprintf(String, "%u.%02uV\n%u", vol / 100, vol % 100, gSubMenuSelection);
+			sprintf(String, DISPLAY_TEXT("%u.%02uV\n%u"), vol / 100, vol % 100, gSubMenuSelection);
 			break;
 		}
 
@@ -884,7 +758,7 @@ void UI_DisplayMenu(void)
             strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
             break;
         case MENU_APRS_LOG:
-            strcpy(String, "PACKETS");
+            strcpy(String, DISPLAY_TEXT("PACKETS"));
             break;
         case MENU_SCANWATCH:
 		{
@@ -954,7 +828,7 @@ void UI_DisplayMenu(void)
 		char *pPrintStr = String;
 
 		if (gSubMenuSelection < 0) {
-			pPrintStr = "NULL";
+			pPrintStr = DISPLAY_TEXT("NULL");
 		} else {
 			UI_GenerateChannelStringEx(String, true, gSubMenuSelection);
 			pPrintStr = String;
@@ -964,7 +838,7 @@ void UI_DisplayMenu(void)
 		UI_PrintString(pPrintStr, menu_item_x1, menu_item_x2, 0, 8);
 
 		SETTINGS_FetchChannelName(String, gSubMenuSelection);
-		pPrintStr = String[0] ? String : "--";
+		pPrintStr = String[0] ? String : DISPLAY_TEXT("--");
 
 		// channel name and scan-list
 		if (gSubMenuSelection < 0 || !gEeprom.SCAN_LIST_ENABLED[i]) {
@@ -973,12 +847,12 @@ void UI_DisplayMenu(void)
 			UI_PrintStringSmallNormal(pPrintStr, menu_item_x1, menu_item_x2, 2);
 
 			if (IS_MR_CHANNEL(gEeprom.SCANLIST_PRIORITY_CH1[i])) {
-				sprintf(String, "PRI%d:%u", 1, gEeprom.SCANLIST_PRIORITY_CH1[i] + 1);
+				sprintf(String, DISPLAY_TEXT("PRI%d:%u"), 1, gEeprom.SCANLIST_PRIORITY_CH1[i] + 1);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 3, 8);
 			}
 
 			if (IS_MR_CHANNEL(gEeprom.SCANLIST_PRIORITY_CH2[i])) {
-				sprintf(String, "PRI%d:%u", 2, gEeprom.SCANLIST_PRIORITY_CH2[i] + 1);
+				sprintf(String, DISPLAY_TEXT("PRI%d:%u"), 2, gEeprom.SCANLIST_PRIORITY_CH2[i] + 1);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
 			}
 		}
@@ -991,7 +865,7 @@ void UI_DisplayMenu(void)
 		// ticked every 500 ms by SCANNER_TimeSlice500ms whether or not
 		// ENABLE_NO_CODE_SCAN_TIMEOUT is set, so the cadence is free.
 		const uint8_t n = (gScanProgressIndicator & 7) + 1;
-		strcpy(String, "SCAN");
+		strcpy(String, DISPLAY_TEXT("SCAN"));
 		memset(String + 4, '.', n);
 		String[4 + n] = '\0';
 		UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
@@ -1004,7 +878,7 @@ void UI_DisplayMenu(void)
 	if (UI_MENU_GetCurrentMenuId() == MENU_D_LIST && gIsDtmfContactValid) {
 		Contact[11] = 0;
 		memcpy(&gDTMF_ID, Contact + 8, 4);
-		sprintf(String, "ID:%4s", gDTMF_ID);
+		sprintf(String, DISPLAY_TEXT("ID:%4s"), gDTMF_ID);
 		UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
 	}
 #endif
@@ -1017,7 +891,7 @@ void UI_DisplayMenu(void)
 	    || UI_MENU_GetCurrentMenuId() == MENU_D_LIST
 #endif
 	) {
-		sprintf(String, "%2d", gSubMenuSelection);
+		sprintf(String, DISPLAY_TEXT("%2d"), gSubMenuSelection);
 		UI_PrintStringSmallNormal(String, 105, 0, 0);
 	}
 
@@ -1026,7 +900,7 @@ void UI_DisplayMenu(void)
 	     UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME ||
 	     UI_MENU_GetCurrentMenuId() == MENU_DEL_CH) && gAskForConfirmation)
 	{	// display confirmation
-		char *pPrintStr = (gAskForConfirmation == 1) ? "SURE?" : "WAIT!";
+		char *pPrintStr = (gAskForConfirmation == 1) ? DISPLAY_TEXT("SURE?") : DISPLAY_TEXT("WAIT!");
 		UI_PrintString(pPrintStr, menu_item_x1, menu_item_x2, 5, 8);
 	}
 

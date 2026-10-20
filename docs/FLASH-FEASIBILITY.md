@@ -309,3 +309,13 @@ EEPROM loading/validation and APRS row rendering are documented and tested in
 [SHARED-IMPLEMENTATION.md](SHARED-IMPLEMENTATION.md). Static RAM is 8,680 bytes
 plus the unchanged 2,048-byte stack reserve. Default RX is 53,172 bytes;
 RX-session development is 56,344 bytes. The frozen historical release is unchanged.
+
+## Lossless display-resource follow-up
+
+The full candidate is **65,752 bytes**, **4,312 over**. Lossless packing of
+234 display literals, original hints and 15 choice tables saves a further
+1,016 bytes; immutable operation tables save 28. Total recovery since the
+67,896-byte audit baseline is **2,144 bytes**, without additional feature cuts.
+Static RAM is 11,644 bytes plus the unchanged 2,048-byte stack reserve.
+[DISPLAY-RESOURCES.md](DISPLAY-RESOURCES.md) records exact-byte tests, unchanged
+LCD comparisons, startup initialization and the RAM tradeoff.

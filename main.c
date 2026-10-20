@@ -24,6 +24,7 @@
 
 #include "audio.h"
 #include "font.h"
+#include "ui/display_text.h"
 #include "board.h"
 #include "misc.h"
 #include "radio.h"
@@ -82,6 +83,7 @@ void _putchar(__attribute__((unused)) char c)
 void Main(void)
 {
     FONT_Init();
+    DISPLAY_TEXT_Init();
 	// Enable clock gating of blocks we need
 	SYSCON_DEV_CLK_GATE = 0
 		| SYSCON_DEV_CLK_GATE_GPIOA_BITS_ENABLE

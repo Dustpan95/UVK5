@@ -84,7 +84,7 @@ BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
 BSP_HEADERS     := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
 BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
-OBJS = app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
+OBJS = ui/display_text.o app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
 ifeq ($(ENABLE_APRS_TRANSPORT),1)
 override ENABLE_APRS_MESSAGING := 1
 OBJS += app/aprs_runtime.o app/aprs_setup.o ui/aprs_setup.o app/aprs_tx.o

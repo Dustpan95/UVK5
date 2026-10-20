@@ -15,6 +15,7 @@
  *     limitations under the License.
  */
 
+#include "ui/display_text.h"
 #include "app/aprs_rx.h"
 #include "ui/home.h"
 #include <string.h>
@@ -214,7 +215,7 @@ void UI_MAIN_PrintAGC(bool now)
 	int8_t pgaTab[] = {-33, -27, -21, -15, -9, -6, -3, 0};
 	int16_t agcGain = lnaShortTab[agcGainReg.lnaS] + lnaTab[agcGainReg.lna] + mixerTab[agcGainReg.mixer] + pgaTab[agcGainReg.pga];
 
-	sprintf(buf, "%d%2d %2d %2d %3d", reg7e.agcEnab, reg7e.gainIdx, -agcGain, reg7e.agcSigStrength, BK4819_GetRSSI());
+	sprintf(buf, DISPLAY_TEXT("%d%2d %2d %2d %3d"), reg7e.agcEnab, reg7e.gainIdx, -agcGain, reg7e.agcSigStrength, BK4819_GetRSSI());
 	UI_PrintStringSmallNormal(buf, 2, 0, 3);
 	if(now)
 		ST7565_BlitLine(3);
@@ -236,15 +237,15 @@ void UI_DisplayMain(void)
 	UI_DisplayClear();
 
 	if(gLowBattery && !gLowBatteryConfirmed) {
-		UI_DisplayPopup("LOW BATTERY");
+		UI_DisplayPopup(DISPLAY_TEXT("LOW BATTERY"));
 		ST7565_BlitFullScreen();
 		return;
 	}
 
 	if (gEeprom.KEY_LOCK && gKeypadLocked > 0)
 	{	// tell user how to unlock the keyboard
-		UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
-		UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
+		UI_PrintString(DISPLAY_TEXT("Long press #"), 0, LCD_WIDTH, 1, 8);
+		UI_PrintString(DISPLAY_TEXT("to unlock"),    0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();
 		return;
 	}
@@ -254,6 +255,6 @@ void UI_DisplayMain(void)
 
     /* Invalid indices must not index VFO arrays. Normal modes, scan, input,
      * split activity and temporary messages share ui/home.c rendering. */
-    UI_DisplayPopup("VFO ERROR");
+    UI_DisplayPopup(DISPLAY_TEXT("VFO ERROR"));
     ST7565_BlitFullScreen();
 }

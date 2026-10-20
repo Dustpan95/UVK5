@@ -51,7 +51,7 @@ BELL202_Result BELL202_Radio(const uint8_t *frame,size_t length,uint8_t gain)
     BELL202_Result result=BELL202_CANCELLED;
     if(!Cancelled(0)) {
         BK4819_ExitTxMute();
-        const BELL202_Output output={Now,Tone,Cancelled,0};
+        static const BELL202_Output output={Now,Tone,Cancelled,0};
         result=BELL202_Transmit(frame,length,&output);
     }
     /* No roger, DTMF or subaudible tail. Remain muted until owner drops PA. */

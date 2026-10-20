@@ -13,7 +13,7 @@
  * Commercial licensing inquiries: jhoniball4@gmail.com
  */
 
-#include "../helper/packed.h"
+#include "display_text.h"
 #include <stddef.h>   // v1.3.1 (U3): NULL for the hint lookup
 #include "vuurwerk_menu.h"
 #include "menu.h"
@@ -57,8 +57,7 @@ const char* VUURWERK_MENU_GetCategoryName(uint8_t cat)
 // order by VUURWERK_MENU_GetHint (no offsets -- edit texts freely, keep order).
 // Width budget: 31 chars max at 4 px/char in gFont3x5 (128 px line).
 // v1.4.4: longest hints tightened to fund the F+EXIT reset-to-simplex rescue.
-#include "menu_hints_packed.inc"
-static char sHintPool[MENU_HINT_BYTES];
+/* Original hint bytes are expanded with the other display resources. */
 
 static const uint8_t sHintIds[] = {
 	MENU_SFT_D,   MENU_OFFSET,  MENU_W_N,     MENU_BCL,     MENU_COMPAND,
@@ -84,9 +83,7 @@ static const uint8_t sHintIds[] = {
 // "regenerate every offset by hand when editing a hint" maintenance hazard.
 const char* VUURWERK_MENU_GetHint(uint8_t menu_id)
 {
-    static bool expanded;
-    if(!expanded) {PACK_Expand(sHintPool,sizeof(sHintPool),gPackedMenuHints);expanded=true;}
-	const char *p = sHintPool;
+	const char *p = gDisplayResources.hints;
 	for (uint8_t i = 0; i < ARRAY_SIZE(sHintIds); i++) {
 		if (sHintIds[i] == menu_id)
 			return p;

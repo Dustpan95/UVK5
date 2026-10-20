@@ -13,6 +13,7 @@
  */
 
 /* Modified for UVK5: show actual default APRS profile in About. */
+#include "ui/display_text.h"
 #include <string.h>
 #include "ui/vuurwerk_about.h"
 #include "ui/main.h"
@@ -37,15 +38,15 @@ void VUURWERK_ABOUT_Show(void) {
     // globals placed after it. The "Features:" header is dropped to free row 6
     // for the sag readout, which now actually displays.
     UI_PrintStringSmallBold("VUURWERK " VERSION_STRING, 8, 127, 0);
-    UI_PrintStringSmallNormal("Precision RF", 20, 127, 1);
+    UI_PrintStringSmallNormal(DISPLAY_TEXT("Precision RF"), 20, 127, 1);
     static const char *const features[4] = {
-        "Adaptive Squelch", "Signal Quality", "APRS RX", "TX Compressor"
+        DISPLAY_TEXT("Adaptive Squelch"), DISPLAY_TEXT("Signal Quality"), DISPLAY_TEXT("APRS RX"), DISPLAY_TEXT("TX Compressor")
     };
     for (uint8_t i = 0; i < 4; i++)
         UI_PrintStringSmallNormal(features[i], 2, 127, 2 + i);
 
     char sag_buf[20];
-    sprintf(sag_buf, "TX sag %umV", BATTERY_SAG_GetLast10mV() * 10);
+    sprintf(sag_buf, DISPLAY_TEXT("TX sag %umV"), BATTERY_SAG_GetLast10mV() * 10);
     UI_PrintStringSmallNormal(sag_buf, 2, 127, 6);
 
     ST7565_BlitFullScreen();

@@ -1,6 +1,6 @@
 # Shared implementation, retained radio features
 
-The complete transport candidate now uses **66,796 / 61,440 bytes**,
+This checkpoint used **66,796 / 61,440 bytes**,
 **5,356 bytes over flash**. Four feature-preserving changes recover **1,100
 bytes** against the architecture-audit baseline. This is still an oversized
 diagnostic candidate, not the requested flashable final firmware.
@@ -66,3 +66,6 @@ The complete transport measurement is reproducible with
 `python3 tools/measure-transport.py`. RF deviation, waveform timing and external
 TNC interoperability remain untested on physical hardware. No hardware was
 flashed during this work.
+
+The subsequent [display-resource optimization](DISPLAY-RESOURCES.md) reduces
+the full candidate to 65,752 bytes, still 4,312 over.

@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
+#include "ui/display_text.h"
 #include "app/aprs_setup.h"
 #include "app/aprs_runtime.h"
 #include "app/aprs_session.h"
@@ -11,50 +12,50 @@ static void __attribute__((noinline)) Position(char *out,int32_t value,bool long
 {
     uint32_t absolute=value<0 ? -value : value;
     uint32_t minutes=(absolute*3u+250u)/500u;
-    sprintf(out,longitude ? "%03u %02u.%02u%c" : "%02u %02u.%02u%c",
+    sprintf(out,longitude ? DISPLAY_TEXT("%03u %02u.%02u%c") : DISPLAY_TEXT("%02u %02u.%02u%c"),
         (unsigned)(minutes/6000),(unsigned)(minutes%6000/100),(unsigned)(minutes%100),
         longitude ? (value<0 ? 'W' : 'E') : (value<0 ? 'S' : 'N'));
 }
 void __attribute__((noinline)) SETUP_Draw(void)
 {
     const APRS_Setup *s=&gAPRS_Setup;char line[24];
-    UI_DisplayClear();const char *footer="MENU:SELECT EXIT:BACK";
+    UI_DisplayClear();const char *footer=DISPLAY_TEXT("MENU:SELECT EXIT:BACK");
     if(s->page==SETUP_HOME || s->page==SETUP_QUICK || s->page==SETUP_DATA) {
-        const char *const home[]={"MY CALLSIGN","STATIC POSITION","QUICK MESSAGES","DATA TX"};
-        const char *const data[]={"APRS FREQUENCY","TX AUDIO LEVEL","ACK WAIT","DATA TX","SEND BEACON"};
+        const char *const home[]={DISPLAY_TEXT("MY CALLSIGN"),DISPLAY_TEXT("STATIC POSITION"),DISPLAY_TEXT("QUICK MESSAGES"),DISPLAY_TEXT("DATA TX")};
+        const char *const data[]={DISPLAY_TEXT("APRS FREQUENCY"),DISPLAY_TEXT("TX AUDIO LEVEL"),DISPLAY_TEXT("ACK WAIT"),DISPLAY_TEXT("DATA TX"),DISPLAY_TEXT("SEND BEACON")};
         unsigned count=s->page==SETUP_HOME ? 4 : s->page==SETUP_QUICK ? 3 : 5;
-        UI_PrintStringSmallNormal(s->page==SETUP_HOME ? "APRS SETUP SESSION" :
-            s->page==SETUP_QUICK ? "EDIT QUICK MSGS" : "APRS DATA TX",0,0,0);
+        UI_PrintStringSmallNormal(s->page==SETUP_HOME ? DISPLAY_TEXT("APRS SETUP SESSION") :
+            s->page==SETUP_QUICK ? DISPLAY_TEXT("EDIT QUICK MSGS") : DISPLAY_TEXT("APRS DATA TX"),0,0,0);
         for(unsigned i=0;i<count;i++) {
             const char *label=s->page==SETUP_HOME ? home[i] : s->page==SETUP_QUICK ? gAPRS_Quick[i] : data[i];
-            sprintf(line,"%c%.16s",i==s->selected ? '>' : ' ',label);
+            sprintf(line,DISPLAY_TEXT("%c%.16s"),i==s->selected ? '>' : ' ',label);
             if(s->page==SETUP_DATA && i==0) {
-                if(gAPRS_Runtime.frequency) sprintf(line,"%cFREQ %3u.%05u",i==s->selected ? '>' : ' ',
+                if(gAPRS_Runtime.frequency) sprintf(line,DISPLAY_TEXT("%cFREQ %3u.%05u"),i==s->selected ? '>' : ' ',
                     (unsigned)(gAPRS_Runtime.frequency/100000),(unsigned)(gAPRS_Runtime.frequency%100000));
-                else sprintf(line,"%cFREQ NOT SET",i==s->selected ? '>' : ' ');
+                else sprintf(line,DISPLAY_TEXT("%cFREQ NOT SET"),i==s->selected ? '>' : ' ');
             }
             if(s->page==SETUP_DATA && i==1) {
-                if(gAPRS_Runtime.audioSet) sprintf(line,"%cTX AUDIO %u",i==s->selected ? '>' : ' ',gAPRS_Runtime.audioLevel);
-                else sprintf(line,"%cTX AUDIO NOT SET",i==s->selected ? '>' : ' ');
+                if(gAPRS_Runtime.audioSet) sprintf(line,DISPLAY_TEXT("%cTX AUDIO %u"),i==s->selected ? '>' : ' ',gAPRS_Runtime.audioLevel);
+                else sprintf(line,DISPLAY_TEXT("%cTX AUDIO NOT SET"),i==s->selected ? '>' : ' ');
             }
-            if(s->page==SETUP_DATA && i==2) sprintf(line,"%cACK WAIT %us",i==s->selected ? '>' : ' ',gAPRS_Runtime.acknowledgmentSeconds);
-            if(s->page==SETUP_DATA && i==3) sprintf(line,"%cDATA TX %s",i==s->selected ? '>' : ' ',RUNTIME_Enabled() ? "ON" : "OFF");
+            if(s->page==SETUP_DATA && i==2) sprintf(line,DISPLAY_TEXT("%cACK WAIT %us"),i==s->selected ? '>' : ' ',gAPRS_Runtime.acknowledgmentSeconds);
+            if(s->page==SETUP_DATA && i==3) sprintf(line,DISPLAY_TEXT("%cDATA TX %s"),i==s->selected ? '>' : ' ',RUNTIME_Enabled() ? DISPLAY_TEXT("ON") : DISPLAY_TEXT("OFF"));
             UI_PrintLine(line,i+1);
         }
     } else if(s->page==SETUP_POSITION_REVIEW || s->page==SETUP_BEACON) {
         bool beacon=s->page==SETUP_BEACON;
-        UI_PrintLine(beacon ? "REVIEW BEACON" : "REVIEW POSITION",0);
+        UI_PrintLine(beacon ? DISPLAY_TEXT("REVIEW BEACON") : DISPLAY_TEXT("REVIEW POSITION"),0);
         Position(line,beacon ? gAPRS_Profile.latitude : s->latitude,false);
         UI_PrintLine(line,2);
         Position(line,beacon ? gAPRS_Profile.longitude : s->longitude,true);
         UI_PrintLine(line,3);
-        UI_PrintLine(beacon ? (gAPRS_Profile.positionSet ? gAPRS_Profile.callsign : "POSITION NOT SET") : "SAVE DOES NOT SEND",4);
-        footer=beacon ? "MENU:SEND EXIT:CANCEL" : "MENU:SAVE EXIT:CANCEL";
+        UI_PrintLine(beacon ? (gAPRS_Profile.positionSet ? gAPRS_Profile.callsign : DISPLAY_TEXT("POSITION NOT SET")) : DISPLAY_TEXT("SAVE DOES NOT SEND"),4);
+        footer=beacon ? DISPLAY_TEXT("MENU:SEND EXIT:CANCEL") : DISPLAY_TEXT("MENU:SAVE EXIT:CANCEL");
     } else {
         bool longitude=s->page==SETUP_LONGITUDE;
         bool position=longitude || s->page==SETUP_LATITUDE;
-        const char *title=position ? (longitude ? "LON DDD MM.mm" : "LATITUDE DD MM.mm") :
-            s->page==SETUP_FREQUENCY ? "APRS FREQ MHz" : s->page==SETUP_AUDIO ? "TX AUDIO 0-127" : "ACK WAIT SECONDS";
+        const char *title=position ? (longitude ? DISPLAY_TEXT("LON DDD MM.mm") : DISPLAY_TEXT("LATITUDE DD MM.mm")) :
+            s->page==SETUP_FREQUENCY ? DISPLAY_TEXT("APRS FREQ MHz") : s->page==SETUP_AUDIO ? DISPLAY_TEXT("TX AUDIO 0-127") : DISPLAY_TEXT("ACK WAIT SECONDS");
         UI_PrintLine(title,0);
         char formatted[13];unsigned out=0,width=longitude ? 3 : 2;
         if(position || s->page==SETUP_FREQUENCY) {
@@ -66,12 +67,12 @@ void __attribute__((noinline)) SETUP_Draw(void)
             }
             if(position) formatted[out++]=longitude ? (s->negative ? 'W' : 'E') : (s->negative ? 'S' : 'N');
             formatted[out]=0;
-        } else sprintf(formatted,"%.8s",s->digits);
+        } else sprintf(formatted,DISPLAY_TEXT("%.8s"),s->digits);
         UI_PrintLine(formatted,2);
-        UI_PrintLine(position ? "UP/DOWN:HEMISPHERE" : "SESSION ONLY",4);
-        UI_PrintLine("*:DELETE",5);
-        footer="MENU:NEXT EXIT:CANCEL";
+        UI_PrintLine(position ? DISPLAY_TEXT("UP/DOWN:HEMISPHERE") : DISPLAY_TEXT("SESSION ONLY"),4);
+        UI_PrintLine(DISPLAY_TEXT("*:DELETE"),5);
+        footer=DISPLAY_TEXT("MENU:NEXT EXIT:CANCEL");
     }
-    if(s->error) UI_DisplaySmallest("CHECK INPUT / TX SETUP",0,42,false,true);
+    if(s->error) UI_DisplaySmallest(DISPLAY_TEXT("CHECK INPUT / TX SETUP"),0,42,false,true);
     UI_DisplaySmallest(footer,0,50,false,true);ST7565_BlitFullScreen();
 }

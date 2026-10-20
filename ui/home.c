@@ -18,6 +18,7 @@
  * adapted F4HWN's channel-name/frequency presentation; that heritage and
  * original copyright notices are retained. See docs/design/DECISIONS.md.
  */
+#include "ui/display_text.h"
 #include "ui/home.h"
 #include "app/aprs_rx.h"
 #include "app/chFrScanner.h"
@@ -83,7 +84,7 @@ static void Center(const char *s, unsigned y, unsigned size)
 static void Frequency(uint32_t f, unsigned y)
 {
     char s[12];
-    sprintf(s, "%3u.%05u", (unsigned)(f / 100000), (unsigned)(f % 100000));
+    sprintf(s, DISPLAY_TEXT("%3u.%05u"), (unsigned)(f / 100000), (unsigned)(f % 100000));
     if (f >= 100000000) { Center(s, y, 2); return; }
     unsigned x = 23;
     for (unsigned n = 0; n < 7; ++n) {
@@ -131,48 +132,48 @@ static void Input(bool memory)
     for(unsigned i=0;i<8;i++) ascii[i]=gInputBox[i]<10 ? '0'+gInputBox[i] : '-';
     ascii[8]=0;
     Rect(0,16,128,31,false);
-    if(memory) sprintf(s,"CH-%.3s",ascii);
+    if(memory) sprintf(s,DISPLAY_TEXT("CH-%.3s"),ascii);
     else {
         const unsigned digits=HomeVfo(gEeprom.TX_VFO)->pRX->Frequency>=100000000 ? 4 : 3;
-        sprintf(s,"%.*s.%s",digits,ascii,ascii+digits);
+        sprintf(s,DISPLAY_TEXT("%.*s.%s"),digits,ascii,ascii+digits);
     }
-    Center(s,20,2);Center(memory ? "CHANNEL ENTRY" : "FREQUENCY ENTRY",40,0);
-    Rect(0,57,128,7,true);Text("EXIT:DELETE  HOLD EXIT:CANCEL",8,58,0,true);
+    Center(s,20,2);Center(memory ? DISPLAY_TEXT("CHANNEL ENTRY") : DISPLAY_TEXT("FREQUENCY ENTRY"),40,0);
+    Rect(0,57,128,7,true);Text(DISPLAY_TEXT("EXIT:DELETE  HOLD EXIT:CANCEL"),8,58,0,true);
 }
 
 static void Overlays(unsigned primary)
 {
     char s[32],frequency[12];
     const VfoState_t state=VfoState[primary];
-    static const char *const warnings[]={"","BUSY","BAT LOW","TX DISABLE","TIMEOUT","ALARM","VOLT HIGH"};
+    static const char *const warnings[]={DISPLAY_TEXT(""),DISPLAY_TEXT("BUSY"),DISPLAY_TEXT("BAT LOW"),DISPLAY_TEXT("TX DISABLE"),DISPLAY_TEXT("TIMEOUT"),DISPLAY_TEXT("ALARM"),DISPLAY_TEXT("VOLT HIGH")};
     if(state!=VFO_STATE_NORMAL) {
-        Banner("RADIO ALERT",state<sizeof(warnings)/sizeof(*warnings) ? warnings[state] : "CHECK RADIO");
+        Banner(DISPLAY_TEXT("RADIO ALERT"),state<sizeof(warnings)/sizeof(*warnings) ? warnings[state] : DISPLAY_TEXT("CHECK RADIO"));
     } else if(gDTMF_InputMode) {
-        Banner("DTMF ENTRY",gDTMF_InputBox);
+        Banner(DISPLAY_TEXT("DTMF ENTRY"),gDTMF_InputBox);
     } else if(toast_timer) {
-        Banner("RADIO",toast_msg);
+        Banner(DISPLAY_TEXT("RADIO"),toast_msg);
     } else if(VFO_SPLIT_IsEnabled()) {
         const bool alert=gVfoSplit.alert.active;
         const uint32_t f=alert ? gVfoSplit.alert.freq_10Hz : gVfoSplit.current_freq_10Hz;
         Rect(0,47,128,17,false);Rect(0,47,128,1,true);
-        if(alert) strcpy(s,"VFO B ACTIVITY");
-        else sprintf(s,"B SCAN CH%03u",gVfoSplit.current_channel+1);
+        if(alert) strcpy(s,DISPLAY_TEXT("VFO B ACTIVITY"));
+        else sprintf(s,DISPLAY_TEXT("B SCAN CH%03u"),gVfoSplit.current_channel+1);
         Text(s,2,49,0,false);
-        sprintf(frequency,"%3u.%05u",(unsigned)(f/100000),(unsigned)(f%100000));
+        sprintf(frequency,DISPLAY_TEXT("%3u.%05u"),(unsigned)(f/100000),(unsigned)(f%100000));
         Text(frequency,2,57,1,false);
-        if(alert) {sprintf(s,"%ddBm",gVfoSplit.alert.rssi_dBm);Text(s,86,58,0,false);}
+        if(alert) {sprintf(s,DISPLAY_TEXT("%ddBm"),gVfoSplit.alert.rssi_dBm);Text(s,86,58,0,false);}
     } else if(gScanStateDir!=SCAN_OFF || SCANNER_IsScanning()) {
-        sprintf(s,"SCAN %s %uc/s",gScanPauseMode ? "HOLD" : gScanStateDir>0 ? "UP" : "DOWN",SCAN_RATE_ChannelsPerSec());
+        sprintf(s,DISPLAY_TEXT("SCAN %s %uc/s"),gScanPauseMode ? DISPLAY_TEXT("HOLD") : gScanStateDir>0 ? DISPLAY_TEXT("UP") : DISPLAY_TEXT("DOWN"),SCAN_RATE_ChannelsPerSec());
         Rect(0,47,128,17,false);Rect(0,47,128,1,true);Text(s,2,49,1,false);
-        Text("MENU/EXIT:STOP  UP/DN:DIR",16,58,0,false);
+        Text(DISPLAY_TEXT("MENU/EXIT:STOP  UP/DN:DIR"),16,58,0,false);
 #ifdef ENABLE_APRS_TRANSPORT
     } else if(RUNTIME_Leased()) {
-        Banner("APRS ACTIVE","PTT:RETURN TO VOICE");
+        Banner(DISPLAY_TEXT("APRS ACTIVE"),DISPLAY_TEXT("PTT:RETURN TO VOICE"));
 #endif
     } else if(gAPRS_BannerTicks) {
-        sprintf(s,"MSG %s",gAPRS_BannerSource);Banner(s,gAPRS_BannerText);
+        sprintf(s,DISPLAY_TEXT("MSG %s"),gAPRS_BannerSource);Banner(s,gAPRS_BannerText);
     } else if(gSetting_live_DTMF_decoder && gDTMF_RX_live[0]) {
-        unsigned n=strlen(gDTMF_RX_live);Banner("DTMF DECODE",gDTMF_RX_live+(n>17 ? n-17 : 0));
+        unsigned n=strlen(gDTMF_RX_live);Banner(DISPLAY_TEXT("DTMF DECODE"),gDTMF_RX_live+(n>17 ? n-17 : 0));
     } else if(BANDSCOPE_IsEnabled() && !FUNCTION_IsRx()) {
         memset(gFrameBuffer[6],0,128);BANDSCOPE_Render(gFrameBuffer[6]);
     }
@@ -183,19 +184,19 @@ void UI_HomeStatus(void)
     memset(gStatusLine, 0xff, sizeof(gStatusLine));
     const unsigned active = UI_HomeEligible() ? Primary() : 0;
     const VFO_Info_t *v = HomeVfo(active);
-    const char *state = gCurrentFunction == FUNCTION_TRANSMIT ? "TX" :
-                        FUNCTION_IsRx() ? "RX" : "";
+    const char *state = gCurrentFunction == FUNCTION_TRANSMIT ? DISPLAY_TEXT("TX") :
+                        FUNCTION_IsRx() ? DISPLAY_TEXT("RX") : DISPLAY_TEXT("");
     Text(state, 2, 1, 0, true);
     char s[16];
     const char power = v->OUTPUT_POWER == OUTPUT_POWER_HIGH ? 'H' :
                        v->OUTPUT_POWER == OUTPUT_POWER_MID ? 'M' : 'L';
-    sprintf(s, "%s %c", v->Modulation<MODULATION_UKNOWN ? gModulationStr[v->Modulation] : "?", power);
+    sprintf(s, DISPLAY_TEXT("%s %c"), v->Modulation<MODULATION_UKNOWN ? gModulationStr[v->Modulation] : DISPLAY_TEXT("?"), power);
     Text(s, 19, 1, 0, true);
-    if (gAPRS_Enabled) Text("APRS", 47, 1, 0, true);
-    if (gEeprom.KEY_LOCK) Text("LK", 75, 1, 0, true);
-    else if (gWasFKeyPressed) Text("F", 75, 1, 0, true);
-    else if (gAPRS_BannerTicks) Text("M", 75, 1, 0, true);
-    sprintf(s, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+    if (gAPRS_Enabled) Text(DISPLAY_TEXT("APRS"), 47, 1, 0, true);
+    if (gEeprom.KEY_LOCK) Text(DISPLAY_TEXT("LK"), 75, 1, 0, true);
+    else if (gWasFKeyPressed) Text(DISPLAY_TEXT("F"), 75, 1, 0, true);
+    else if (gAPRS_BannerTicks) Text(DISPLAY_TEXT("M"), 75, 1, 0, true);
+    sprintf(s, DISPLAY_TEXT("%u%%"), BATTERY_VoltsToPercent(gBatteryVoltageAverage));
     Text(s, 126 - (strlen(s) * 7 - 1), 0, 1, true);
 }
 
@@ -210,46 +211,46 @@ bool UI_HomeDraw(void)
     const bool memory = IS_MR_CHANNEL(gEeprom.ScreenChannel[primary]);
     if (memory) SETTINGS_FetchChannelName(name, gEeprom.ScreenChannel[primary]);
     name[16] = 0;
-    if (memory) sprintf(s, "%c  CH%03u", 'A' + primary, gEeprom.ScreenChannel[primary] + 1);
-    else sprintf(s, "VFO %c", 'A' + primary);
+    if (memory) sprintf(s, DISPLAY_TEXT("%c  CH%03u"), 'A' + primary, gEeprom.ScreenChannel[primary] + 1);
+    else sprintf(s, DISPLAY_TEXT("VFO %c"), 'A' + primary);
     Text(s, 2, memory ? 9 : 10, 0, false);
     if (memory && name[0]) {
         Center(name, 16, 2);
-        sprintf(s, "%3u.%05u", (unsigned)(f / 100000), (unsigned)(f % 100000));
+        sprintf(s, DISPLAY_TEXT("%3u.%05u"), (unsigned)(f / 100000), (unsigned)(f % 100000));
         Center(s, 34, 1);
         const int32_t shift = (int32_t)v->pTX->Frequency - (int32_t)v->pRX->Frequency;
         const uint32_t delta = shift < 0 ? -shift : shift;
-        sprintf(s, "SHIFT %c%u.%03u %s", shift < 0 ? '-' : '+',
+        sprintf(s, DISPLAY_TEXT("SHIFT %c%u.%03u %s"), shift < 0 ? '-' : '+',
                 (unsigned)(delta / 100000), (unsigned)(delta % 100000 / 100),
-                v->CHANNEL_BANDWIDTH ? "N" : "W");
+                v->CHANNEL_BANDWIDTH ? DISPLAY_TEXT("N") : DISPLAY_TEXT("W"));
         Center(s, 42, 0);
     } else {
         Frequency(f, 20);
-        sprintf(s, "SQL%u %s %u.%ukHz", gEeprom.SQUELCH_LEVEL,
-                v->CHANNEL_BANDWIDTH ? "N" : "W",
+        sprintf(s, DISPLAY_TEXT("SQL%u %s %u.%ukHz"), gEeprom.SQUELCH_LEVEL,
+                v->CHANNEL_BANDWIDTH ? DISPLAY_TEXT("N") : DISPLAY_TEXT("W"),
                 v->StepFrequency / 100, v->StepFrequency % 100 / 10);
         Center(s, 39, 0);
     }
     if(FUNCTION_IsRx() && !gInputBoxIndex) {
         uint8_t level;int16_t dbm=UI_RX_Signal_dBm(&level);
-        sprintf(s,"S%u %ddBm Q%u %c",level,dbm,SIGNAL_QUALITY_Get(),SIGNAL_CLASSIFIER_GetSymbol(primary));
+        sprintf(s,DISPLAY_TEXT("S%u %ddBm Q%u %c"),level,dbm,SIGNAL_QUALITY_Get(),SIGNAL_CLASSIFIER_GetSymbol(primary));
         const unsigned y=memory && name[0] ? 42 : 39;
         Rect(0,y,128,7,false);Text(s,2,y,0,false);
         for(unsigned i=0;i<9;i++) if(level>i) Rect(100+i*3,y+1,2,4,true);
     }
     const unsigned secondary = primary ^ 1;
     const uint32_t other = HomeVfo(secondary)->pRX->Frequency;
-    sprintf(s, "%c %3u.%05u", 'A' + secondary, (unsigned)(other / 100000), (unsigned)(other % 100000));
+    sprintf(s, DISPLAY_TEXT("%c %3u.%05u"), 'A' + secondary, (unsigned)(other / 100000), (unsigned)(other % 100000));
     Text(s, 4, 49, 1, false);
     if (tx) {
         Rect(0, memory && name[0] ? 42 : 38, 128, memory && name[0] ? 15 : 19, false);
         const unsigned elapsed = gEeprom.TX_TIMEOUT_TIMER ?
             (gEeprom.TX_TIMEOUT_TIMER * 120 - gTxTimerCountdown_500ms) / 2 : 0;
-        sprintf(s, "TX %u:%02u", elapsed / 60, elapsed % 60);
+        sprintf(s, DISPLAY_TEXT("TX %u:%02u"), elapsed / 60, elapsed % 60);
         Center(s, 42, 1);
     } else {
         Rect(0, 57, 128, 7, true);
-        Text("MENU   F+5:APRS   EXIT:A/B", 16, 58, 0, true);
+        Text(DISPLAY_TEXT("MENU   F+5:APRS   EXIT:A/B"), 16, 58, 0, true);
         if(gInputBoxIndex) Input(memory);
         Overlays(primary);
     }
