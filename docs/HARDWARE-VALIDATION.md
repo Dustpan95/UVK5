@@ -8,7 +8,9 @@ RF timing/deviation and recovery remain unverified. The temporary
 [D3 modem comparison](../release/rx-diagnostics-d3/README.md) follows D2 capture
 collection. Three owner-exported 240-byte captures yield no valid frame across
 12 byte/bit/coding interpretations. D3 compares four documented RX mode/filter
-combinations; no physical decoding improvement has yet been demonstrated.
+combinations; no physical decoding improvement has yet been demonstrated. The
+[D3 capture and independent speaker-audio findings](RX-INVESTIGATION.md) record
+the unsuccessful B/D captures and independent audio decode, with their limits.
 The following checklist is a validation plan; do not
 interpret every item as completed.
 
