@@ -143,7 +143,7 @@ void SMART_SQUELCH_Update(void)
 		    gScanStateDir    != SCAN_OFF            ||
 		    SCANNER_IsScanning()                    ||
 		    gCssBackgroundScan                      ||
-		    gVfoSplit.mode   != SPLIT_OFF) {
+		    VFO_SPLIT_IsEnabled()) {
 			if (parked_bias) {
 				parked_bias = false;
 				write_baseline_reg78();

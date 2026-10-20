@@ -1004,7 +1004,7 @@ void APP_Update(void)
 			// so PS never re-engaged; PS entry while idle silently stopped
 			// the hop machine. A 300ms hop watch is incompatible with sleep,
 			// same policy as an active scan.
-			|| gVfoSplit.mode != SPLIT_OFF
+			|| VFO_SPLIT_IsEnabled()
 			|| gScreenToDisplay != DISPLAY_MAIN
 #ifdef ENABLE_FMRADIO
 			|| gFmRadioMode
@@ -1275,7 +1275,9 @@ void APP_TimeSlice10ms(void)
 	GAIN_STAGING_10ms(gEeprom.RX_VFO);
 
 	// VFO Split: state machine runs during FUNCTION_FOREGROUND only
+#ifdef ENABLE_VFO_SPLIT
 	VFO_SPLIT_Process();
+#endif
 
 	// Scan+Watch: update dwell/hold timer when on watch VFO
 	if (SCANWATCH_IsOnWatchVFO())

@@ -37,7 +37,7 @@ APRS_LinkResult APRS_RadioSend(const uint8_t *frame,size_t length,uint32_t frequ
        (v->SCRAMBLING_TYPE && gSetting_ScrambleEnable) || v->DTMF_PTT_ID_TX_MODE!=PTT_ID_OFF ||
        gEeprom.DUAL_WATCH!=DUAL_WATCH_OFF || gEeprom.CROSS_BAND_RX_TX!=CROSS_BAND_OFF ||
        gScanStateDir!=SCAN_OFF || SCANNER_IsScanning() || gCssBackgroundScan ||
-       gVfoSplit.mode!=SPLIT_OFF) return APRS_LINK_DENIED;
+       VFO_SPLIT_IsEnabled()) return APRS_LINK_DENIED;
     if(gCurrentFunction!=FUNCTION_FOREGROUND || g_SquelchLost || APRS_IsCapturing() ||
        !GPIO_CheckBit(&GPIOC->DATA,GPIOC_PIN_PTT) ||
        (BK4819_ReadRegister(BK4819_REG_0C)&1u)) return APRS_LINK_BUSY;

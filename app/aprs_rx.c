@@ -61,7 +61,7 @@ bool APRS_CanListen(void)
         (gCurrentFunction == FUNCTION_FOREGROUND || FUNCTION_IsRx()) &&
         gScanStateDir == SCAN_OFF && !SCANNER_IsScanning() && !gCssBackgroundScan &&
         gEeprom.DUAL_WATCH == DUAL_WATCH_OFF &&
-        gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_OFF && gVfoSplit.mode == SPLIT_OFF;
+        gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_OFF && !VFO_SPLIT_IsEnabled();
 }
 
 bool APRS_IsCapturing(void) {return armed && capturing;}

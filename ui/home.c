@@ -151,7 +151,7 @@ static void Overlays(unsigned primary)
         Banner("DTMF ENTRY",gDTMF_InputBox);
     } else if(toast_timer) {
         Banner("RADIO",toast_msg);
-    } else if(gVfoSplit.mode!=SPLIT_OFF) {
+    } else if(VFO_SPLIT_IsEnabled()) {
         const bool alert=gVfoSplit.alert.active;
         const uint32_t f=alert ? gVfoSplit.alert.freq_10Hz : gVfoSplit.current_freq_10Hz;
         Rect(0,47,128,17,false);Rect(0,47,128,1,true);

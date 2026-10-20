@@ -344,6 +344,15 @@ const char gSubMenu_SCRAMBLER[][7] =
 	"3500Hz"
 };
 
+/* Shared with the input bounds so disabled features cannot remain selectable. */
+const char gSubMenu_SCANWATCH[][15] = {
+    "OFF", "SCAN A\nWATCH B", "SCAN B\nWATCH A",
+#ifdef ENABLE_VFO_SPLIT
+    "SPLIT",
+#endif
+};
+const uint8_t gSubMenu_SCANWATCH_size = ARRAY_SIZE(gSubMenu_SCANWATCH);
+
 const t_sidefunction gSubMenu_SIDEFUNCTIONS[] =
 {
 	{"NONE",			ACTION_OPT_NONE},
@@ -879,8 +888,7 @@ void UI_DisplayMenu(void)
             break;
         case MENU_SCANWATCH:
 		{
-			const char * const sw_opts[] = {"OFF", "SCAN A\nWATCH B", "SCAN B\nWATCH A", "SPLIT"};
-			strcpy(String, sw_opts[gSubMenuSelection]);
+			strcpy(String, gSubMenu_SCANWATCH[(unsigned)gSubMenuSelection < gSubMenu_SCANWATCH_size ? gSubMenuSelection : 0]);
 			break;
 		}
 

@@ -274,3 +274,29 @@ retains ordinary scanning/tone tables and excludes tone-search/flashlight
 implementation symbols. The legacy optional tone-search configuration still
 has host exclusion tests. RF and physical flashing remain unrun. No further
 removals follow from these measurements.
+
+
+## Third owner-selected removal and shared setup handlers
+
+Remove VUURWERK's secondary-VFO background channel activity scan. Only its alert
+mode was wired in this fork; auto-switch/log-only were enum names, not working
+mode branches. `ENABLE_VFO_SPLIT=0` excludes its engine, menu choice, SP/status
+activity display and activation state. Normal dual watch, A/B VFO selection,
+repeater offsets, ordinary scanning and Scan+Watch remain. Menu input bounds
+now derive from available choices and reject the removed value. Original
+source and notices remain in the complete fork.
+
+The complete candidate goes from **68,920 to 68,104 bytes**: **816 saved** by
+this removal. Pinned-GCC LTO shared setup boundaries recover another **208**,
+with no screen/control changes, yielding **67,896 bytes**, **6,456 over**.
+Static RAM is 8,684 plus 2,048 stack. Default RX is 54,164; development RX-session
+is 57,324. Frozen historical releases are unchanged. All host sanitizer checks
+pass, including the current feature-disabled receiver/adapter and actual
+Scan+Watch choice/tone tables. No RF or physical flashing has occurred.
+
+The boundary report is `transport-inlining-results.json`. A trial table-driven
+formatter for 15 simple menu values saved only eight additional bytes and was
+not adopted (`menu-table-size-results.json`); it has no claimed behavioral
+validation. Menu/setup boundary savings are not additive: their combined trial
+increased flash. These results do not establish that ordinary UI factoring can
+recover the remaining six kilobytes. No other feature removals are selected.

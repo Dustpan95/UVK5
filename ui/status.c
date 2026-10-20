@@ -142,7 +142,7 @@ void UI_DisplayStatus()
 	// Split walks VFO B autonomously while parked; any mode that moves the
 	// radio by itself must announce itself on screen. Slot x=35..50 is
 	// unconditionally free in this build (VOX compiled out, lock floor 61).
-	if (gVfoSplit.mode != SPLIT_OFF) {
+	if (VFO_SPLIT_IsEnabled()) {
 		UI_PrintStringSmallBufferNormal("SP", line + x + 1);
 		x1 = x + 16;
 	}

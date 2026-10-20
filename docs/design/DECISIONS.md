@@ -170,3 +170,20 @@ Remove automatic CTCSS/DCS tone search and flashlight. Keep manual configured
 CTCSS/DCS and ordinary channel/frequency scanning. No other removal has been
 selected. Current firmware defaults and entry paths implement this choice;
 the complete candidate remains 7,480 bytes oversized after a 3,168-byte saving.
+
+
+## Secondary-VFO activity scanning removal
+
+After an explanation, the owner selected removal of secondary-VFO activity
+scanning (VUURWERK VFO Split). Source inspection corrected the explanation:
+only the background memory walk, RSSI activity check, frequency toast/beep and
+return-to-voice path are wired; auto-switch/log-only enum names are not working
+modes. Keep ordinary A/B selection, dual watch, Scan+Watch, normal scanning and
+repeater offsets. Remove the SPLIT choice while preserving the three Scan+Watch
+choices. No other feature removal or UI redesign was selected.
+
+The owner is concerned that further small cuts will not recover the full gap.
+Investigation includes feature-preserving code sharing. Setup boundaries save
+208 bytes without changing the UI, in addition to the 816-byte removal. The
+complete candidate still exceeds flash by 6,456 bytes; preserving all remaining
+features in a fitting full-TX build has not been demonstrated.

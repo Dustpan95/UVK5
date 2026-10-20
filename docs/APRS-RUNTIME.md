@@ -2,7 +2,7 @@
 
 `ENABLE_APRS_TRANSPORT=1` selects the actual foreground/UI/RX/hardware binding.
 It forces messaging and session support. It is disabled by default. The complete
-candidate is 68,920 bytes versus the original DP32G030's 61,440-byte application
+candidate is 67,896 bytes versus the original DP32G030's 61,440-byte application
 limit; production linking refuses it. Oversized diagnostic binaries are never
 release artifacts. The existing fitting RX bench is unchanged.
 
@@ -78,3 +78,11 @@ start searching; configured RX/TX CTCSS and DCS operation remains. Ordinary
 channel/frequency scanning remains. Source is retained with upstream notices;
 no other feature removals are selected. The combined complete-candidate saving
 is 3,168 bytes; 7,480 bytes still exceed original-MCU application flash.
+
+
+Secondary-VFO background activity scanning is now also excluded
+(`ENABLE_VFO_SPLIT=0`). Normal dual watch, A/B VFOs, Scan+Watch, memory/frequency
+scanning and repeater offsets remain. This removal saved 816 bytes in the
+complete candidate; shared setup handlers recovered another 208 with unchanged
+screens and controls. Current flash is 67,896 bytes, still 6,456 over. Earlier
+figures above describe previous checkpoints, not additional available savings.

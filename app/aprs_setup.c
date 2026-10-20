@@ -2,12 +2,14 @@
  * Session-only setup. Saving a position never queues a transmission.
  */
 #include "aprs_setup.h"
+/* Keep setup handlers shared under the pinned GCC LTO build. The measured
+ * boundaries reduce flash without changing screens or input behavior. */
 #include "aprs_session.h"
 #include "aprs_message.h"
 #include "aprs_runtime.h"
 #include <string.h>
 APRS_Setup gAPRS_Setup;
-bool SETUP_ParseDM(const char *digits,bool longitude,bool negative,int32_t *value)
+bool __attribute__((noinline)) SETUP_ParseDM(const char *digits,bool longitude,bool negative,int32_t *value)
 {
     if(!digits || !value) return false;
     unsigned width=longitude ? 3 : 2, degrees=0,minutes=0;
@@ -28,7 +30,7 @@ static void Entry(APRS_SetupPage page)
     gAPRS_Setup.negative=false;gAPRS_Setup.error=false;
 }
 void SETUP_Open(void) {Entry(SETUP_HOME);gAPRS_Setup.selected=0;}
-void SETUP_Key(KEY_Code_t key)
+void __attribute__((noinline)) SETUP_Key(KEY_Code_t key)
 {
     APRS_Setup *s=&gAPRS_Setup;s->error=false;
     if(s->page==SETUP_HOME || s->page==SETUP_QUICK || s->page==SETUP_DATA) {

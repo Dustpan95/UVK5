@@ -1,25 +1,29 @@
 # Feature space review for owner selection
 
-The owner selected **G: automatic CTCSS/DCS tone search** and **C: flashlight**
-for removal. Both are now excluded from the current build. Manual RX/TX tone
-settings, channel/frequency scanning and all other unselected features remain.
+The owner selected **G: automatic CTCSS/DCS tone search**, **C: flashlight**,
+and **N: secondary-VFO activity scanning (VUURWERK VFO Split)** for removal.
+All three are excluded from current builds. Ordinary A/B selection, dual watch,
+channel/frequency scanning, Scan+Watch and configured CTCSS/DCS remain.
 
-The actual transport candidate is now **68,920 bytes**, against **61,440
-available**: **7,480 bytes remain to recover**, plus some margin for fixes.
-The combined removal saved **3,168 bytes** from the previous 72,088-byte build.
-This includes removing the real tone-search screen, dispatch entries, results,
-menu/key entry points and periodic work; the earlier isolated probes were not
-complete removals. RAM fits: 8,712 static + 2,048 stack out of 16,384 bytes.
+The complete transport candidate is now **67,896 / 61,440 bytes**:
+**6,456 bytes remain to recover**. Removing N saved 816 bytes from the previous
+68,920-byte candidate. Shared APRS setup handlers recovered another 208 bytes
+without changing controls, screens or capabilities. Together, this step saved
+1,024 bytes. Current static RAM is 8,684 + 2,048 reserved stack out of 16,384.
+Default RX is **54,164** and development RX-session is **57,324 bytes**.
+Frozen historical downloads are unchanged; current CI artifacts use current
+defaults. RF/hardware testing remains unrun.
 
-Default RX is now **54,680 bytes**, and development RX-session is **57,928**.
-The frozen historical RX bench downloads have not been silently replaced.
-Current CI artifacts use the new defaults. No radio was flashed or RF-tested.
+[What N actually did and what remains](VFO-SPLIT-REMOVAL.md) explains the removed
+background activity scan. Its auto-switch/log-only enum names were not
+implemented modes in this fork; only the activity-alert path was wired.
 
-**The tables below are refreshed against the current 68,920-byte candidate at
-[95f4d64](https://github.com/Dustpan95/UVK5/tree/95f4d64decbaa4f4df972833834284d4fa525855).
-Only C and G are already removed; every other listed feature remains.**
-The prior [pre-removal results](transport-feature-costs.json) remain available
-as a historical record. New selections must be measured together.
+**The individual tables below remain the measurement snapshot at
+[95f4d64](https://github.com/Dustpan95/UVK5/tree/95f4d64decbaa4f4df972833834284d4fa525855),
+before N and the setup sharing change.** N is already removed; other individual
+figures are reference estimates, not exact additional savings on 67,896 bytes.
+New choices must be built and measured together. The earlier
+[pre-removal results](transport-feature-costs.json) are also retained.
 
 All measurements below use the same complete candidate, ARM GCC 10.3.1 and
 source fingerprint in [the current full results](remaining-feature-costs.json). No
@@ -59,7 +63,7 @@ for choosing work, not promised exact savings or supported release variants.
 | K | TX compressor | 352 B | Voice microphone compression. This was an original requested feature. |
 | L | Mini bandscope | 424 B | The small RF activity/spectrum strip. |
 | M | Scan+Watch | 332 B | Scanning while periodically checking a watch VFO. |
-| N | VFO Split enhancement | 540 B | VUURWERK's secondary-VFO scan/activity mode; this does not mean repeater offsets. |
+| N — removed | VFO Split enhancement | 540 B | VUURWERK's secondary-VFO scan/activity mode; this does not mean repeater offsets. |
 | O | Current About screen | 284 B | Feature list and voltage-sag page. Required notices and prominent original credits must remain. |
 | P | Enhanced squelch-tail handling | 304 B | Additional suppression of repeater tone/code tail noise. Configured CTCSS/DCS remains. |
 | Q | Signal classifier | 264 B | Signal classification display and classification input to other enhancements. |
@@ -95,10 +99,10 @@ backend, and removing a common helper can affect more than one feature.
 
 ## Where the rest goes
 
-The fitting development RX-session profile uses **57,928 bytes**; the complete
-candidate adds **10,992 bytes** for the full messaging/setup/transmit paths.
+The fitting development RX-session profile uses **57,324 bytes**; the complete
+candidate adds **10,572 bytes** for the full messaging/setup/transmit paths.
 This comparison includes shared-code changes and is not the cost of TX alone.
-The minimal RX profile is **54,680 bytes**. These are different feature profiles,
+The minimal RX profile is **54,164 bytes**. These are different feature profiles,
 not interchangeable claims of a finished transmit release.
 
 For scale, the complete candidate's linked symbols include the following.
@@ -106,12 +110,12 @@ Inlining means these are compilation units of work, not clean feature budgets:
 
 | Linked code/data | Bytes | Includes / qualification |
 |---|---:|---|
-| Main | 9,072 | Startup/main-loop work and inlined foreground handlers; not just the loop itself. |
-| Main-screen rendering | 4,792 | Custom home, APRS browser/editor/setup drawing inlined into the display path. |
-| Main radio key processing | 3,980 | Ordinary radio keypad operation and mode handling. |
-| Settings display | 2,616 | Menu/value drawing; settings input/saving use additional code. |
-| Packet decode | 2,572 | Packet decode/routing and inlined helpers. |
-| Settings key handling | 1,596 | Navigating/editing settings; additional acceptance code is 1,572 B. |
+| Main | 9,144 | Startup/main-loop work and inlined foreground handlers; not just the loop itself. |
+| Main-screen rendering | 3,724 | Custom home, APRS browser/editor/setup drawing inlined into the display path. |
+| Main radio key processing | 2,864 | Ordinary radio keypad operation and mode handling. |
+| Settings display | 2,608 | Menu/value drawing; settings input/saving use additional code. |
+| Packet decode | 2,554 | Packet decode/routing and inlined helpers. |
+| Settings key handling | 1,596 | Navigating/editing settings; additional acceptance code is 1,532 B. |
 | Packed bitmap fonts | 1,765 | Shared radio/APRS glyphs, already compressed losslessly. |
 | Packed menu hints | 644 | Existing explanatory menu text, already compressed losslessly. |
 
@@ -143,3 +147,21 @@ transport profile. No command here flashes hardware.
 Select the IDs you can lose and any that must stay. We will implement and build
 the combination before claiming that it fits. Savings are not additive under
 LTO, and a fitting candidate still needs regression and physical RF validation.
+
+
+## Feature-preserving size experiments
+
+Selective shared function boundaries recovered **208 bytes**, and are adopted
+only for APRS setup functions. Menu boundaries saved 200 bytes alone but grew
+the image when combined with setup boundaries; that combination was rejected.
+Home/message boundary variants also grew the image.
+[Exact results](transport-inlining-results.json) record the 68,104-byte post-N
+baseline and each variant. No screens or controls changed.
+
+A table-driven formatter for 15 settings choices compiled to 67,888 bytes
+versus the current 67,896: only **8 bytes** saved. It was not adopted; behavioral
+equivalence is unverified. [The probe](menu-table-size-results.json) is retained
+so this is not mistaken for a demonstrated multi-kilobyte UI saving. These
+experiments do not establish a fitting full-TX build with every remaining
+feature. Further major restructuring or an explicit feature/release tradeoff
+is still needed; no further feature cuts are selected.

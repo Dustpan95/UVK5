@@ -383,7 +383,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMin = 0; *pMax = 1; break;
         case MENU_SCANWATCH:
 			*pMin = 0;
-			*pMax = 3;    // 0=OFF, 1=SCAN_A_WATCH_B, 2=SCAN_B_WATCH_A, 3=SPLIT
+			*pMax = gSubMenu_SCANWATCH_size - 1;
 			break;
 
 		case MENU_F1SHRT:
@@ -821,6 +821,8 @@ void MENU_AcceptSetting(void)
             APRS_Stop();
             return; /* RAM-only: do not write EEPROM for APRS. */
         case MENU_SCANWATCH:
+			if ((unsigned)gSubMenuSelection >= gSubMenu_SCANWATCH_size) return;
+#ifdef ENABLE_VFO_SPLIT
 			if (gSubMenuSelection == 3) {
 				// VFO Split mode
 				gScanWatchArmed = 0;          // VUURWERK v1.3.0 (F10)
@@ -833,6 +835,9 @@ void MENU_AcceptSetting(void)
 				gVfoSplit.alert.active = false;
 			} else {
 				gVfoSplit.mode = SPLIT_OFF;
+#else
+            {
+#endif
 				// VUURWERK v1.3.0 (F10): persist the arming instead of
 				// enabling the live state machine from the menu. Arming
 				// while idle no longer leaves IsActive() true (which
@@ -1211,9 +1216,11 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gAPRS_Enabled;
             break;
         case MENU_SCANWATCH:
+#ifdef ENABLE_VFO_SPLIT
 			if (gVfoSplit.mode != SPLIT_OFF)
 				gSubMenuSelection = 3;
 			else
+#endif
 				// VUURWERK v1.3.0 (F10): read back the persistent arming,
 				// not the live state machine -- the menu used to show OFF
 				// whenever no scan was running even though the operator

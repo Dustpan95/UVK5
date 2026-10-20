@@ -132,6 +132,9 @@ enum
     MENU_APRS_BEEP
 };
 
+extern const char gSubMenu_SCANWATCH[][15];
+extern const uint8_t gSubMenu_SCANWATCH_size;
+
 extern const uint8_t FIRST_HIDDEN_MENU_ITEM;
 extern const t_menu_item MenuList[];
 

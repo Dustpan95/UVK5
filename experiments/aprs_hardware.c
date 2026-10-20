@@ -27,7 +27,7 @@ bool HARDWARE_Interrupted(void *context)
         (gEeprom.TX_VFO!=h->index || gEeprom.RX_VFO!=h->index ||
          gRxVfo!=&gEeprom.VfoInfo[h->index] || gTxVfo!=gRxVfo || gCurrentVfo!=gRxVfo)) || SerialConfigInProgress() || APP_HasPendingWrites() ||
         !GPIO_CheckBit(&GPIOC->DATA,GPIOC_PIN_PTT) || gScanStateDir!=SCAN_OFF ||
-        SCANNER_IsScanning() || gCssBackgroundScan || gVfoSplit.mode!=SPLIT_OFF ||
+        SCANNER_IsScanning() || gCssBackgroundScan || VFO_SPLIT_IsEnabled() ||
         gEeprom.DUAL_WATCH!=DUAL_WATCH_OFF || gEeprom.CROSS_BAND_RX_TX!=CROSS_BAND_OFF;
 }
 void HARDWARE_Restore(void *context)

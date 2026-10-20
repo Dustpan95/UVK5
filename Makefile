@@ -31,6 +31,7 @@ ENABLE_CTCSS_TAIL_PHASE_SHIFT ?= 0
 ENABLE_BOOT_BEEPS             ?= 0
 ENABLE_SHOW_CHARGE_LEVEL      ?= 0
 ENABLE_REVERSE_BAT_SYMBOL     ?= 0
+ENABLE_VFO_SPLIT              ?= 0
 ENABLE_TONE_SEARCH            ?= 0
 ENABLE_NO_CODE_SCAN_TIMEOUT   ?= 1
 ENABLE_AM_FIX                 ?= 1
@@ -217,7 +218,9 @@ OBJS += signal_quality.o
 OBJS += tx_compressor.o
 OBJS += ctcss_lead.o
 OBJS += tx_soft_start.o
+ifeq ($(ENABLE_VFO_SPLIT),1)
 OBJS += vfo_split.o
+endif
 OBJS += bandscope.o
 OBJS += rssi_filter.o
 OBJS += rssi_histogram.o
@@ -430,6 +433,10 @@ endif
 ifeq ($(ENABLE_AGC_SHOW_DATA),1)
 	CFLAGS  += -DENABLE_AGC_SHOW_DATA
 endif
+ifeq ($(ENABLE_VFO_SPLIT),1)
+	CFLAGS += -DENABLE_VFO_SPLIT
+endif
+
 ifeq ($(ENABLE_TONE_SEARCH),1)
 	CFLAGS += -DENABLE_TONE_SEARCH
 endif

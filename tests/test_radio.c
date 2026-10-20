@@ -147,7 +147,9 @@ int main(int argc,char **argv) {
     gCssBackgroundScan=true;assert(!APRS_CanListen());gCssBackgroundScan=false;
     gEeprom.DUAL_WATCH=1;assert(!APRS_CanListen());gEeprom.DUAL_WATCH=0;
     gEeprom.CROSS_BAND_RX_TX=1;assert(!APRS_CanListen());gEeprom.CROSS_BAND_RX_TX=0;
+#ifdef ENABLE_VFO_SPLIT
     gVfoSplit.mode=SPLIT_ALERT;assert(!APRS_CanListen());gVfoSplit.mode=SPLIT_OFF;
+#endif
     gSerialConfigCountDown_500ms=1;assert(!APRS_CanListen());gSerialConfigCountDown_500ms=0;
     gRxVfo->Modulation=MODULATION_AM;assert(!APRS_CanListen());gRxVfo->Modulation=MODULATION_FM;
     puts("PASS RX register setup/restore, TX/scan/dual-watch/sleep/serial/mode exclusion");
@@ -426,10 +428,12 @@ int main(int argc,char **argv) {
     assert(UI_HomeDraw());snprintf(path,sizeof(path),"%s/home-vfo.pbm",argv[1]);image(path);
     gEeprom.TX_VFO=2;assert(!UI_HomeDraw());gEeprom.TX_VFO=0;
     gEeprom.DUAL_WATCH=1;assert(UI_HomeDraw());gEeprom.DUAL_WATCH=0;
+#ifdef ENABLE_VFO_SPLIT
     gVfoSplit.mode=SPLIT_ALERT;gVfoSplit.alert.active=true;
     gVfoSplit.alert.freq_10Hz=14439000;gVfoSplit.alert.rssi_dBm=-91;
     assert(UI_HomeDraw());snprintf(path,sizeof(path),"%s/home-split.pbm",argv[1]);image(path);
     gVfoSplit.mode=SPLIT_OFF;
+#endif
     toast_timer=1;strcpy(toast_msg,"SIMPLEX");assert(UI_HomeDraw());
     snprintf(path,sizeof(path),"%s/home-toast.pbm",argv[1]);image(path);toast_timer=0;
     gInputBoxIndex=3;memset(gInputBox,10,sizeof(gInputBox));gInputBox[0]=1;gInputBox[1]=4;gInputBox[2]=6;

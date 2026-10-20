@@ -72,6 +72,16 @@ typedef struct {
 } VfoSplit_t;
 
 extern VfoSplit_t gVfoSplit;
+/* The optional background VFO-B scan is distinct from normal dual watch,
+ * Scan+Watch and repeater offsets. Disabled profiles link no split engine. */
+static inline bool VFO_SPLIT_IsEnabled(void)
+{
+#ifdef ENABLE_VFO_SPLIT
+    return gVfoSplit.mode != SPLIT_OFF;
+#else
+    return false;
+#endif
+}
 
 // Hop interval durations (milliseconds)
 #define HOP_INTERVAL_SLOW    500

@@ -7,7 +7,7 @@
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
 #include "ui/helper.h"
-static void Position(char *out,int32_t value,bool longitude)
+static void __attribute__((noinline)) Position(char *out,int32_t value,bool longitude)
 {
     uint32_t absolute=value<0 ? -value : value;
     uint32_t minutes=(absolute*3u+250u)/500u;
@@ -15,7 +15,7 @@ static void Position(char *out,int32_t value,bool longitude)
         (unsigned)(minutes/6000),(unsigned)(minutes%6000/100),(unsigned)(minutes%100),
         longitude ? (value<0 ? 'W' : 'E') : (value<0 ? 'S' : 'N'));
 }
-void SETUP_Draw(void)
+void __attribute__((noinline)) SETUP_Draw(void)
 {
     const APRS_Setup *s=&gAPRS_Setup;char line[24];
     UI_DisplayClear();const char *footer="MENU:SELECT EXIT:BACK";

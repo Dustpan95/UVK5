@@ -14,6 +14,10 @@ int main(void)
         unsigned index=UI_MENU_GetMenuIdx(tones[i]);
         assert(MenuList[index].menu_id==tones[i] && MenuList[index].name[0]);
     }
+    assert(gSubMenu_SCANWATCH_size==3);
+    assert(!strcmp(gSubMenu_SCANWATCH[0],"OFF"));
+    assert(!strcmp(gSubMenu_SCANWATCH[1],"SCAN A\nWATCH B"));
+    assert(!strcmp(gSubMenu_SCANWATCH[2],"SCAN B\nWATCH A"));
     assert(CTCSS_Options[0]>0 && DCS_Options[0]>0);
-    puts("PASS actual menu tables retain manual RX/TX CTCSS/DCS and exclude flashlight bindings");
+    puts("PASS actual menu tables retain manual RX/TX CTCSS/DCS and Scan+Watch, exclude flashlight bindings and secondary-VFO scan option");
 }

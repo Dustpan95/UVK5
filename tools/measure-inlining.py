@@ -4,6 +4,7 @@
 No production source edits. Diagnostic enlarged-linker binaries must not flash.
 """
 from pathlib import Path
+import argparse
 import concurrent.futures
 import hashlib
 import json
@@ -11,7 +12,11 @@ import os
 import re
 import shutil
 import subprocess
-root=Path(__file__).resolve().parents[1];out=root/'build/inlining';out.mkdir(parents=True,exist_ok=True)
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--transport',action='store_true',help='Measure the actual complete transport candidate')
+parser.add_argument('--profile',action='append',help='Named group plus baseline')
+args=parser.parse_args()
+root=Path(__file__).resolve().parents[1];out=root/('build/transport-inlining' if args.transport else 'build/inlining');out.mkdir(parents=True,exist_ok=True)
 source=out/'source'
 if source.exists():shutil.rmtree(source)
 def ignore(directory,names):
@@ -31,6 +36,18 @@ groups={
     'menu':{'app/menu.c':['MENU_ShowCurrentSetting','MENU_AcceptSetting','MENU_Key_MENU','MENU_Key_UP_DOWN'],
             'ui/menu.c':['UI_DisplayMenu']},
 }
+if args.transport:
+    groups['setup']={'app/aprs_setup.c':['SETUP_Key','SETUP_ParseDM'],
+                     'ui/aprs_setup.c':['SETUP_Draw','Position']}
+if args.transport:
+    groups['menu_setup']={**groups['menu'],**groups['setup']}
+    groups['setup_key_only']={'app/aprs_setup.c':['SETUP_Key']}
+    groups['setup_draw_only']={'ui/aprs_setup.c':['SETUP_Draw']}
+    groups['menu_keys_only']={'app/menu.c':['MENU_Key_MENU','MENU_Key_UP_DOWN']}
+if args.profile:
+    unknown=set(args.profile)-set(groups)
+    if unknown:parser.error('Unknown profiles: '+', '.join(sorted(unknown)))
+    groups={name:files for name,files in groups.items() if name=='baseline' or name in args.profile}
 def build(item):
     name,files=item;work=out/name
     if work.exists():shutil.rmtree(work)
@@ -39,13 +56,15 @@ def build(item):
     for filename,names in files.items():
         p=work/filename;s=p.read_text()
         for function in names:
+            if '__attribute__((noinline)) '+function+'(' in s:
+                continue
             pattern=r'(?m)^((?:static\s+)?(?:void|bool)\s+)'+re.escape(function)+r'(\([^;{}]*\)\s*\{)'
             s,count=re.subn(pattern,lambda m:m[1]+'__attribute__((noinline)) '+function+m[2],s)
             if count!=1:raise ValueError((filename,function,count))
         p.write_text(s)
     result=subprocess.run(['docker','run','--rm','--user',f'{os.getuid()}:{os.getgid()}',
         '-v',str(work)+':/src','-w','/src','uvk6-build:verified','bash','-c',
-        'set -e; make -j2 ENABLE_APRS_MESSAGING=1; arm-none-eabi-size -A uvk6-experimental'],
+        'set -e; make -j2 '+('ENABLE_APRS_TRANSPORT=1' if args.transport else 'ENABLE_APRS_MESSAGING=1')+'; arm-none-eabi-size -A uvk6-experimental'],
         stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
     (work/'build.log').write_text(result.stdout)
     report={'profile':name,'functions':files,'exit_code':result.returncode}
@@ -54,4 +73,5 @@ def build(item):
     print(json.dumps(report),flush=True);return report
 with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(build,groups.items()))
 (out/'results.json').write_text(json.dumps({'source_fingerprint':fingerprint.hexdigest(),
-    'real_flash_limit':61440,'diagnostic_flash_limit':131072,'profiles':results},indent=2)+'\n')
+    'build_flag':'ENABLE_APRS_TRANSPORT=1' if args.transport else 'ENABLE_APRS_MESSAGING=1',
+    'compiler':'ARM GCC 10.3.1','real_flash_limit':61440,'diagnostic_flash_limit':131072,'profiles':results},indent=2)+'\n')
