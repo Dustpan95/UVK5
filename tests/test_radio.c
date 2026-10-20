@@ -56,7 +56,9 @@ GUI_DisplayType_t gRequestDisplayScreen;
 uint8_t gFrameBuffer[FRAME_LINES][LCD_WIDTH], gStatusLine[LCD_WIDTH];
 char gInputBox[8];
 uint8_t gInputBoxIndex, toast_timer;
+#ifdef ENABLE_TONE_SEARCH
 static bool scanning;
+#endif
 static uint16_t regs[128];
 static unsigned writes, blits, fifo;
 static bool fifo_active;
@@ -70,7 +72,9 @@ RSSI_Histogram_t gRSSI_Histogram[2];
 uint16_t BK4819_GetRSSI(void) { return 220; }
 uint8_t BK4819_GetExNoiceIndicator(void) { return 12; }
 uint8_t BK4819_GetGlitchIndicator(void) { return 10; }
+#ifdef ENABLE_TONE_SEARCH
 bool SCANNER_IsScanning(void) { return scanning; }
+#endif
 bool FUNCTION_IsRx(void) { return gCurrentFunction==FUNCTION_RECEIVE || gCurrentFunction==FUNCTION_MONITOR || gCurrentFunction==FUNCTION_INCOMING; }
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t reg) { assert(reg<128);
     if (reg==0x5f && fifo_active) {
@@ -135,7 +139,11 @@ int main(int argc,char **argv) {
     gCurrentFunction=FUNCTION_POWER_SAVE;assert(!APRS_CanListen());
     gCurrentFunction=FUNCTION_FOREGROUND;
     gScanStateDir=1;assert(!APRS_CanListen());gScanStateDir=0;
+#ifdef ENABLE_TONE_SEARCH
     scanning=true;assert(!APRS_CanListen());scanning=false;
+#else
+    gScanStateDir=SCAN_FWD;assert(!APRS_CanListen());gScanStateDir=SCAN_OFF;
+#endif
     gCssBackgroundScan=true;assert(!APRS_CanListen());gCssBackgroundScan=false;
     gEeprom.DUAL_WATCH=1;assert(!APRS_CanListen());gEeprom.DUAL_WATCH=0;
     gEeprom.CROSS_BAND_RX_TX=1;assert(!APRS_CanListen());gEeprom.CROSS_BAND_RX_TX=0;

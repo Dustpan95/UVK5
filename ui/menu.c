@@ -976,6 +976,7 @@ void UI_DisplayMenu(void)
 		}
 	}
 
+#ifdef ENABLE_TONE_SEARCH
 	if ((UI_MENU_GetCurrentMenuId() == MENU_R_CTCS || UI_MENU_GetCurrentMenuId() == MENU_R_DCS) && gCssBackgroundScan) {
 		// === VUURWERK v1.2.5 background CSS scan dot animation ===
 		// Mirrors ui/scanner.c:69-72 idiom; gScanProgressIndicator is
@@ -988,6 +989,8 @@ void UI_DisplayMenu(void)
 		UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
 		// === END VUURWERK ===
 	}
+
+#endif
 
 #ifdef ENABLE_DTMF_CALLING
 	if (UI_MENU_GetCurrentMenuId() == MENU_D_LIST && gIsDtmfContactValid) {

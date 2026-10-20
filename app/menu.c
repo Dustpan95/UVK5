@@ -84,6 +84,7 @@ uint8_t gUnlockAllTxConfCnt;
 	}
 #endif
 
+#ifdef ENABLE_TONE_SEARCH
 void MENU_StartCssScan(void)
 {
 	SCANNER_Start();   // VUURWERK v1.3.0 (A1)
@@ -120,6 +121,8 @@ void MENU_CssScanFound(void)
 	gUpdateStatus = true;
 	gUpdateDisplay = true;
 }
+
+#endif
 
 void MENU_StopCssScan(void)
 {
@@ -908,11 +911,13 @@ void MENU_ShowCurrentSetting(void)
 			uint8_t code = gTxVfo->freq_config_RX.Code;
 			int menuid = UI_MENU_GetCurrentMenuId();
 
+#ifdef ENABLE_TONE_SEARCH
 			if(gScanUseCssResult) {
 				gScanUseCssResult = false;
 				type = gScanCssResultType;
 				code = gScanCssResultCode;
 			}
+#endif
 			if((menuid==MENU_R_CTCS) ^ (type==CODE_TYPE_CONTINUOUS_TONE)) { //not the same type
 				gSubMenuSelection = 0;
 				break;
@@ -1605,7 +1610,9 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 		}
 	}
 
+	#ifdef ENABLE_TONE_SEARCH
 	SCANNER_Stop();
+	#endif
 
 	#ifdef ENABLE_VOICE
 		if (UI_MENU_GetCurrentMenuId() == MENU_SCR)
@@ -1643,6 +1650,7 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
 		return;
 	}
 
+#ifdef ENABLE_TONE_SEARCH
 	RADIO_SelectVfos();
 
 	#ifdef ENABLE_NOAA
@@ -1662,6 +1670,8 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
 		gPttWasReleased = true;
 		return;
 	}
+
+#endif
 
 	gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 }

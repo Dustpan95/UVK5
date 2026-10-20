@@ -121,7 +121,9 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 void (*ProcessKeysFunctions[])(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) = {
 	[DISPLAY_MAIN] = &MAIN_ProcessKeys,
 	[DISPLAY_MENU] = &MENU_ProcessKeys,
+#ifdef ENABLE_TONE_SEARCH
 	[DISPLAY_SCANNER] = &SCANNER_ProcessKeys,
+#endif
 
 #ifdef ENABLE_FMRADIO
 	[DISPLAY_FM] = &FM_ProcessKeys,
@@ -1397,6 +1399,7 @@ void APP_TimeSlice10ms(void)
 #endif
 
 
+#ifdef ENABLE_TONE_SEARCH
 	SCANNER_TimeSlice10ms();
 
 	// === VUURWERK v1.2.7 CSS scan FOUND beep ===
@@ -1420,6 +1423,7 @@ void APP_TimeSlice10ms(void)
 		}
 	}
 	// === end VUURWERK ===
+#endif
 
 #ifdef ENABLE_AIRCOPY
 	if (gScreenToDisplay == DISPLAY_AIRCOPY && gAircopyState == AIRCOPY_TRANSFER && gAirCopyIsSendMode == 1) {
@@ -1709,6 +1713,7 @@ void APP_TimeSlice500ms(void)
 	}
 
 	BATTERY_TimeSlice500ms();
+#ifdef ENABLE_TONE_SEARCH
 	SCANNER_TimeSlice500ms();
 	// === VUURWERK v1.2.5 CSS scan soft-timeout watchdog
 	// (v1.2.7 tightened 120 -> 60 ticks = 60 s -> 30 s; with the
@@ -1721,6 +1726,7 @@ void APP_TimeSlice500ms(void)
 		gUpdateDisplay = true;
 	}
 	// === end VUURWERK ===
+#endif
 	UI_MAIN_TimeSlice500ms();
 
 #ifdef ENABLE_DTMF_CALLING

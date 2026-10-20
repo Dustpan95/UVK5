@@ -248,3 +248,29 @@ and did not fit. The owner requested an itemized current-source feature cost
 review before selecting removals. Individual savings interact under LTO and
 must be remeasured together. Receiver histories and station tables mainly use
 RAM; reducing their counts is not a solution to a 10 KB flash deficit.
+
+
+## Owner-selected tone-search and flashlight removal
+
+The owner chose automatic CTCSS/DCS tone search and flashlight for removal.
+Current defaults exclude both. Tone-search engine/display objects, screen and
+key-dispatch entries, F+* and tone-menu launch paths, result handling and ticks
+are excluded. Manual configured RX/TX CTCSS/DCS and ordinary channel/frequency
+scanning remain. Existing flashlight action IDs remain stable for EEPROM
+compatibility and resolve to the existing no-op; no flashlight menu choice is
+offered. Original source and notices are retained.
+
+The real complete transport candidate is **68,920 bytes**, saving **3,168**
+against 72,088 and leaving **7,480 over**. Static RAM is 8,712 plus the existing
+2,048-byte stack reservation. Default RX is **54,680** (3,356 saved); development
+RX-session is **57,928** (3,440 saved). This is why isolated savings cannot be
+added or transferred between profiles. The historical frozen public RX bench
+remains unchanged at its own source; new CI artifacts use current defaults.
+
+ASan/UBSan tests include the current tone-search-free receiver and actual
+retune/restore adapter, and inspect actual menu/tone tables to retain manual
+CTCSS/DCS while excluding flashlight bindings. The complete candidate ELF
+retains ordinary scanning/tone tables and excludes tone-search/flashlight
+implementation symbols. The legacy optional tone-search configuration still
+has host exclusion tests. RF and physical flashing remain unrun. No further
+removals follow from these measurements.

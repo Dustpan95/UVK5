@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p build
 compiler=${CC:-gcc}
-flags=(-std=gnu11 -Wall -Wextra -Werror -g -I .)
+flags=(-DENABLE_TONE_SEARCH -std=gnu11 -Wall -Wextra -Werror -g -I .)
 if [[ ${SANITIZE:-1} == 1 ]]; then
     flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer)
 fi
@@ -68,6 +68,20 @@ mkdir -p build/session-receiver
     app/aprs_rx.c app/aprs_decode.c app/aprs_position.c app/aprs_message.c app/aprs_session.c tx_compressor.c smart_squelch.c \
     ui/aprs.c ui/aprs_message.c ui/aprs_session.c ui/home.c ui/helper.c font.c external/printf/printf.c -o build/test_session_receiver
 build/test_session_receiver build/session-receiver
+
+# Current firmware profile excludes tone search and flashlight; keep the
+# optional legacy tone-search exclusion tests above and exercise this profile too.
+mkdir -p build/current-profile
+"$compiler" "${flags[@]}" -UENABLE_TONE_SEARCH -DPRINTF_INCLUDE_CONFIG_H tests/test_radio.c \
+    app/aprs_rx.c app/aprs_decode.c app/aprs_position.c tx_compressor.c smart_squelch.c \
+    ui/aprs.c ui/home.c ui/helper.c font.c external/printf/printf.c -o build/test_current_profile
+build/test_current_profile build/current-profile
+"$compiler" -O1 -I tests/radio_mock "${flags[@]}" -UENABLE_TONE_SEARCH \
+    tests/test_aprs_hardware.c experiments/aprs_hardware.c -o build/test_current_hardware
+build/test_current_hardware
+"$compiler" "${flags[@]}" -UENABLE_TONE_SEARCH -ffunction-sections -fdata-sections -DPRINTF_INCLUDE_CONFIG_H \
+    tests/test_disabled_features.c ui/menu.c dcs.c -Wl,--gc-sections -o build/test_disabled_features
+build/test_disabled_features
 
 # Exhaustive exact-arithmetic comparison uses optimized host code; parser/UI
 # suites above retain sanitizer coverage. This is 137 million comparisons.

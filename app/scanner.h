@@ -17,9 +17,11 @@
 #ifndef APP_SCANNER_H
 #define APP_SCANNER_H
 
+#include <stdbool.h>
 #include "dcs.h"
 #include "driver/keyboard.h"
 
+#ifdef ENABLE_TONE_SEARCH
 typedef enum 
 {
 	SCAN_CSS_STATE_OFF,
@@ -51,6 +53,10 @@ void SCANNER_Stop(void);
 void SCANNER_TimeSlice10ms(void);
 void SCANNER_TimeSlice500ms(void);
 bool SCANNER_IsScanning(void);
+#else
+/* No search engine or UI is linked in this profile. */
+static inline bool SCANNER_IsScanning(void) {return false;}
+#endif
 
 #endif
 

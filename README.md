@@ -20,7 +20,9 @@ does not establish the MCU revision.
 ## Included in this experimental build
 
 - VUURWERK's FM TX compressor, adaptive squelch, adaptive channel scanning,
-  Scan+Watch, VFO split, and existing radio functions remain in the source/build.
+  Scan+Watch, VFO split, and ordinary channel/frequency scanning remain.
+- Automatic CTCSS/DCS tone search and flashlight are removed from the current
+  build by owner choice. Manual RX/TX CTCSS/DCS settings remain available.
 - Approved custom home: large channel name for named memories, large frequency
   for VFOs and unnamed memories, smaller secondary VFO and battery percentage.
   Scanning, frequency entry, split and temporary alerts use compact overlays
@@ -37,9 +39,8 @@ The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md)
 remain available separately (`ENABLE_APRS_MESSAGING=1`). The new
 `ENABLE_APRS_TRANSPORT=1` candidate binds the actual setup screens, session
 service, separate-frequency hardware adapter, tone sender and delivery status.
-It measures **72,088 bytes: 10,648 over the original MCU's 61,440-byte limit**.
-It is **not a flashable build**; the production linker rejects it. No feature
-removals have been adopted. The fitting default and receive-session bench keep
+It measures **68,920 bytes: 7,480 over the original MCU's 61,440-byte limit**.
+It is **not a flashable build**; the production linker rejects it. The owner-selected automatic tone-search and flashlight removals are applied. The fitting default and receive-session bench keep
 this candidate disabled. See [transport implementation](docs/APRS-RUNTIME.md)
 and [flash feasibility](docs/FLASH-FEASIBILITY.md). The current
 [itemized feature costs](docs/FLASH-CHOICES.md) are ready for owner selection.
@@ -76,7 +77,7 @@ that every feature in all three upstream projects fits simultaneously.
 1. Confirm the radio has the supported MCU before considering installation.
    Back up your current firmware, EEPROM, channel data and calibration first.
 2. Tune the active VFO to your local APRS frequency in FM. Turn off dual watch,
-   cross-band receive, channel/CSS scanning and VFO split for continuous receive.
+   cross-band receive, channel scanning and VFO split for continuous receive.
 3. In **MENU → RECEIVE → APRS**, choose **ON**. Enable it again after power-off.
 4. Use **F + 5**, or **MENU → RECEIVE → RxLog**, to open packet history.
 5. Use **UP/DOWN** to browse, and **EXIT** to return to the radio. PTT closes the

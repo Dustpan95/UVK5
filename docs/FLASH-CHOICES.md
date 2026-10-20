@@ -1,13 +1,24 @@
 # Feature space review for owner selection
 
-**No removals have been selected or adopted.** The owner requested this itemized
-review before changing the feature set. The next step is to select candidates,
-implement proper removals, measure the combination and test the resulting build.
+The owner selected **G: automatic CTCSS/DCS tone search** and **C: flashlight**
+for removal. Both are now excluded from the current build. Manual RX/TX tone
+settings, channel/frequency scanning and all other unselected features remain.
 
-The actual transport candidate is **72,088 bytes**, against **61,440 available**:
-we need to recover **10,648 bytes**, plus some margin for remaining fixes. RAM
-fits: 8,736 static + 2,048 reserved stack out of 16,384 bytes. The original MCU's
-separate 4 KiB bootloader region is not available application space.
+The actual transport candidate is now **68,920 bytes**, against **61,440
+available**: **7,480 bytes remain to recover**, plus some margin for fixes.
+The combined removal saved **3,168 bytes** from the previous 72,088-byte build.
+This includes removing the real tone-search screen, dispatch entries, results,
+menu/key entry points and periodic work; the earlier isolated probes were not
+complete removals. RAM fits: 8,712 static + 2,048 stack out of 16,384 bytes.
+
+Default RX is now **54,680 bytes**, and development RX-session is **57,928**.
+The frozen historical RX bench downloads have not been silently replaced.
+Current CI artifacts use the new defaults. No radio was flashed or RF-tested.
+
+**The individual tables below are the pre-removal snapshot at
+[aaef790](https://github.com/Dustpan95/UVK5/tree/aaef79042ec7b7406c0a6f19fbeabe8784a00ce2),
+for reference—not new savings available on top of 68,920 bytes. C and G are
+already removed.** New selections must be measured together on current source.
 
 All measurements below use the same complete candidate, ARM GCC 10.3.1 and
 source fingerprint in [the full results](transport-feature-costs.json). No
@@ -24,7 +35,7 @@ These are measured changes to real build switches. Savings are relative to
 |---|---|---:|---|
 | A | Application serial programming | 2,180 B | CHIRP and application serial EEPROM/programming access. Bootloader flashing is a separate path. |
 | B | AM fix | 712 B | Automatic AM reception gain correction; AM itself remains. |
-| C | Flashlight | 524 B | LED flashlight controls/watchdog. |
+| C — removed | Flashlight | 524 B | LED flashlight controls/watchdog. |
 | D | Scan ranges | 252 B | User-selected scan start/stop limits; ordinary scanning remains. |
 | E | Extended receive coverage | 236 B | Extended outer RX bands; normal VHF/UHF coverage remains. |
 | F | Adaptive scan dwell | 72 B | Adaptive dwell enhancement; ordinary scanning remains. |
@@ -42,7 +53,7 @@ for choosing work, not promised exact savings or supported release variants.
 
 | ID | Candidate removal | Probe saving | What you lose |
 |---|---|---:|---|
-| G | Automatic CTCSS/DCS tone search | 2,092 B | Finding an unknown tone/code on a tuned frequency. Normal configured CTCSS/DCS remains. Ordinary scanning is separate. |
+| G — removed | Automatic CTCSS/DCS tone search | 2,092 B | Finding an unknown tone/code on a tuned frequency. Normal configured CTCSS/DCS remains. Ordinary scanning is separate. |
 | H | Channel/frequency scanning | 1,648 B | Automatic scanning through channels or VFO frequencies; manual tuning remains. |
 | I | Adaptive squelch | 968 B | VUURWERK's dynamic squelch adjustment. This was an original requested feature. |
 | J | RX gain staging | 696 B | Dynamic receiver gain adjustment for strong signals. |
@@ -123,7 +134,9 @@ RAM; cutting them is not a solution to a 10 KB flash shortage.
 
 ## Reproduction and next decision
 
-Run `python3 tools/measure-features.py --transport`. It builds an enlarged-linker
+The historical tables reproduce at the linked `aaef790` source with
+`python3 tools/measure-features.py --transport`. On current source the same
+command measures the new baseline; removed components no longer offer savings. It builds an enlarged-linker
 baseline and each diagnostic variant in ignored copies, preserving original
 source notices. `python3 tools/measure-transport.py` measures the unmodified
 transport profile. No command here flashes hardware.

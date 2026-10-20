@@ -2,7 +2,7 @@
 
 `ENABLE_APRS_TRANSPORT=1` selects the actual foreground/UI/RX/hardware binding.
 It forces messaging and session support. It is disabled by default. The complete
-candidate is 72,088 bytes versus the original DP32G030's 61,440-byte application
+candidate is 68,920 bytes versus the original DP32G030's 61,440-byte application
 limit; production linking refuses it. Oversized diagnostic binaries are never
 release artifacts. The existing fitting RX bench is unchanged.
 
@@ -67,3 +67,14 @@ are future work and cannot be assumed from a region. There is one receiver:
 it hears APRS on a voice VFO tuned there or during the selected ACK listen
 interval. It does not simultaneously monitor a different APRS frequency while
 receiving voice. No automatic background polling schedule is implemented.
+
+
+## Owner-selected removals
+
+Automatic CTCSS/DCS tone search and flashlight are excluded from current
+profiles (`ENABLE_TONE_SEARCH=0`, `ENABLE_FLASHLIGHT=0`). The tone-search engine
+and display are not linked. F+* and the tone-menu search shortcut no longer
+start searching; configured RX/TX CTCSS and DCS operation remains. Ordinary
+channel/frequency scanning remains. Source is retained with upstream notices;
+no other feature removals are selected. The combined complete-candidate saving
+is 3,168 bytes; 7,480 bytes still exceed original-MCU application flash.

@@ -48,7 +48,9 @@ bool              gAskToDelete;
 void (*UI_DisplayFunctions[])(void) = {
 	[DISPLAY_MAIN] = &UI_DisplayMain,
 	[DISPLAY_MENU] = &UI_DisplayMenu,
+#ifdef ENABLE_TONE_SEARCH
 	[DISPLAY_SCANNER] = &UI_DisplayScanner,
+#endif
 
 #ifdef ENABLE_FMRADIO
 	[DISPLAY_FM] = &UI_DisplayFM,

@@ -162,3 +162,11 @@ binding" descriptions above. It remains oversized and physically untested;
 none of these TX paths is enabled in the fitting RX bench. The owner requested
 a feature-by-feature space review before deciding any removals; a compact-menu
 redesign has not been selected.
+
+
+## First owner-selected feature removals
+
+Remove automatic CTCSS/DCS tone search and flashlight. Keep manual configured
+CTCSS/DCS and ordinary channel/frequency scanning. No other removal has been
+selected. Current firmware defaults and entry paths implement this choice;
+the complete candidate remains 7,480 bytes oversized after a 3,168-byte saving.

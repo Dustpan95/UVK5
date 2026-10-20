@@ -14,7 +14,7 @@ ENABLE_ALARM                  ?= 0
 ENABLE_TX1750                 ?= 0
 ENABLE_PWRON_PASSWORD         ?= 0
 ENABLE_DTMF_CALLING           ?= 0
-ENABLE_FLASHLIGHT             ?= 1
+ENABLE_FLASHLIGHT             ?= 0
 
 # ---- CUSTOM MODS ----
 ENABLE_BIG_FREQ               ?= 1
@@ -31,6 +31,7 @@ ENABLE_CTCSS_TAIL_PHASE_SHIFT ?= 0
 ENABLE_BOOT_BEEPS             ?= 0
 ENABLE_SHOW_CHARGE_LEVEL      ?= 0
 ENABLE_REVERSE_BAT_SYMBOL     ?= 0
+ENABLE_TONE_SEARCH            ?= 0
 ENABLE_NO_CODE_SCAN_TIMEOUT   ?= 1
 ENABLE_AM_FIX                 ?= 1
 ENABLE_SQUELCH_MORE_SENSITIVE ?= 1
@@ -157,7 +158,9 @@ OBJS += app/menu.o
 ifeq ($(ENABLE_SPECTRUM), 1)
 OBJS += app/spectrum.o
 endif
+ifeq ($(ENABLE_TONE_SEARCH),1)
 OBJS += app/scanner.o
+endif
 ifeq ($(ENABLE_UART),1)
 	OBJS += app/uart.o
 endif
@@ -197,7 +200,9 @@ ifeq ($(ENABLE_PWRON_PASSWORD),1)
 endif
 OBJS += ui/main.o
 OBJS += ui/menu.o
+ifeq ($(ENABLE_TONE_SEARCH),1)
 OBJS += ui/scanner.o
+endif
 OBJS += ui/status.o
 OBJS += ui/ui.o
 OBJS += ui/welcome.o
@@ -425,6 +430,10 @@ endif
 ifeq ($(ENABLE_AGC_SHOW_DATA),1)
 	CFLAGS  += -DENABLE_AGC_SHOW_DATA
 endif
+ifeq ($(ENABLE_TONE_SEARCH),1)
+	CFLAGS += -DENABLE_TONE_SEARCH
+endif
+
 ifeq ($(ENABLE_FLASHLIGHT),1)
 	CFLAGS  += -DENABLE_FLASHLIGHT
 endif

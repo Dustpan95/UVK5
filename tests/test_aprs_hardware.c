@@ -30,7 +30,9 @@ static APRS_Hardware hardware;
 static EEPROM_Config_t original;
 static VfoState_t originalState;
 bool APP_HasPendingWrites(void) {return pendingWrites;}
+#ifdef ENABLE_TONE_SEARCH
 bool SCANNER_IsScanning(void) {return scan;}
+#endif
 bool APRS_IsCapturing(void) {return capture;}
 uint32_t SCHEDULER_GetTicks10ms(void) {return 12345;}
 int32_t RX_freq_check(uint32_t f) {return f==14439000 ? 0 : -1;}
@@ -114,7 +116,7 @@ int main(void)
     Init(0);irq=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
     Init(0);capture=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
     Init(0);g_SquelchLost=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
-    Init(0);scan=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
+    Init(0);gScanStateDir=SCAN_FWD;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
     Init(0);hardware.radio.enabled=false;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_DENIED && !tunes);
     Init(0);hardware.radio.toneGain=128;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_DENIED && !tunes);
     Init(0);interruptOnTune=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY);

@@ -132,10 +132,13 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 	// PTT pressed
 
 
+#ifdef ENABLE_TONE_SEARCH
 	if (SCANNER_IsScanning()) {	
 		SCANNER_Stop(); // CTCSS/CDCSS scanning .. stop
 		goto cancel_tx;
 	}
+
+#endif
 
 	if (gScanStateDir != SCAN_OFF) {	
 		CHFRSCANNER_Stop(); // frequency/channel scanning . .stop

@@ -644,6 +644,7 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 	{	// with the F-key
 		gWasFKeyPressed = false;
 
+#ifdef ENABLE_TONE_SEARCH
 #ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE)) {
 			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
@@ -666,6 +667,9 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 		gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
 		SCANNER_Start();   // VUURWERK v1.3.0 (A1)
 		gRequestDisplayScreen = DISPLAY_SCANNER;
+#else
+		gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+#endif
 	}
 	
 	gPttWasReleased = true;
