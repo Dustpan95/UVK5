@@ -18,17 +18,19 @@ packet log and diagnostics remain. The [full candidate](../aprs-candidate/README
 is separate. The diagnostic-only changes are compiled out of it; a clean full
 build remains byte-for-byte identical to published revision 2.
 
+Download **uvk6-rx-diagnostics-d2.zip** and use Windows **Extract All**. It contains
+the firmware, reader, manifest, instructions and file checksums.
+
 ## Windows collection steps
 
-1. Download **uvk6-rx-diagnostics-d2.packed.bin** and flash it through the same
+1. Use **uvk6-rx-diagnostics-d2.packed.bin** from the extracted ZIP and flash it through the same
    updater, with optional modifications disabled. Boot normally afterward.
 2. Enable **APRS ON**, use **MAIN ONLY** with scanning stopped and the active
    FM beacon channel under the conditions where you hear the clear burst.
 3. Press **F then 5**. Confirm **APRS RX DIAG D2**. Press **1** to collect fresh
    captures, transmit your beacon, then wait approximately three seconds.
 4. Close the updater and CHIRP so they release the programming cable's COM port.
-5. Download **read-rx-capture.html** into a local folder. If the link displays
-   source text, use Save As and keep the `.html` extension. Open that saved file
+5. Find **read-rx-capture.html** in the extracted folder. Open that file
    in desktop Chrome or Edge, the browser used for flashing. No Python or other
    installation is required. The page is self-contained and works offline.
 6. Click **Connect cable**, choose the programming cable, then **Read captures**.
