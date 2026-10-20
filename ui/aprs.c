@@ -31,9 +31,9 @@ void APRS_DrawRecord(const APRS_Record *r)
     } else UI_PrintString(r->source, 0, LCD_WIDTH, 1, 8);
     if (r->kind == APRS_POSITION) {
         APRS_FormatCoordinate(line, r->latitude, 'N', 'S');
-        UI_PrintStringSmallNormal(line, 0, 0, 3);
+        UI_PrintLine(line,3);
         APRS_FormatCoordinate(line, r->longitude, 'E', 'W');
-        UI_PrintStringSmallNormal(line, 0, 0, 4);
+        UI_PrintLine(line,4);
     } else {
         /* Four rows of 17 characters fit all 67 APRS message characters. */
         const unsigned len = strlen(r->text);
@@ -42,7 +42,7 @@ void APRS_DrawRecord(const APRS_Record *r)
             if (n > 17) n = 17;
             memcpy(line, r->text + row * 17, n);
             line[n] = 0;
-            UI_PrintStringSmallNormal(line, 0, 0, row + 2);
+            UI_PrintLine(line,row + 2);
         }
     }
 
@@ -65,10 +65,10 @@ void APRS_Draw(void)
     sprintf(line, "APRS %s %u/%u", !gAPRS_Enabled ? "OFF" : APRS_CanListen() ? "RX" : "PAUSE",
             gAPRS_Count ? gAPRS_Selected + 1 : 0, gAPRS_Count);
 #endif
-    UI_PrintStringSmallNormal(line, 0, 0, 0);
+    UI_PrintLine(line,0);
     if (!gAPRS_Count) {
-        UI_PrintStringSmallNormal("No packets yet", 0, 0, 2);
-        UI_PrintStringSmallNormal("FM, scan/DW off", 0, 0, 4);
+        UI_PrintLine("No packets yet",2);
+        UI_PrintLine("FM, scan/DW off",4);
     } else APRS_DrawRecord(&gAPRS_Log[gAPRS_Selected]);
 
 #if defined(ENABLE_APRS_SESSION) && !defined(ENABLE_APRS_CALLSIGN_ONLY)

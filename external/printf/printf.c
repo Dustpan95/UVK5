@@ -870,11 +870,20 @@ int printf_(const char* format, ...)
 }
 
 
+#ifdef PRINTF_COMPACT_BUFFER
+/* UVK5: share a smaller integer/string buffer path. Original MIT-licensed
+ * implementation above remains intact for device/callback output and tests. */
+#include "../../helper/format_buffer.inc"
+#define BUFFER_PRINT(buffer, count, format, va) FormatBufferPrint(buffer, count, format, va)
+#else
+#define BUFFER_PRINT(buffer, count, format, va) _vsnprintf(_out_buffer, buffer, count, format, va)
+#endif
+
 int sprintf_(char* buffer, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
-  const int ret = _vsnprintf(_out_buffer, buffer, (size_t)-1, format, va);
+  const int ret = BUFFER_PRINT(buffer, (size_t)-1, format, va);
   va_end(va);
   return ret;
 }
@@ -884,7 +893,7 @@ int snprintf_(char* buffer, size_t count, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
-  const int ret = _vsnprintf(_out_buffer, buffer, count, format, va);
+  const int ret = BUFFER_PRINT(buffer, count, format, va);
   va_end(va);
   return ret;
 }
@@ -899,7 +908,7 @@ int vprintf_(const char* format, va_list va)
 
 int vsnprintf_(char* buffer, size_t count, const char* format, va_list va)
 {
-  return _vsnprintf(_out_buffer, buffer, count, format, va);
+  return BUFFER_PRINT(buffer, count, format, va);
 }
 
 

@@ -1,6 +1,8 @@
 # Feature-preserving flash investigation
 
-The complete candidate uses **67,896 / 61,440 bytes**: **6,456 bytes over**.
+The audit baseline used **67,896 / 61,440 bytes**: **6,456 bytes over**.
+The subsequent feature-preserving implementation uses **66,796 bytes**,
+**5,356 over**; see [SHARED-IMPLEMENTATION.md](SHARED-IMPLEMENTATION.md).
 This is a measurement of the current implementation, not a minimum size for
 the requested functionality. No further feature removals are selected.
 Automatic tone search, flashlight and background VFO activity scanning remain

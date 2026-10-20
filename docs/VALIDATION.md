@@ -256,3 +256,14 @@ CHIRP UV-K5 images with valid trailers, comparing EEPROM payloads independently
 of metadata. Local fixtures confirm matching payloads with different valid
 metadata pass and missing/invalid trailers fail. These tests do not establish a
 real radio backup or Windows serial connection; no such hardware is connected.
+
+## Shared implementation regression checks
+
+The compact formatter passes 158,208 original-output/truncation comparisons,
+plus an INT_MIN boundary check against libc. The settings loader matches the
+original across 56,576 EEPROM images in each of three configurations with
+ASan/UBSan and a mock that rejects EEPROM writes. All 56 stored LCD framebuffer
+comparisons remain identical after the formatter and shared APRS row changes.
+The full host suite passes. Default RX and RX-session images were rebuilt and
+verified sequentially; the complete transport build remains oversized at
+66,796 bytes. These checks do not establish physical/RF interoperability.

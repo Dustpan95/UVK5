@@ -2,6 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p build
+bash tools/test-format.sh
+bash tools/test-settings.sh
 compiler=${CC:-gcc}
 flags=(-DENABLE_VFO_SPLIT -DENABLE_TONE_SEARCH -std=gnu11 -Wall -Wextra -Werror -g -I .)
 if [[ ${SANITIZE:-1} == 1 ]]; then

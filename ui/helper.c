@@ -296,3 +296,10 @@ void UI_DisplaySmallest(const char *pString, uint8_t x, uint8_t y,
 		x += 4;
 	}
 }
+
+/* Keep the common left-aligned row path shared instead of passing two zero
+ * coordinates at every APRS/radio screen call site. */
+void __attribute__((noinline)) UI_PrintLine(const char *text,uint8_t row)
+{
+    UI_PrintStringSmallNormal(text,0,0,row);
+}

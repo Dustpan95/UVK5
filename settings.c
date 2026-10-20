@@ -38,45 +38,101 @@ static const uint32_t gDefaultFrequencyTable[] =
 
 EEPROM_Config_t gEeprom = { 0 };
 
+/* Load validated scalar bytes through one shared rule table. The same EEPROM
+ * offsets and corrupt-value fallbacks are retained. Host differential tests
+ * need wider RAM-structure offsets because their VFO pointers are 64 bits. */
+#include <stddef.h>
+typedef __typeof__(__builtin_choose_expr(sizeof(EEPROM_Config_t)<=256,
+    (uint8_t)0,(uint16_t)0)) SettingsFieldOffset;
+#define CHECK_BYTE_FIELD(member) \
+    _Static_assert(sizeof(gEeprom.member)==1,"setting must occupy one byte"); \
+    _Static_assert(offsetof(EEPROM_Config_t,member)<=(SettingsFieldOffset)-1,"setting offset overflow");
+CHECK_BYTE_FIELD(SQUELCH_LEVEL)
+CHECK_BYTE_FIELD(TX_TIMEOUT_TIMER)
+CHECK_BYTE_FIELD(KEY_LOCK)
+CHECK_BYTE_FIELD(MIC_SENSITIVITY)
+CHECK_BYTE_FIELD(CHANNEL_DISPLAY_MODE)
+CHECK_BYTE_FIELD(CROSS_BAND_RX_TX)
+CHECK_BYTE_FIELD(BATTERY_SAVE)
+CHECK_BYTE_FIELD(DUAL_WATCH)
+CHECK_BYTE_FIELD(BACKLIGHT_TIME)
+CHECK_BYTE_FIELD(TAIL_TONE_ELIMINATION)
+CHECK_BYTE_FIELD(VFO_OPEN)
+CHECK_BYTE_FIELD(KEY_1_SHORT_PRESS_ACTION)
+CHECK_BYTE_FIELD(KEY_1_LONG_PRESS_ACTION)
+CHECK_BYTE_FIELD(KEY_2_SHORT_PRESS_ACTION)
+CHECK_BYTE_FIELD(KEY_2_LONG_PRESS_ACTION)
+CHECK_BYTE_FIELD(SCAN_RESUME_MODE)
+CHECK_BYTE_FIELD(AUTO_KEYPAD_LOCK)
+CHECK_BYTE_FIELD(POWER_ON_DISPLAY_MODE)
+CHECK_BYTE_FIELD(ROGER)
+CHECK_BYTE_FIELD(REPEATER_TAIL_TONE_ELIMINATION)
+CHECK_BYTE_FIELD(TX_VFO)
+CHECK_BYTE_FIELD(BATTERY_TYPE)
+#undef CHECK_BYTE_FIELD
+static void LoadByteFields(const uint8_t *block)
+{
+    static const struct {SettingsFieldOffset offset; uint8_t source,limit,fallback;} fields[]={
+        {offsetof(EEPROM_Config_t,SQUELCH_LEVEL),0x1,10,1},
+        {offsetof(EEPROM_Config_t,TX_TIMEOUT_TIMER),0x2,11,1},
+        {offsetof(EEPROM_Config_t,KEY_LOCK),0x4,2,false},
+        {offsetof(EEPROM_Config_t,MIC_SENSITIVITY),0x7,5,4},
+        {offsetof(EEPROM_Config_t,CHANNEL_DISPLAY_MODE),0x9,4,MDF_FREQUENCY},
+        {offsetof(EEPROM_Config_t,CROSS_BAND_RX_TX),0xa,3,CROSS_BAND_OFF},
+        {offsetof(EEPROM_Config_t,BATTERY_SAVE),0xb,5,4},
+        /* Preserve VUURWERK: corrupt dual-watch bytes fall back to OFF. */
+        {offsetof(EEPROM_Config_t,DUAL_WATCH),0xc,3,DUAL_WATCH_OFF},
+        {offsetof(EEPROM_Config_t,BACKLIGHT_TIME),0xd,ARRAY_SIZE(gSubMenu_BACKLIGHT),3},
+        {offsetof(EEPROM_Config_t,TAIL_TONE_ELIMINATION),0xe,2,false},
+        {offsetof(EEPROM_Config_t,VFO_OPEN),0xf,2,true},
+        {offsetof(EEPROM_Config_t,KEY_1_SHORT_PRESS_ACTION),0x21,ACTION_OPT_LEN,ACTION_OPT_MONITOR},
+        {offsetof(EEPROM_Config_t,KEY_1_LONG_PRESS_ACTION),0x22,ACTION_OPT_LEN,ACTION_OPT_FLASHLIGHT},
+        {offsetof(EEPROM_Config_t,KEY_2_SHORT_PRESS_ACTION),0x23,ACTION_OPT_LEN,ACTION_OPT_SCAN},
+        {offsetof(EEPROM_Config_t,KEY_2_LONG_PRESS_ACTION),0x24,ACTION_OPT_LEN,ACTION_OPT_NONE},
+        {offsetof(EEPROM_Config_t,SCAN_RESUME_MODE),0x25,3,SCAN_RESUME_CO},
+        {offsetof(EEPROM_Config_t,AUTO_KEYPAD_LOCK),0x26,2,false},
+        {offsetof(EEPROM_Config_t,POWER_ON_DISPLAY_MODE),0x27,4,POWER_ON_DISPLAY_MODE_VOLTAGE},
+        {offsetof(EEPROM_Config_t,ROGER),0x39,3,ROGER_MODE_OFF},
+        {offsetof(EEPROM_Config_t,REPEATER_TAIL_TONE_ELIMINATION),0x3a,11,0},
+        {offsetof(EEPROM_Config_t,TX_VFO),0x3b,2,0},
+        {offsetof(EEPROM_Config_t,BATTERY_TYPE),0x3c,BATTERY_TYPE_UNKNOWN,BATTERY_TYPE_1600_MAH},
+    };
+    for(unsigned i=0;i<ARRAY_SIZE(fields);i++) {
+        unsigned value=block[fields[i].source];
+        *((uint8_t *)&gEeprom+fields[i].offset)=value<fields[i].limit ? value : fields[i].fallback;
+    }
+}
 void SETTINGS_InitEEPROM(void)
 {
-	uint8_t Data[16] = {0};
+	/* One sequential read replaces the scattered reads below. 216 bytes fits
+     * the EEPROM driver's uint8_t length; no EEPROM layout/write changes. */
+    uint8_t block[0xD8];
+	uint8_t *Data;
+	EEPROM_ReadBuffer(0x0E70,block,sizeof(block));
 	// 0E70..0E77
-	EEPROM_ReadBuffer(0x0E70, Data, 8);
+	Data=block+0x00;
 	gEeprom.CHAN_1_CALL          = IS_MR_CHANNEL(Data[0]) ? Data[0] : MR_CHANNEL_FIRST;
-	gEeprom.SQUELCH_LEVEL        = (Data[1] < 10) ? Data[1] : 1;
-	gEeprom.TX_TIMEOUT_TIMER     = (Data[2] < 11) ? Data[2] : 1;
+
 	#ifdef ENABLE_NOAA
 		gEeprom.NOAA_AUTO_SCAN   = (Data[3] <  2) ? Data[3] : false;
 	#endif
-	gEeprom.KEY_LOCK             = (Data[4] <  2) ? Data[4] : false;
+
 	#ifdef ENABLE_VOX
 		gEeprom.VOX_SWITCH       = (Data[5] <  2) ? Data[5] : false;
 		gEeprom.VOX_LEVEL        = (Data[6] < 10) ? Data[6] : 1;
 	#endif
-	gEeprom.MIC_SENSITIVITY      = (Data[7] <  5) ? Data[7] : 4;
 
 	// 0E78..0E7F
-	EEPROM_ReadBuffer(0x0E78, Data, 8);
+	Data=block+0x08;
 	gEeprom.BACKLIGHT_MAX 		  = (Data[0] & 0xF) <= 10 ? (Data[0] & 0xF) : 10;
 	gEeprom.BACKLIGHT_MIN 		  = (Data[0] >> 4) < gEeprom.BACKLIGHT_MAX ? (Data[0] >> 4) : 0;
 #ifdef ENABLE_BLMIN_TMP_OFF
 	gEeprom.BACKLIGHT_MIN_STAT	  = BLMIN_STAT_ON;
 #endif
-	gEeprom.CHANNEL_DISPLAY_MODE  = (Data[1] < 4) ? Data[1] : MDF_FREQUENCY;    // 4 instead of 3 - extra display mode
-	gEeprom.CROSS_BAND_RX_TX      = (Data[2] < 3) ? Data[2] : CROSS_BAND_OFF;
-	gEeprom.BATTERY_SAVE          = (Data[3] < 5) ? Data[3] : 4;
-	// VUURWERK v1.3.3: corrupt byte falls back to OFF, matching the
-	// crossband line above. The stock CHAN_A fallback silently ENABLED
-	// dual watch -- an autonomous mode -- on a scrambled config byte.
-	// Valid stored values (0..2) are untouched.
-	gEeprom.DUAL_WATCH            = (Data[4] < 3) ? Data[4] : DUAL_WATCH_OFF;
-	gEeprom.BACKLIGHT_TIME        = (Data[5] < ARRAY_SIZE(gSubMenu_BACKLIGHT)) ? Data[5] : 3;
-	gEeprom.TAIL_TONE_ELIMINATION = (Data[6] < 2) ? Data[6] : false;
-	gEeprom.VFO_OPEN              = (Data[7] < 2) ? Data[7] : true;
+
 
 	// 0E80..0E87
-	EEPROM_ReadBuffer(0x0E80, Data, 8);
+	Data=block+0x10;
 #ifdef ENABLE_NOAA
 	gEeprom.ScreenChannel[0]   = IS_VALID_CHANNEL(Data[0]) ? Data[0] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
 	gEeprom.ScreenChannel[1]   = IS_VALID_CHANNEL(Data[3]) ? Data[3] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
@@ -127,16 +183,9 @@ void SETTINGS_InitEEPROM(void)
 #endif
 
 	// 0E90..0E97
-	EEPROM_ReadBuffer(0x0E90, Data, 8);
+	Data=block+0x20;
 	gEeprom.BEEP_CONTROL                 = Data[0] & 1;
 	gEeprom.KEY_M_LONG_PRESS_ACTION      = ((Data[0] >> 1) < ACTION_OPT_LEN) ? (Data[0] >> 1) : ACTION_OPT_NONE;
-	gEeprom.KEY_1_SHORT_PRESS_ACTION     = (Data[1] < ACTION_OPT_LEN) ? Data[1] : ACTION_OPT_MONITOR;
-	gEeprom.KEY_1_LONG_PRESS_ACTION      = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_FLASHLIGHT;
-	gEeprom.KEY_2_SHORT_PRESS_ACTION     = (Data[3] < ACTION_OPT_LEN) ? Data[3] : ACTION_OPT_SCAN;
-	gEeprom.KEY_2_LONG_PRESS_ACTION      = (Data[4] < ACTION_OPT_LEN) ? Data[4] : ACTION_OPT_NONE;
-	gEeprom.SCAN_RESUME_MODE             = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CO;
-	gEeprom.AUTO_KEYPAD_LOCK             = (Data[6] < 2)              ? Data[6] : false;
-	gEeprom.POWER_ON_DISPLAY_MODE        = (Data[7] < 4)              ? Data[7] : POWER_ON_DISPLAY_MODE_VOLTAGE;
 
 	// 0E98..0E9F
 	// VUURWERK v1.3.3 reclamation: the power-on password is only read back
@@ -144,12 +193,12 @@ void SETTINGS_InitEEPROM(void)
 	// the feature is compiled out. The 0xFF write in SaveSettings stays, so the
 	// stored EEPROM bytes are unchanged for cross-firmware users.
 #ifdef ENABLE_PWRON_PASSWORD
-	EEPROM_ReadBuffer(0x0E98, Data, 8);
+	Data=block+0x28;
 	memcpy(&gEeprom.POWER_ON_PASSWORD, Data, 4);
 #endif
 
 	// 0EA0..0EA7
-	EEPROM_ReadBuffer(0x0EA0, Data, 8);
+	Data=block+0x30;
 	#ifdef ENABLE_VOICE
 	gEeprom.VOICE_PROMPT = (Data[0] < 3) ? Data[0] : VOICE_PROMPT_ENGLISH;
 	#endif
@@ -165,17 +214,13 @@ void SETTINGS_InitEEPROM(void)
 	#endif
 
 	// 0EA8..0EAF
-	EEPROM_ReadBuffer(0x0EA8, Data, 8);
+	Data=block+0x38;
 	#ifdef ENABLE_ALARM
 		gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 	#endif
-	gEeprom.ROGER                          = (Data[1] <  3) ? Data[1] : ROGER_MODE_OFF;
-	gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] < 11) ? Data[2] : 0;
-	gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
-	gEeprom.BATTERY_TYPE                   = (Data[4] < BATTERY_TYPE_UNKNOWN) ? Data[4] : BATTERY_TYPE_1600_MAH;
 
 	// 0ED0..0ED7
-	EEPROM_ReadBuffer(0x0ED0, Data, 8);
+	Data=block+0x60;
 	gEeprom.DTMF_SIDE_TONE               = (Data[0] <   2) ? Data[0] : true;
 
 #ifdef ENABLE_DTMF_CALLING
@@ -189,7 +234,7 @@ void SETTINGS_InitEEPROM(void)
 	gEeprom.DTMF_HASH_CODE_PERSIST_TIME  = (Data[7] < 101) ? Data[7] * 10 : 100;
 
 	// 0ED8..0EDF
-	EEPROM_ReadBuffer(0x0ED8, Data, 8);
+	Data=block+0x68;
 	gEeprom.DTMF_CODE_PERSIST_TIME  = (Data[0] < 101) ? Data[0] * 10 : 100;
 	gEeprom.DTMF_CODE_INTERVAL_TIME = (Data[1] < 101) ? Data[1] * 10 : 100;
 #ifdef ENABLE_DTMF_CALLING
@@ -197,16 +242,15 @@ void SETTINGS_InitEEPROM(void)
 
 	// 0EE0..0EE7
 
-	EEPROM_ReadBuffer(0x0EE0, Data, sizeof(gEeprom.ANI_DTMF_ID));
+	Data=block+0x70;
 	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.ANI_DTMF_ID))) {
 		memcpy(gEeprom.ANI_DTMF_ID, Data, sizeof(gEeprom.ANI_DTMF_ID));
 	} else {
 		strcpy(gEeprom.ANI_DTMF_ID, "123");
 	}
 
-
 	// 0EE8..0EEF
-	EEPROM_ReadBuffer(0x0EE8, Data, sizeof(gEeprom.KILL_CODE));
+	Data=block+0x78;
 	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.KILL_CODE))) {
 		memcpy(gEeprom.KILL_CODE, Data, sizeof(gEeprom.KILL_CODE));
 	} else {
@@ -214,7 +258,7 @@ void SETTINGS_InitEEPROM(void)
 	}
 
 	// 0EF0..0EF7
-	EEPROM_ReadBuffer(0x0EF0, Data, sizeof(gEeprom.REVIVE_CODE));
+	Data=block+0x80;
 	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.REVIVE_CODE))) {
 		memcpy(gEeprom.REVIVE_CODE, Data, sizeof(gEeprom.REVIVE_CODE));
 	} else {
@@ -223,7 +267,7 @@ void SETTINGS_InitEEPROM(void)
 #endif
 
 	// 0EF8..0F07
-	EEPROM_ReadBuffer(0x0EF8, Data, sizeof(gEeprom.DTMF_UP_CODE));
+	Data=block+0x88;
 	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.DTMF_UP_CODE))) {
 		memcpy(gEeprom.DTMF_UP_CODE, Data, sizeof(gEeprom.DTMF_UP_CODE));
 	} else {
@@ -231,7 +275,7 @@ void SETTINGS_InitEEPROM(void)
 	}
 
 	// 0F08..0F17
-	EEPROM_ReadBuffer(0x0F08, Data, sizeof(gEeprom.DTMF_DOWN_CODE));
+	Data=block+0x98;
 	if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.DTMF_DOWN_CODE))) {
 		memcpy(gEeprom.DTMF_DOWN_CODE, Data, sizeof(gEeprom.DTMF_DOWN_CODE));
 	} else {
@@ -239,7 +283,7 @@ void SETTINGS_InitEEPROM(void)
 	}
 
 	// 0F18..0F1F
-	EEPROM_ReadBuffer(0x0F18, Data, 8);
+	Data=block+0xA8;
 	gEeprom.SCAN_LIST_DEFAULT = (Data[0] < 3) ? Data[0] : 0;  // we now have 'all' channel scan option
 	for (unsigned int i = 0; i < 2; i++)
 	{
@@ -250,7 +294,7 @@ void SETTINGS_InitEEPROM(void)
 	}
 
 	// 0F40..0F47
-	EEPROM_ReadBuffer(0x0F40, Data, 8);
+	Data=block+0xD0;
 	gSetting_F_LOCK            = (Data[0] < F_LOCK_LEN) ? Data[0] : F_LOCK_DEF;
 	gSetting_350TX             = (Data[1] < 2) ? Data[1] : false;  // was true
 #ifdef ENABLE_DTMF_CALLING
@@ -271,6 +315,7 @@ void SETTINGS_InitEEPROM(void)
 	#endif
 	gSetting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
 
+	LoadByteFields(block);
 	if (!gEeprom.VFO_OPEN)
 	{
 		gEeprom.ScreenChannel[0] = gEeprom.MrChannel[0];
@@ -557,7 +602,6 @@ void SETTINGS_SaveSettings(void)
 	State[2] = gEeprom.S9_LEVEL;
 #endif
 	EEPROM_WriteBuffer(0x0EA0, State);
-
 
 	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 		State[0] = gEeprom.ALARM_MODE;

@@ -300,3 +300,12 @@ not adopted (`menu-table-size-results.json`); it has no claimed behavioral
 validation. Menu/setup boundary savings are not additive: their combined trial
 increased flash. These results do not establish that ordinary UI factoring can
 recover the remaining six kilobytes. No other feature removals are selected.
+
+## Shared implementation follow-up
+
+The full candidate is now **66,796 bytes**, **5,356 over**, after recovering
+**1,100 bytes without further feature cuts**. Shared formatting, delay calls,
+EEPROM loading/validation and APRS row rendering are documented and tested in
+[SHARED-IMPLEMENTATION.md](SHARED-IMPLEMENTATION.md). Static RAM is 8,680 bytes
+plus the unchanged 2,048-byte stack reserve. Default RX is 53,172 bytes;
+RX-session development is 56,344 bytes. The frozen historical release is unchanged.

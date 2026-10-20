@@ -19,7 +19,9 @@
 #include "system.h"
 #include "systick.h"
 
-void SYSTEM_DelayMs(uint32_t Delay)
+/* Keep one shared delay wrapper: duplicating it at constant-delay call sites
+ * costs 96 bytes in the complete APRS profile with ARM GCC 10.3.1. */
+void __attribute__((noinline)) SYSTEM_DelayMs(uint32_t Delay)
 {
 	SYSTICK_DelayUs(Delay * 1000);
 }

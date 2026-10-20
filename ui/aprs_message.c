@@ -17,7 +17,7 @@ static void Body(const char *text, unsigned first)
         char line[18]; unsigned n=length-row*17;
         if(n>17) n=17;
         memcpy(line,text+row*17,n);line[n]=0;
-        UI_PrintStringSmallNormal(line,0,0,first+row);
+        UI_PrintLine(line,first+row);
     }
 }
 #endif
@@ -31,20 +31,20 @@ void MESSAGE_Draw(void)
     const char *footer="MENU:NEXT  EXIT:BACK";
 #ifdef ENABLE_APRS_CALLSIGN_ONLY
     {
-        UI_PrintStringSmallNormal("MY CALLSIGN",0,0,0);
-        UI_PrintStringSmallNormal(m->editCall,0,0,2);
-        UI_PrintStringSmallNormal("MULTI-TAP ABC/123",0,0,3);
-        UI_PrintStringSmallNormal("1:.-/  #:NEXT",0,0,4);
-        UI_PrintStringSmallNormal("*:DELETE",0,0,5);
+        UI_PrintLine("MY CALLSIGN",0);
+        UI_PrintLine(m->editCall,2);
+        UI_PrintLine("MULTI-TAP ABC/123",3);
+        UI_PrintLine("1:.-/  #:NEXT",4);
+        UI_PrintLine("*:DELETE",5);
         footer="MENU:SAVE  EXIT:CANCEL";
     }
 #else
     if(m->page==MESSAGE_RECIPIENT || m->page==MESSAGE_CALLSIGN) {
-        UI_PrintStringSmallNormal(m->page==MESSAGE_CALLSIGN ? "MY CALLSIGN" : "RECIPIENT",0,0,0);
-        UI_PrintStringSmallNormal(m->page==MESSAGE_CALLSIGN ? m->editCall : m->recipient,0,0,2);
-        UI_PrintStringSmallNormal("MULTI-TAP ABC/123",0,0,3);
-        UI_PrintStringSmallNormal("1:.-/  #:NEXT",0,0,4);
-        UI_PrintStringSmallNormal("*:DELETE",0,0,5);
+        UI_PrintLine(m->page==MESSAGE_CALLSIGN ? "MY CALLSIGN" : "RECIPIENT",0);
+        UI_PrintLine(m->page==MESSAGE_CALLSIGN ? m->editCall : m->recipient,2);
+        UI_PrintLine("MULTI-TAP ABC/123",3);
+        UI_PrintLine("1:.-/  #:NEXT",4);
+        UI_PrintLine("*:DELETE",5);
         if(m->page==MESSAGE_CALLSIGN) footer="MENU:SAVE  EXIT:CANCEL";
     }
     else if(m->page==MESSAGE_COMPOSE || m->page==MESSAGE_REVIEW
@@ -53,10 +53,10 @@ void MESSAGE_Draw(void)
 #endif
     ) {
         sprintf(line,"%s %s",m->page==MESSAGE_REVIEW ? "SEND" : "TO",m->recipient);
-        UI_PrintStringSmallNormal(line,0,0,0);
+        UI_PrintLine(line,0);
         const char *text=m->text;
 #ifdef ENABLE_APRS_TRANSPORT
-        if(m->page==MESSAGE_QUICK_EDIT) {text=MESSAGE_QuickEditText();UI_PrintStringSmallNormal("EDIT QUICK MESSAGE",0,0,0);}
+        if(m->page==MESSAGE_QUICK_EDIT) {text=MESSAGE_QuickEditText();UI_PrintLine("EDIT QUICK MESSAGE",0);}
 #endif
         Body(text,1);
         sprintf(line,"%u/67%s",(unsigned)strlen(text),m->tapTicks ? " ABC_" : " ABC");
@@ -67,29 +67,29 @@ void MESSAGE_Draw(void)
 #endif
     } else if(m->page==MESSAGE_OPTIONS || m->page==MESSAGE_QUICK) {
         const bool quick=m->page==MESSAGE_QUICK;
-        UI_PrintStringSmallNormal(quick ? "QUICK MESSAGES" : "MESSAGE OPTIONS",0,0,0);
+        UI_PrintLine(quick ? "QUICK MESSAGES" : "MESSAGE OPTIONS",0);
         const char *const options[]={"QUICK MESSAGE","REVIEW AND SEND","EDIT RECIPIENT"};
         for(unsigned i=0;i<3;i++) {
             sprintf(line,"%c%.16s",i==m->selected ? '>' : ' ',quick ? gAPRS_Quick[i] : options[i]);
-            UI_PrintStringSmallNormal(line,0,0,2+i);
+            UI_PrintLine(line,2+i);
         }
         footer="MENU:SELECT  EXIT:BODY";
     } else {
 #ifdef ENABLE_APRS_TRANSPORT
         const char *const states[]={"IDLE","QUEUED","WAITING FOR ACK","BEACON SENT","ACK RECEIVED",
             "MESSAGE REJECTED","UNCONFIRMED","TX BLOCKED","TX FAILED","CANCELLED","EXPIRED"};
-        sprintf(line,gAPRS_TX.needsAcknowledgment ? "TO %s" : "STATIC BEACON",gAPRS_TX.recipient);UI_PrintStringSmallNormal(line,0,0,0);
-        UI_PrintStringSmallNormal(states[gAPRS_TX.state],0,0,2);
-        sprintf(line,"ATTEMPTS %u/%u",gAPRS_TX.attempts,gAPRS_TX.policy.maxAttempts);UI_PrintStringSmallNormal(line,0,0,4);
+        sprintf(line,gAPRS_TX.needsAcknowledgment ? "TO %s" : "STATIC BEACON",gAPRS_TX.recipient);UI_PrintLine(line,0);
+        UI_PrintLine(states[gAPRS_TX.state],2);
+        sprintf(line,"ATTEMPTS %u/%u",gAPRS_TX.attempts,gAPRS_TX.policy.maxAttempts);UI_PrintLine(line,4);
         footer="MENU:CANCEL EXIT:BACK";
 #else
-        sprintf(line,"TO %s",m->recipient);UI_PrintStringSmallNormal(line,0,0,0);
+        sprintf(line,"TO %s",m->recipient);UI_PrintLine(line,0);
         const char *status=m->delivery==MESSAGE_ACKED ? "ACK RECEIVED" :
             m->delivery==MESSAGE_WAIT_ACK ? "WAITING FOR ACK" :
             m->delivery==MESSAGE_REJECTED ? "MESSAGE REJECTED" : "NOT SENT";
-        UI_PrintStringSmallNormal(status,0,0,2);
+        UI_PrintLine(status,2);
         if(m->delivery==MESSAGE_TX_UNAVAILABLE)
-            UI_PrintStringSmallNormal("TX UNAVAILABLE",0,0,4);
+            UI_PrintLine("TX UNAVAILABLE",4);
         footer="EXIT:PACKETS";
 #endif
     }
