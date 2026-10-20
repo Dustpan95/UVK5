@@ -97,7 +97,7 @@ override ENABLE_APRS_SESSION := 1
 CFLAGS_MESSAGING = -DENABLE_APRS_MESSAGING
 endif
 ifeq ($(ENABLE_APRS_SESSION),1)
-OBJS += app/aprs_message.o app/aprs_session.o ui/aprs_message.o ui/aprs_session.o
+OBJS += app/aprs_format.o app/aprs_message.o app/aprs_session.o ui/aprs_message.o ui/aprs_session.o
 CFLAGS_MESSAGING += -DENABLE_APRS_SESSION
 ifneq ($(ENABLE_APRS_MESSAGING),1)
 CFLAGS_MESSAGING += -DENABLE_APRS_CALLSIGN_ONLY
@@ -281,7 +281,7 @@ endif
 
 CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_TRANSPORT) $(CFLAGS_FONTS)
 ifeq ($(ENABLE_CLANG),0)
-	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
+	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fbuiltin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c99 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=gnu99 -MMD
@@ -540,7 +540,7 @@ doxygen:
 # Keep the small libc-compatible byte loops shared and visible to the linker.
 # LTO must not duplicate these routines into their many application callers.
 helper/compact_memory.o: helper/compact_memory.c
-	$(CC) $(CFLAGS) -fno-lto -ffunction-sections -fdata-sections $(INC) -c $< -o $@
+	$(CC) $(CFLAGS) -fno-builtin -fno-lto -ffunction-sections -fdata-sections $(INC) -c $< -o $@
 
 helper/compact_division.o: helper/compact_division.c helper/compact_division.h
-	$(CC) $(CFLAGS) -fno-lto -ffunction-sections -fdata-sections $(INC) -c $< -o $@
+	$(CC) $(CFLAGS) -fno-builtin -fno-lto -ffunction-sections -fdata-sections $(INC) -c $< -o $@

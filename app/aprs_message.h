@@ -26,6 +26,9 @@ typedef struct {
 } APRS_Message;
 extern APRS_Message gAPRS_Message;
 extern char gAPRS_Quick[APRS_QUICK_COUNT][APRS_MESSAGE_MAX+1];
+/* Canonical comparison helpers for already validated callsigns; -0 is omitted. */
+size_t MESSAGE_CallLength(const char *s);
+bool MESSAGE_CallsMatch(const char *a,const char *b);
 bool MESSAGE_ValidCall(const char *call);
 void MESSAGE_Init(void);
 void MESSAGE_EditCall(void);

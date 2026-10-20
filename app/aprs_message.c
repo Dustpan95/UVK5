@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * UVK5 standalone messaging draft/editor. No hardware TX or persistent writes.
  */
+#include "app/aprs_format.h"
 #include "aprs_message.h"
 #ifdef ENABLE_APRS_SESSION
 #include "aprs_session.h"
@@ -52,15 +53,15 @@ bool MESSAGE_ValidCall(const char *s)
     }
     return ssid<=15 && !s[n];
 }
-static size_t CallLength(const char *s)
+size_t MESSAGE_CallLength(const char *s)
 {
     size_t n=strlen(s);
     return n>=2 && s[n-2]=='-' && s[n-1]=='0' ? n-2 : n;
 }
-static bool CallEqual(const char *a, const char *b)
+bool MESSAGE_CallsMatch(const char *a, const char *b)
 {
-    size_t n=CallLength(a);
-    return n==CallLength(b) && !memcmp(a,b,n);
+    size_t n=MESSAGE_CallLength(a);
+    return n==MESSAGE_CallLength(b) && !memcmp(a,b,n);
 }
 static bool ValidId(const char *s)
 {
@@ -176,7 +177,7 @@ void MESSAGE_Key(KEY_Code_t key)
         }
 #endif
         else if (m->page==MESSAGE_RECIPIENT) {
-            if (MESSAGE_ValidCall(text)) { text[CallLength(text)]=0; m->page=MESSAGE_COMPOSE; }
+            if (MESSAGE_ValidCall(text)) { text[MESSAGE_CallLength(text)]=0; m->page=MESSAGE_COMPOSE; }
             else m->error=MESSAGE_BAD_CALL;
         } else { m->page=MESSAGE_OPTIONS; m->selected=0; }
 #endif
@@ -209,7 +210,7 @@ bool MESSAGE_Acknowledge(const char *source, const char *addressee, const char *
 {
     APRS_Message *m=&gAPRS_Message;
     if (!source || !addressee || !id || m->delivery!=MESSAGE_WAIT_ACK ||
-        !CallEqual(source,m->recipient) || !CallEqual(addressee,m->sender) || strcmp(id,m->id)) return false;
+        !MESSAGE_CallsMatch(source,m->recipient) || !MESSAGE_CallsMatch(addressee,m->sender) || strcmp(id,m->id)) return false;
     m->delivery=rejected ? MESSAGE_REJECTED : MESSAGE_ACKED;
     return true;
 }
@@ -256,21 +257,6 @@ size_t MESSAGE_BuildFrame(const char *sender, const char *recipient, const char 
     return size;
 }
 
-static unsigned Position(uint8_t *out, int32_t value, bool longitude)
-{
-    const uint32_t absolute=value<0 ? (uint32_t)-value : (uint32_t)value;
-    /* Round to the nearest hundredth minute, including degree carry. Bounds
-     * are checked before negation; all arithmetic fits in 32 bits. */
-    const uint32_t hundredths=(absolute*3u+250u)/500u;
-    const unsigned degrees=hundredths/6000u, minutes=hundredths%6000u;
-    unsigned n=0;
-    if(longitude) out[n++]='0'+degrees/100u;
-    out[n++]='0'+degrees/10u%10u;out[n++]='0'+degrees%10u;
-    out[n++]='0'+minutes/1000u;out[n++]='0'+minutes/100u%10u;
-    out[n++]='.';out[n++]='0'+minutes/10u%10u;out[n++]='0'+minutes%10u;
-    out[n++]=longitude ? (value<0 ? 'W' : 'E') : (value<0 ? 'S' : 'N');
-    return n;
-}
 size_t MESSAGE_BuildBeacon(const char *sender, int32_t lat, int32_t lon,
                            char table, char symbol, uint8_t *out, size_t capacity)
 {
@@ -279,7 +265,7 @@ size_t MESSAGE_BuildBeacon(const char *sender, int32_t lat, int32_t lon,
        (table!='/' && table!='\\') || symbol<'!' || symbol>'~') return 0;
     Address(out,"APZUVK",false);Address(out+7,sender,true);
     out[14]=3;out[15]=0xf0;out[16]='!';
-    unsigned n=17;n+=Position(out+n,lat,false);out[n++]=table;
-    n+=Position(out+n,lon,true);out[n++]=symbol;
+    unsigned n=17;n+=APRS_FormatDM((char *)out+n,lat,false,false);out[n++]=table;
+    n+=APRS_FormatDM((char *)out+n,lon,true,false);out[n++]=symbol;
     return n;
 }

@@ -1,8 +1,8 @@
 # Feature-preserving flash investigation
 
 The audit baseline used **67,896 / 61,440 bytes**: **6,456 bytes over**.
-The subsequent feature-preserving implementation uses **64,388 bytes**,
-**2,948 over**; see [COMPACT-RUNTIME.md](COMPACT-RUNTIME.md).
+The subsequent feature-preserving implementation uses **63,832 bytes**,
+**2,392 over**; see [COMPACT-RUNTIME.md](COMPACT-RUNTIME.md).
 This is a measurement of the current implementation, not a minimum size for
 the requested functionality. No further feature removals are selected.
 Automatic tone search, flashlight and background VFO activity scanning remain

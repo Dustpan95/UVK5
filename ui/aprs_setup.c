@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
+#include "app/aprs_format.h"
 #include "ui/display_text.h"
 #include "app/aprs_setup.h"
 #include "app/aprs_runtime.h"
@@ -8,14 +9,6 @@
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
 #include "ui/helper.h"
-static void __attribute__((noinline)) Position(char *out,int32_t value,bool longitude)
-{
-    uint32_t absolute=value<0 ? -value : value;
-    uint32_t minutes=(absolute*3u+250u)/500u;
-    sprintf(out,longitude ? DISPLAY_TEXT("%03u %02u.%02u%c") : DISPLAY_TEXT("%02u %02u.%02u%c"),
-        (unsigned)(minutes/6000),(unsigned)(minutes%6000/100),(unsigned)(minutes%100),
-        longitude ? (value<0 ? 'W' : 'E') : (value<0 ? 'S' : 'N'));
-}
 void __attribute__((noinline)) SETUP_Draw(void)
 {
     const APRS_Setup *s=&gAPRS_Setup;char line[24];
@@ -45,9 +38,9 @@ void __attribute__((noinline)) SETUP_Draw(void)
     } else if(s->page==SETUP_POSITION_REVIEW || s->page==SETUP_BEACON) {
         bool beacon=s->page==SETUP_BEACON;
         UI_PrintLine(beacon ? DISPLAY_TEXT("REVIEW BEACON") : DISPLAY_TEXT("REVIEW POSITION"),0);
-        Position(line,beacon ? gAPRS_Profile.latitude : s->latitude,false);
+        APRS_FormatDM(line,beacon ? gAPRS_Profile.latitude : s->latitude,false,true);
         UI_PrintLine(line,2);
-        Position(line,beacon ? gAPRS_Profile.longitude : s->longitude,true);
+        APRS_FormatDM(line,beacon ? gAPRS_Profile.longitude : s->longitude,true,true);
         UI_PrintLine(line,3);
         UI_PrintLine(beacon ? (gAPRS_Profile.positionSet ? gAPRS_Profile.callsign : DISPLAY_TEXT("POSITION NOT SET")) : DISPLAY_TEXT("SAVE DOES NOT SEND"),4);
         footer=beacon ? DISPLAY_TEXT("MENU:SEND EXIT:CANCEL") : DISPLAY_TEXT("MENU:SAVE EXIT:CANCEL");

@@ -291,3 +291,17 @@ passes 1,033,250 cadence/wrap/timeout checks with division removed from the IRQ.
 The complete host suite and 56 stored LCD comparisons pass. Current verified
 RX/RX-session images are 52,380/54,936 bytes; the complete transport is still
 oversized at 64,388 bytes. No physical RF/hardware validation was performed.
+
+## Shared rendering and formatting checkpoint
+
+The complete host suite passes with ASan/UBSan. A retained original menu
+renderer matches **16,002 frames and hardware preview traces** across all
+menu entries, settings, browsing/edit states, confirmations and categories.
+The shared degrees/minutes formatter passes **2,164,390 comparisons** with
+the prior printf formatting path, including lengths and output bounds. All
+56 stored radio/APRS LCD frames are unchanged.
+
+Sequential verified builds measure default RX **52,068 bytes**, RX-session
+development **54,492 bytes**, full transport **63,832 bytes** (2,392 over).
+The full candidate remains non-flashable. Frozen release files are unchanged;
+physical RF and radio hardware remain untested.

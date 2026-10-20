@@ -328,3 +328,12 @@ interrupt cadence save a further 612. Total recovery since the 67,896-byte
 audit baseline is **3,508 bytes without additional feature removals**.
 [COMPACT-RUNTIME.md](COMPACT-RUNTIME.md) records libc/native comparisons,
 Cortex-M0 register-ABI tests, IRQ wrap/cadence checks and physical-test limits.
+
+## Shared menu and position follow-up
+
+The full candidate is **63,832 bytes**, **2,392 over**. Shared position and
+callsign formatting, stable menu-render inputs, fixed-choice dispatch, further
+lossless text packing and compiler memory builtins recover another 556 bytes.
+Total recovery from the architecture audit is **4,064 bytes**, with no further
+feature removals. Static RAM is 12,000 bytes plus the 2,048-byte stack reserve.
+See [SHARED-MENU.md](SHARED-MENU.md) for verification and rejected probes.

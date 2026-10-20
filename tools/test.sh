@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 mkdir -p build
 bash tools/test-format.sh
 bash tools/test-settings.sh
+bash tools/test-menu-render.sh
 bash tools/test-compact-memory.sh
 python3 tools/test-compact-division.py
 python3 tools/pack-display-text.py --test
@@ -12,7 +13,7 @@ compiler=${CC:-gcc}
 flags=(-DENABLE_VFO_SPLIT -DENABLE_TONE_SEARCH -std=gnu11 -Wall -Wextra -Werror -g -I .)
 # Exercise the same compact memory/string bodies throughout the application
 # suite without interposing on ASan's own libc implementation.
-flags+=(helper/compact_memory.c -fno-builtin)
+flags+=(helper/compact_memory.c app/aprs_format.c -fno-builtin)
 for function in memcpy memmove memset memcmp strlen strcmp strcpy strncpy; do
     flags+=(-D"$function=FIRMWARE_$function")
 done
@@ -27,6 +28,8 @@ build/test_aprs
 build/test_radio build
 
 "$compiler" "${flags[@]}" tests/test_message.c app/aprs_message.c app/aprs_decode.c app/aprs_position.c -o build/test_message
+"$compiler" "${flags[@]}" tests/test_aprs_format.c -o build/test_aprs_format
+build/test_aprs_format
 build/test_message
 
 "$compiler" "${flags[@]}" tests/test_tx.c app/aprs_tx.c app/aprs_message.c app/aprs_decode.c app/aprs_position.c -o build/test_tx

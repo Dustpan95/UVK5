@@ -114,10 +114,7 @@ void TX_Process(const APRS_TX_Link *link)
 static bool CallEqual(const char *a,const char *b)
 {
     if(!MESSAGE_ValidCall(a) || !MESSAGE_ValidCall(b)) return false;
-    size_t an=strlen(a),bn=strlen(b);
-    if(an>=2 && a[an-2]=='-' && a[an-1]=='0') an-=2;
-    if(bn>=2 && b[bn-2]=='-' && b[bn-1]=='0') bn-=2;
-    return an==bn && !memcmp(a,b,an);
+    return MESSAGE_CallsMatch(a,b);
 }
 bool TX_Acknowledge(const char *source,const char *addressee,const char *id,bool rejected)
 {

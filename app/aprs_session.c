@@ -84,8 +84,7 @@ bool SESSION_IsPersonal(const APRS_Record *r)
 {
     if(!r || r->kind!=APRS_MESSAGE || !gAPRS_Profile.callsign[0] ||
        !MESSAGE_ValidCall(r->destination)) return false;
-    size_t n=strlen(r->destination);
-    if(n>=2 && r->destination[n-2]=='-' && r->destination[n-1]=='0') n-=2;
+    size_t n=MESSAGE_CallLength(r->destination);
     return strlen(gAPRS_Profile.callsign)==n && !memcmp(r->destination,gAPRS_Profile.callsign,n);
 }
 void SESSION_Receive(const APRS_Record *r)

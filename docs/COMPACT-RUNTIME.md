@@ -1,7 +1,7 @@
 # Compact runtime, retained firmware behavior
 
-The full transport candidate uses **64,388 / 61,440 bytes**, **2,948 bytes
-over flash**. This recovers **3,508 bytes** against the 67,896-byte architecture
+The full transport candidate uses **63,832 / 61,440 bytes**, **2,392 bytes
+over flash**. This recovers **4,064 bytes** against the 67,896-byte architecture
 audit baseline, without further radio-feature removals.
 
 | Successive complete builds | Flash bytes | Change |
@@ -9,8 +9,9 @@ audit baseline, without further radio-feature removals.
 | Packed display resources and immutable operation tables | 65,752 | — |
 | Compact memory/string routines | 65,000 | −752 |
 | Compact division and division-free interrupt cadence | 64,388 | −612 |
+| Shared position/callsign/menu handling and additional text packing | 63,832 | −556 |
 
-Static RAM remains **11,644 bytes**, plus the existing **2,048-byte stack
+Current static RAM is **12,000 bytes**, plus the existing **2,048-byte stack
 reserve**. The production linker still enforces the original 60 KiB/16 KiB
 limits. This candidate remains too large to flash.
 
@@ -60,10 +61,12 @@ The Bell 202 symbol polling and SPI tone-write paths do not perform division.
 
 The complete host suite passes, including the actual APRS runtime, hardware
 adapter, tone backend, register restoration and timing-fault tests. The default
-RX image verifies at **52,380 bytes**; the RX-session development image verifies
-at **54,936 bytes**. These remain separate profiles from the oversized full
+RX image verifies at **52,068 bytes**; the RX-session development image verifies
+at **54,492 bytes**. These remain separate profiles from the oversized full
 transport candidate. Historical frozen release files are unchanged.
 
 The reusable signed-package SDK now includes QEMU alongside the pinned ARM
 compiler. No radio was flashed. Physical RF timing, deviation and independent
 TNC interoperability remain unverified.
+
+See [SHARED-MENU.md](SHARED-MENU.md) for the latest shared-rendering changes and differential tests.
