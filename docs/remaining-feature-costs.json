@@ -1,0 +1,389 @@
+{
+  "source_fingerprint": "964f0d34089a4fc2047c374e2109cffa57509d898aae6e846349605b3bc5bca8",
+  "compiler": "ARM GCC 10.3.1",
+  "diagnostic_flash_limit": 131072,
+  "real_flash_limit": 61440,
+  "profiles": [
+    {
+      "profile": "baseline",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68920,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "without_uart",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1",
+        "ENABLE_UART=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 66324,
+      "static_ram_bytes": 8184,
+      "fits_60k": false,
+      "delta_flash_bytes": -2596
+    },
+    {
+      "profile": "without_wide_rx",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1",
+        "ENABLE_WIDE_RX=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68844,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -76
+    },
+    {
+      "profile": "without_am_fix",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1",
+        "ENABLE_AM_FIX=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68408,
+      "static_ram_bytes": 8692,
+      "fits_60k": false,
+      "delta_flash_bytes": -512
+    },
+    {
+      "profile": "without_adaptive_scan",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1",
+        "ENABLE_ADAPTIVE_SCAN=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68832,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -88
+    },
+    {
+      "profile": "without_scan_ranges",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1",
+        "ENABLE_SCAN_RANGES=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68888,
+      "static_ram_bytes": 8708,
+      "fits_60k": false,
+      "delta_flash_bytes": -32
+    },
+    {
+      "profile": "without_flashlight",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1",
+        "ENABLE_FLASHLIGHT=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68920,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "flat_settings_menu",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1",
+        "ENABLE_CUSTOM_MENU_LAYOUT=0"
+      ],
+      "kind": "build flag",
+      "exit_code": 0,
+      "flash_bytes": 68920,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "stub_compressor",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68568,
+      "static_ram_bytes": 8692,
+      "fits_60k": false,
+      "delta_flash_bytes": -352
+    },
+    {
+      "profile": "stub_adaptive_squelch",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68128,
+      "static_ram_bytes": 8692,
+      "fits_60k": false,
+      "delta_flash_bytes": -792
+    },
+    {
+      "profile": "stub_scanwatch",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68588,
+      "static_ram_bytes": 8708,
+      "fits_60k": false,
+      "delta_flash_bytes": -332
+    },
+    {
+      "profile": "stub_vfo_split",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68380,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -540
+    },
+    {
+      "profile": "stub_about",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68636,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -284
+    },
+    {
+      "profile": "stub_bandscope",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68496,
+      "static_ram_bytes": 8456,
+      "fits_60k": false,
+      "delta_flash_bytes": -424
+    },
+    {
+      "profile": "stub_gain_staging",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68452,
+      "static_ram_bytes": 8696,
+      "fits_60k": false,
+      "delta_flash_bytes": -468
+    },
+    {
+      "profile": "stub_signal_quality",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68720,
+      "static_ram_bytes": 8688,
+      "fits_60k": false,
+      "delta_flash_bytes": -200
+    },
+    {
+      "profile": "stub_signal_classifier",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68656,
+      "static_ram_bytes": 8692,
+      "fits_60k": false,
+      "delta_flash_bytes": -264
+    },
+    {
+      "profile": "stub_dual_watch_management",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68704,
+      "static_ram_bytes": 8704,
+      "fits_60k": false,
+      "delta_flash_bytes": -216
+    },
+    {
+      "profile": "stub_squelch_tail",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68616,
+      "static_ram_bytes": 8704,
+      "fits_60k": false,
+      "delta_flash_bytes": -304
+    },
+    {
+      "profile": "stub_ctcss_lead",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68816,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -104
+    },
+    {
+      "profile": "stub_backlight_fade",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68824,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -96
+    },
+    {
+      "profile": "stub_battery_sag_display",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68752,
+      "static_ram_bytes": 8704,
+      "fits_60k": false,
+      "delta_flash_bytes": -168
+    },
+    {
+      "profile": "stub_side_button_toasts",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68604,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -316
+    },
+    {
+      "profile": "stub_scan_rate_display",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68856,
+      "static_ram_bytes": 8708,
+      "fits_60k": false,
+      "delta_flash_bytes": -64
+    },
+    {
+      "profile": "stub_aprs_position_decoder",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68084,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -836
+    },
+    {
+      "profile": "stub_aprs_setup_display_only",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 67036,
+      "static_ram_bytes": 8708,
+      "fits_60k": false,
+      "delta_flash_bytes": -1884
+    },
+    {
+      "profile": "stub_channel_frequency_scan",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 67500,
+      "static_ram_bytes": 8692,
+      "fits_60k": false,
+      "delta_flash_bytes": -1420
+    },
+    {
+      "profile": "stub_tone_search",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68920,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": 0
+    },
+    {
+      "profile": "stub_static_beacon_encoder_only",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68536,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -384
+    },
+    {
+      "profile": "stub_mice_positions_only",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68632,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -288
+    },
+    {
+      "profile": "stub_compressed_positions_only",
+      "flags": [
+        "ENABLE_APRS_TRANSPORT=1"
+      ],
+      "kind": "module-body diagnostic stub",
+      "exit_code": 0,
+      "flash_bytes": 68728,
+      "static_ram_bytes": 8712,
+      "fits_60k": false,
+      "delta_flash_bytes": -192
+    }
+  ],
+  "source_commit": "95f4d64decbaa4f4df972833834284d4fa525855",
+  "measurement_note": "Current complete candidate after owner-selected tone-search/flashlight removal. Module-body probes are not working removals. Individual savings are not additive."
+}
