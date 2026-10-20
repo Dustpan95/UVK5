@@ -40,3 +40,9 @@ jobs:
         with:
           name: uvk6-aprs-candidate
           path: build/transport-candidate/
+      - name: Build and verify temporary APRS receive diagnostics
+        run: ./tools/build-rx-diagnostics.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uvk6-rx-diagnostics-d1
+          path: build/rx-diagnostics-d1/

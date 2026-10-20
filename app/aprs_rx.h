@@ -20,4 +20,15 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held);
 void APRS_Draw(void);
 void APRS_FormatCoordinate(char *out,int32_t value,char positive,char negative);
 void APRS_DrawRecord(const APRS_Record *record);
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+typedef struct {
+    uint16_t sync, fifo, end, timeout, good, bad, lastBytes, full;
+    uint16_t flags, frames, crc, lastIrq, bytes, reg58, reg59, reg3f;
+    uint8_t prefix[8];
+    bool ready, armed, capturing;
+} APRS_RxDiagnostics;
+extern APRS_RxDiagnostics gAPRS_RxDiagnostics;
+extern uint8_t gAPRS_DiagnosticPage;
+void APRS_GetDiagnostics(APRS_RxDiagnostics *out);
+#endif
 #endif

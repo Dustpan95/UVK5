@@ -22,6 +22,9 @@
 #include "aprs_decode.h"
 #include "aprs_position.h"
 #include <string.h>
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+#include "aprs_rx.h"
+#endif
 static uint16_t APRS_CalculateCRC(const uint8_t *data, uint16_t length)
 {
     uint16_t crc = 0xFFFF;
@@ -166,10 +169,18 @@ bool APRS_DecodeBits(const uint8_t *capture, uint16_t count, APRS_Record *out)
             continue;
         }
         if (ones == 6) {              // flag 01111110 completed
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+            ++gAPRS_RxDiagnostics.flags;
+#endif
             if (nbits != 0xFFFF && nbits >= 7u) {
                 const uint16_t fb = nbits - 7u;  // strip the flag's leading 0111111
                 if ((fb & 7u) == 0 && fb >= 17u * 8u && (fb >> 3) <= sizeof(gRxFrame)) {
                     const uint16_t len = fb >> 3;
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+                    ++gAPRS_RxDiagnostics.frames;
+                    if(len>=2 && APRS_FCS(gRxFrame,len-2)==(uint16_t)(gRxFrame[len-2]|gRxFrame[len-1]<<8))
+                        ++gAPRS_RxDiagnostics.crc;
+#endif
                     if (APRS_ParseFrame(gRxFrame, len, out)) return true;
                 }
             }

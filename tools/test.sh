@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p build
 python3 tools/test-firmware-limits.py
+bash tools/test-rx-diagnostics.sh
 bash tools/test-format.sh
 bash tools/test-settings.sh
 bash tools/test-menu-render.sh

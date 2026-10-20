@@ -20,6 +20,7 @@
 #include "misc.h"
 #include "ui/ui.h"
 #include "ui/home.h"
+#include "ui/helper.h"
 #include "ui/main.h"
 #include "vfo_split.h"
 #include "tx_compressor.h"
@@ -171,6 +172,42 @@ int main(int argc,char **argv) {
 #endif
         assert(gAPRS_Count==(round<4 ? round+1 : 4));
     }
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    APRS_RxDiagnostics d;
+    unsigned diagnostic_writes=writes;APRS_GetDiagnostics(&d);
+    assert(writes==diagnostic_writes && d.ready && d.armed && !d.capturing);
+    assert(d.sync==6 && d.fifo==168 && d.end==6 && d.good==6 && !d.bad);
+    assert(d.lastBytes==240 && d.full==6 && d.frames==6 && d.crc==6 && d.flags>=6);
+    assert(d.reg58==0x3fc3 && d.reg59==0x1000 && !memcmp(d.prefix,capture_fixture,8));
+    uint8_t corrupt[sizeof(capture_fixture)];memcpy(corrupt,capture_fixture,sizeof(corrupt));corrupt[10]^=1;
+    fifo_capture=corrupt;fifo=0;fifo_active=true;
+    APRS_Interrupt(BK4819_REG_02_FSK_RX_SYNC);
+    while(fifo<224) APRS_Interrupt(BK4819_REG_02_FSK_FIFO_ALMOST_FULL);
+    APRS_Interrupt(BK4819_REG_02_FSK_RX_FINISHED);fifo_active=false;
+    APRS_GetDiagnostics(&d);assert(d.good==6 && d.bad==1 && d.frames==7 && d.crc==6);
+    fifo_capture=capture_fixture;fifo=0;fifo_active=true;
+    APRS_Interrupt(BK4819_REG_02_FSK_RX_SYNC);
+    APRS_Interrupt(BK4819_REG_02_FSK_FIFO_ALMOST_FULL);
+    for(unsigned i=0;i<3;i++) APRS_Tick500ms();
+    fifo_active=false;APRS_GetDiagnostics(&d);
+    assert(d.timeout==1 && d.bad==2 && d.lastBytes==24 && d.armed && !d.capturing);
+    APRS_Open();assert(gAPRS_DiagnosticPage==0);
+    char diagnostic_path[256];
+    for(unsigned page=0;page<3;page++) {
+        assert(gAPRS_DiagnosticPage==page);
+        uint8_t expected_title[128];
+        if(page<2) {UI_DisplayClear();UI_PrintLine(page==0 ? "APRS RX DIAG D1":"APRS REG / RAW",0);memcpy(expected_title,gFrameBuffer[0],128);}
+        diagnostic_writes=writes;APRS_Draw();assert(writes==diagnostic_writes);
+        if(page<2) assert(!memcmp(expected_title,gFrameBuffer[0],128));
+        snprintf(diagnostic_path,sizeof(diagnostic_path),"%s/diagnostics-%u.pbm",argv[1],page);image(diagnostic_path);
+        assert(APRS_Key(KEY_MENU,true,false));
+    }
+    assert(!gAPRS_DiagnosticPage);
+    assert(APRS_Key(KEY_EXIT,true,false) && !gAPRS_Browser);
+    gSerialConfigCountDown_500ms=1;APRS_Tick500ms();APRS_GetDiagnostics(&d);assert(!d.ready && !d.armed);
+    gSerialConfigCountDown_500ms=0;APRS_Resume();
+    puts("PASS receive diagnostics: real FIFO/decoder counters, CRC rejection, timeout, live gates, read-only register snapshots and three UI pages");
+#endif
     APRS_Stop();
     puts("PASS simulated FSK FIFO -> HDLC -> position -> bounded four-packet history");
 

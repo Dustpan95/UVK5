@@ -52,6 +52,19 @@ static bool armed, capturing;
 static uint8_t stuckTicks;
 static const uint8_t registers[] = {0x70,0x71,0x72,0x58,0x5a,0x5c,0x5d,0x5e,0x3f};
 static uint16_t saved[sizeof(registers)];
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+APRS_RxDiagnostics gAPRS_RxDiagnostics;
+uint8_t gAPRS_DiagnosticPage;
+void APRS_GetDiagnostics(APRS_RxDiagnostics *out)
+{
+    *out=gAPRS_RxDiagnostics;
+    out->ready=APRS_CanListen();out->armed=armed;out->capturing=capturing;
+    out->bytes=captureCount;
+    out->reg58=BK4819_ReadRegister(BK4819_REG_58);
+    out->reg59=BK4819_ReadRegister(BK4819_REG_59);
+    out->reg3f=BK4819_ReadRegister(BK4819_REG_3F);
+}
+#endif
 #define APRS_RX_IRQ_MASK (BK4819_REG_02_FSK_RX_FINISHED | \
                           BK4819_REG_02_FSK_FIFO_ALMOST_FULL | \
                           BK4819_REG_02_FSK_RX_SYNC)
@@ -129,7 +142,17 @@ static void Drain(uint8_t words)
 static void Decode(void)
 {
     APRS_Record record;
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    gAPRS_RxDiagnostics.lastBytes=captureCount;
+    memset(gAPRS_RxDiagnostics.prefix,0,sizeof(gAPRS_RxDiagnostics.prefix));
+    memcpy(gAPRS_RxDiagnostics.prefix,capture,
+           captureCount<sizeof(gAPRS_RxDiagnostics.prefix) ? captureCount:sizeof(gAPRS_RxDiagnostics.prefix));
+    if(captureCount==sizeof(capture)) ++gAPRS_RxDiagnostics.full;
+    if(!APRS_DecodeBits(capture,captureCount,&record)) {++gAPRS_RxDiagnostics.bad;return;}
+    ++gAPRS_RxDiagnostics.good;
+#else
     if (!APRS_DecodeBits(capture, captureCount, &record)) return;
+#endif
 #ifdef ENABLE_APRS_MESSAGING
     record.frequency=gRxVfo->pRX ? gRxVfo->pRX->Frequency : 0;
 #endif
@@ -159,6 +182,12 @@ void APRS_Interrupt(uint16_t bits)
 {
     if (!armed) return;
     if (!APRS_CanListen()) { APRS_Stop(); return; }
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    gAPRS_RxDiagnostics.lastIrq=bits;
+    if(bits & BK4819_REG_02_FSK_RX_SYNC) ++gAPRS_RxDiagnostics.sync;
+    if(bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) ++gAPRS_RxDiagnostics.fifo;
+    if(bits & BK4819_REG_02_FSK_RX_FINISHED) ++gAPRS_RxDiagnostics.end;
+#endif
     if (bits & BK4819_REG_02_FSK_RX_SYNC) {
         capturing = true;
         stuckTicks = 0;
@@ -177,6 +206,9 @@ void APRS_Interrupt(uint16_t bits)
 
 void APRS_Tick500ms(void)
 {
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    if(gAPRS_Browser) gUpdateDisplay=true;
+#endif
 #ifdef ENABLE_APRS_SESSION
     MESSAGE_Tick500ms();
     SESSION_Tick500ms();
@@ -192,6 +224,9 @@ void APRS_Tick500ms(void)
             saved[i] = BK4819_ReadRegister(registers[i]);
         Arm();
     } else if (capturing && ++stuckTicks > 2) {
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+        ++gAPRS_RxDiagnostics.timeout;
+#endif
         Drain(8);
         Decode();
         Arm();
@@ -200,6 +235,9 @@ void APRS_Tick500ms(void)
 
 void APRS_Open(void)
 {
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    gAPRS_DiagnosticPage=0;
+#endif
 #ifdef ENABLE_APRS_SESSION
     MESSAGE_Init();
     SESSION_Open();
@@ -231,6 +269,12 @@ bool APRS_Key(KEY_Code_t key, bool pressed, bool held)
         return false;
     }
     if (!pressed) return true;
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    if(key==KEY_MENU && !held) {
+        gAPRS_DiagnosticPage=(gAPRS_DiagnosticPage+1)%3;
+        gUpdateDisplay=true;return true;
+    }
+#endif
 #ifdef ENABLE_APRS_SESSION
     if (held) return true;
     if (gAPRS_Message.page != MESSAGE_CLOSED) {

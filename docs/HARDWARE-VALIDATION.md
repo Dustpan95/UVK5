@@ -1,8 +1,13 @@
 # Physical validation — outstanding
 
-No radio was connected, programmed or flashed during development. These checks
-remain unrun. Build success establishes a software target, not the identity or
-health of an individual radio.
+No radio has been connected or flashed by the cloud tools. The owner reports
+that revision 2 was locally flashed and boots; home display, controls, saved
+channels and voice receive checks pass. A clear APRS beacon burst is audible,
+but no packet decodes despite enabling APRS. MCU identity, voice TX, data TX,
+RF timing/deviation and recovery remain unverified. The temporary
+[D1 receive diagnostic image](../release/rx-diagnostics-d1/README.md) collects
+receiver/modem evidence. The following checklist is a validation plan; do not
+interpret every item as completed.
 
 1. Identify the MCU as **DP32G030** using reliable board/revision evidence.
    Do not infer it solely from a UV-K6 label or Egzumer v0.21 version string.
@@ -39,8 +44,8 @@ For a future TX bench image, additionally measure actual 1200/2200 Hz tones,
 continuity and FM deviation at both frequencies. Decode real output with an
 independent TNC; verify messages, ACK/rejects and beacons, busy-channel behavior,
 PA ramp, timeout/PTT abort and receive restoration. Start with explicit TX enable
-and a calibrated tone gain. The current normal build does not contain the
-experimental transport and cannot perform these tests.
+and a calibrated tone gain. The complete transport candidate includes these paths; they still require
+physical RF tests. The D1 receive-diagnostic image omits APRS transmit.
 
 ## Owner preparation
 

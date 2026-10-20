@@ -50,6 +50,7 @@ ENABLE_SCAN_RANGES            ?= 1
 ENABLE_APRS_TRANSPORT         ?= 0
 ENABLE_APRS_MESSAGING         ?= 0
 ENABLE_APRS_SESSION           ?= 0
+ENABLE_APRS_RX_DIAGNOSTICS    ?= 0
 ENABLE_FONT_PACKING           ?= 1
 
 # ---- DEBUGGING ----
@@ -85,6 +86,15 @@ BSP_HEADERS     := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
 BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
 OBJS = helper/packed_huffman.o helper/compact_memory.o helper/compact_division.o helper/compact_division_glue.o ui/display_text.o app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
+ifeq ($(ENABLE_APRS_RX_DIAGNOSTICS),1)
+ifeq ($(ENABLE_APRS_SESSION),1)
+$(error Receive diagnostics uses the minimal RX profile; disable ENABLE_APRS_SESSION)
+endif
+ifeq ($(ENABLE_APRS_TRANSPORT),1)
+$(error Receive diagnostics is a separate profile; disable ENABLE_APRS_TRANSPORT)
+endif
+CFLAGS_DIAGNOSTICS = -DENABLE_APRS_RX_DIAGNOSTICS
+endif
 ifeq ($(ENABLE_APRS_TRANSPORT),1)
 override ENABLE_APRS_MESSAGING := 1
 OBJS += app/aprs_runtime.o app/aprs_setup.o ui/aprs_setup.o app/aprs_tx.o
@@ -279,7 +289,7 @@ ifeq ($(ENABLE_OVERLAY),1)
 	ASFLAGS += -DENABLE_OVERLAY
 endif
 
-CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_TRANSPORT) $(CFLAGS_FONTS)
+CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_TRANSPORT) $(CFLAGS_FONTS) $(CFLAGS_DIAGNOSTICS)
 ifeq ($(ENABLE_CLANG),0)
 	CFLAGS += -Os -fno-early-inlining -Wall -Werror -mcpu=cortex-m0 -fbuiltin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD

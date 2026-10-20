@@ -15,6 +15,42 @@
 #include "ui/helper.h"
 #include <string.h>
 
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+#include "radio.h"
+/* Diagnostic-only literals stay outside DISPLAY_TEXT so they do not enlarge
+ * the complete release profile's immutable resource bundle. */
+static void DrawDiagnostics(void)
+{
+    APRS_RxDiagnostics d;char line[48];
+    APRS_GetDiagnostics(&d);UI_DisplayClear();
+    if(gAPRS_DiagnosticPage==0) {
+        UI_PrintLine("APRS RX DIAG D1",0);
+        sprintf(line,"EN%u RD%u AR%u CP%u",gAPRS_Enabled,d.ready,d.armed,d.capturing);UI_PrintLine(line,1);
+        sprintf(line,"S%u F%u E%u",d.sync,d.fifo,d.end);UI_DisplaySmallest(line,0,16,false,true);
+        sprintf(line,"B%u L%u X%u",d.bytes,d.lastBytes,d.full);UI_DisplaySmallest(line,0,24,false,true);
+        sprintf(line,"OK%u BAD%u TO%u",d.good,d.bad,d.timeout);UI_DisplaySmallest(line,0,32,false,true);
+        sprintf(line,"FL%u FR%u CRC%u",d.flags,d.frames,d.crc);UI_DisplaySmallest(line,0,40,false,true);
+        UI_PrintLine("MENU:REG EXIT:HOME",6);
+    } else {
+        UI_PrintLine("APRS REG / RAW",0);
+        sprintf(line,"58=%05u 59=%05u",d.reg58,d.reg59);UI_PrintLine(line,1);
+        sprintf(line,"3F%05u I%05u",d.reg3f,d.lastIrq);UI_DisplaySmallest(line,0,16,false,true);
+        sprintf(line,"%u.%05u MHz",(unsigned)(gRxVfo->pRX->Frequency/100000u),
+                (unsigned)(gRxVfo->pRX->Frequency%100000u));UI_DisplaySmallest(line,0,24,false,true);
+        for(unsigned row=0;row<2;row++) {
+            static const char hex[]="0123456789ABCDEF";
+            memcpy(line,"RAW ",4);
+            for(unsigned i=0;i<4;i++) {
+                unsigned value=d.prefix[row*4+i];line[4+i*2]=hex[value>>4];line[5+i*2]=hex[value&15];
+            }
+            line[12]=0;UI_PrintLine(line,row+4);
+        }
+        UI_PrintLine("MENU:LOG EXIT:HOME",6);
+    }
+    ST7565_BlitFullScreen();
+}
+#endif
+
 void APRS_FormatCoordinate(char *out, int32_t value, char positive, char negative)
 {
     const uint32_t abs = value < 0 ? 0u-(uint32_t)value : (uint32_t)value;
@@ -51,6 +87,9 @@ void APRS_DrawRecord(const APRS_Record *r)
 
 void APRS_Draw(void)
 {
+#ifdef ENABLE_APRS_RX_DIAGNOSTICS
+    if(gAPRS_DiagnosticPage<2) {DrawDiagnostics();return;}
+#endif
 #ifdef ENABLE_APRS_SESSION
     if (gAPRS_Message.page != MESSAGE_CLOSED) { MESSAGE_Draw(); return; }
 #ifdef ENABLE_APRS_TRANSPORT
