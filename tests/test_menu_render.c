@@ -28,8 +28,8 @@ uint8_t BACKLIGHT_GetBrightness(void) { return 8; }
 void BK4819_EnableScramble(uint8_t b) { Record(200+b); }
 void BK4819_DisableScramble(void) { Record(300); }
 bool RADIO_CheckValidChannel(uint16_t ch, bool scan, uint8_t list) { (void)scan;(void)list;return ch<200 && ch%3; }
-uint32_t SETTINGS_FetchChannelFrequency(int ch) { return 14400000u+ch*2500u; }
-void SETTINGS_FetchChannelName(char *s,int ch) { strcpy(s,ch>=0 && ch%2?"TEST CH":""); }
+uint32_t SETTINGS_FetchChannelFrequency(int ch) { Record(1000+ch);return 14400000u+ch*2500u; }
+void SETTINGS_FetchChannelName(char *s,int ch) { Record(500+ch);strcpy(s,ch>=0 && ch%2?"TEST CH":""); }
 static unsigned cases;
 static bool visited[256];
 static void Compare(void) {

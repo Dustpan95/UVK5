@@ -7,5 +7,5 @@ _Static_assert(sizeof(DisplayResources)==DISPLAY_RESOURCE_BYTES,"resource layout
 void DISPLAY_TEXT_Init(void)
 {
     /* Main calls this before any screen or formatter uses the pooled text. */
-    PACK_Expand(&gDisplayResources,sizeof(gDisplayResources),gPackedDisplayText);
+    PACK_HuffmanExpand(&gDisplayResources,sizeof(gDisplayResources),gPackedDisplayText);
 }

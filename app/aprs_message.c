@@ -32,10 +32,8 @@ void MESSAGE_Init(void)
     ready=true;
 #endif
 }
-static const char *const keys[10] = {
-    " 0", ".,?!/+-1", "ABC2", "DEF3", "GHI4", "JKL5",
-    "MNO6", "PQRS7", "TUV8", "WXYZ9"
-};
+static const char keyText[]=" 0\0.,?!/+-1\0ABC2\0DEF3\0GHI4\0JKL5\0MNO6\0PQRS7\0TUV8\0WXYZ9";
+static const uint8_t keyOffsets[10]={0,3,12,17,22,27,32,37,43,48};
 static bool Alnum(char c) { return (c>='A' && c<='Z') || (c>='0' && c<='9'); }
 bool MESSAGE_ValidCall(const char *s)
 {
@@ -188,7 +186,7 @@ void MESSAGE_Key(KEY_Code_t key)
         Commit(); if (n) text[n-1]=0; m->delivery=MESSAGE_DRAFT; return;
     }
     if (key>KEY_9) return;
-    const char *group=keys[key];
+    const char *group=keyText+keyOffsets[key];
     if (m->tapTicks && m->tapKey==key && n) {
         m->tapIndex=(m->tapIndex+1)%strlen(group);
     } else {

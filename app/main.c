@@ -81,23 +81,23 @@ void toggle_chan_scanlist(void)
 
 // ---- Calling frequency lookup table ----
 typedef struct {
-	uint32_t band_start;    // band lower edge in Hz/10
-	uint32_t band_end;      // band upper edge in Hz/10
+	uint16_t band_start;    // band lower edge in 10 kHz units
+	uint16_t band_end;      // band upper edge in 10 kHz units
 	uint32_t call_freq;     // calling frequency in Hz/10
 	uint16_t step_freq;     // step size in Hz/10
 	uint8_t  modulation;    // 0=FM, 1=AM, 2=USB
 } BandCallFreq_t;
 
 static const BandCallFreq_t band_call_table[] = {
-	{ 14400000, 14430000, 14420000, 100,   MODULATION_USB },  // 2m SSB (narrow, checked first)
-	{ 14400000, 14800000, 14652000, 500,   MODULATION_FM  },  // 2m FM
-	{ 43200000, 43300000, 43210000, 500,   MODULATION_USB },  // 70cm SSB (narrow, first)
-	{ 42000000, 45000000, 44600000, 2500,  MODULATION_FM  },  // 70cm FM
-	{ 15100000, 15400000, 15194000, 1125,  MODULATION_FM  },  // MURS 151.940 MHz
-	{ 46200000, 46700000, 46256250, 1250,  MODULATION_FM  },  // FRS/GMRS 462.5625 MHz
-	{  2690000,  2740000,  2718500, 1000,  MODULATION_FM  },  // CB 27.185 MHz
-	{ 15600000, 16200000, 15680000, 2500,  MODULATION_FM  },  // Marine 156.800 MHz
-	{ 11800000, 13600000, 12150000, 2500,  MODULATION_AM  },  // Airband 121.500 MHz
+	{ 14400, 14430, 14420000, 100,   MODULATION_USB },  // 2m SSB (narrow, checked first)
+	{ 14400, 14800, 14652000, 500,   MODULATION_FM  },  // 2m FM
+	{ 43200, 43300, 43210000, 500,   MODULATION_USB },  // 70cm SSB (narrow, first)
+	{ 42000, 45000, 44600000, 2500,  MODULATION_FM  },  // 70cm FM
+	{ 15100, 15400, 15194000, 1125,  MODULATION_FM  },  // MURS 151.940 MHz
+	{ 46200, 46700, 46256250, 1250,  MODULATION_FM  },  // FRS/GMRS 462.5625 MHz
+	{ 2690, 2740,  2718500, 1000,  MODULATION_FM  },  // CB 27.185 MHz
+	{ 15600, 16200, 15680000, 2500,  MODULATION_FM  },  // Marine 156.800 MHz
+	{ 11800, 13600, 12150000, 2500,  MODULATION_AM  },  // Airband 121.500 MHz
 };
 #define BAND_CALL_COUNT (sizeof(band_call_table) / sizeof(band_call_table[0]))
 
@@ -245,8 +245,8 @@ static void VUURWERK_FKeyShortcut(uint8_t key_num)
 				VFO_Info_t *p = &gEeprom.VfoInfo[gEeprom.TX_VFO];
 				uint32_t freq = p->pRX->Frequency;
 				for (uint8_t i = 0; i < BAND_CALL_COUNT; i++) {
-					if (freq >= band_call_table[i].band_start &&
-						freq <= band_call_table[i].band_end) {
+					if (freq >= (uint32_t)band_call_table[i].band_start * 1000u &&
+						freq <= (uint32_t)band_call_table[i].band_end * 1000u) {
 						saved_vfo          = gEeprom.TX_VFO;
 						saved_frequency    = freq;
 						saved_step         = p->StepFrequency;

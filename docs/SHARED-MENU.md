@@ -1,5 +1,8 @@
 # Shared menu and position implementation
 
+**Historical checkpoint.** The later complete candidate fits the original MCU;
+see [FINAL-FIT.md](FINAL-FIT.md) for current measurements and validation.
+
 The complete candidate uses **63,832 / 61,440 bytes**, **2,392 over flash**.
 This checkpoint recovers another 556 bytes; total recovery from the 67,896-byte
 architecture audit is 4,064 bytes. The agreed settings, controls, screens and

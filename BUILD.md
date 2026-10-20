@@ -4,12 +4,17 @@ Run commands from the checkout root. The default build targets the original
 DP32G030's Cortex-M0, 60 KiB application flash and 16 KiB RAM. It does not target
 newer MCU variants. No firmware flashing is performed by the build scripts.
 
+The complete APRS candidate is selected by `tools/build-transport.sh`; the
+minimal receive-only build remains `tools/build.sh`. The complete profile now
+fits 61,440 bytes with no growth margin. See [FINAL-FIT.md](docs/FINAL-FIT.md)
+and the [candidate package](release/aprs-candidate/README.md).
+
 ## Reusable container toolchain
 
 ```bash
 ./tools/setup-toolchain.sh
 ./tools/test.sh
-./tools/build.sh
+./tools/build-transport.sh
 ```
 
 The setup script uses a digest-pinned Ubuntu 22.04 image and signed Ubuntu

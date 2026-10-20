@@ -1,5 +1,8 @@
 # Compact runtime, retained firmware behavior
 
+**Historical checkpoint.** The later complete candidate fits the original MCU;
+see [FINAL-FIT.md](FINAL-FIT.md) for current measurements and validation.
+
 The full transport candidate uses **63,832 / 61,440 bytes**, **2,392 bytes
 over flash**. This recovers **4,064 bytes** against the 67,896-byte architecture
 audit baseline, without further radio-feature removals.

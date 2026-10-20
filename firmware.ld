@@ -26,8 +26,8 @@ SECTIONS
 		KEEP(*(.text.isr)) /* .text sections of code  */
 		*(.text)           /* .text sections of code  */
 		*(.text*)          /* .text* sections of code */
-		*(.rodata)         /* .rodata sections        */
-		*(.rodata*)        /* .rodata* sections       */
+		/* Group immutable sections by alignment to avoid padding holes. */
+		*(SORT_BY_ALIGNMENT(.rodata*))
 		*(.glue_7)         /* Glue arm to thumb code  */
 		*(.glue_7t)        /* Glue thumb to arm code  */
 		*(.eh_frame)

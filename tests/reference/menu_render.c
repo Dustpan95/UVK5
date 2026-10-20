@@ -43,6 +43,40 @@
 #include "ui/ui.h"
 #include "ui/vuurwerk_menu.h"
 
+static const struct {const char *name;uint8_t id;} reference_side[] =
+{
+	{"NONE",			ACTION_OPT_NONE},
+#ifdef ENABLE_FLASHLIGHT
+	{"FLASH\nLIGHT",	ACTION_OPT_FLASHLIGHT},
+#endif
+	{"POWER",			ACTION_OPT_POWER},
+	{"MONITOR",			ACTION_OPT_MONITOR},
+	{"SCAN",			ACTION_OPT_SCAN},
+#ifdef ENABLE_VOX
+	{"VOX",				ACTION_OPT_VOX},
+#endif
+#ifdef ENABLE_ALARM
+	{"ALARM",			ACTION_OPT_ALARM},
+#endif
+#ifdef ENABLE_FMRADIO
+	{"FM RADIO",		ACTION_OPT_FM},
+#endif
+#ifdef ENABLE_TX1750
+	{"1750HZ",			ACTION_OPT_1750},
+#endif
+	{"LOCK\nKEYPAD",	ACTION_OPT_KEYLOCK},
+	{"SWITCH\nVFO",		ACTION_OPT_A_B},
+	{"VFO/MR",			ACTION_OPT_VFO_MR},
+	{"SWITCH\nDEMODUL",	ACTION_OPT_SWITCH_DEMODUL},
+#ifdef ENABLE_BLMIN_TMP_OFF
+	{"BLMIN\nTMP OFF",  ACTION_OPT_BLMIN_TMP_OFF}, 		//BackLight Minimum Temporay OFF
+#endif
+#ifdef ENABLE_SPECTRUM
+	{"SPECTRUM",         ACTION_OPT_SPECTRUM}
+#endif
+};
+
+
 void REFERENCE_UI_DisplayMenu(void)
 {
 	const unsigned int menu_list_width = 6; // max no. of characters on the menu list (left side)
@@ -507,7 +541,7 @@ void REFERENCE_UI_DisplayMenu(void)
 		case MENU_F2SHRT:
 		case MENU_F2LONG:
 		case MENU_MLONG:
-			strcpy(String, gSubMenu_SIDEFUNCTIONS[gSubMenuSelection].name);
+			strcpy(String, reference_side[gSubMenuSelection].name);
 			break;
 
 		case MENU_APRS_BEEP:

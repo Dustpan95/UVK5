@@ -5,5 +5,6 @@
 /* Expands build-generated, trusted tables. Not an external-input decoder.
  * Output size and backreferences are validated by resource equivalence tests.
  */
+void PACK_HuffmanExpand(void *output,unsigned size,const uint8_t *in);
 void PACK_Expand(void *output, unsigned size, const uint8_t *encoded);
 #endif

@@ -46,7 +46,7 @@ ENABLE_REDUCE_LOW_MID_TX_POWER?= 0
 ENABLE_BYP_RAW_DEMODULATORS   ?= 0
 ENABLE_BLMIN_TMP_OFF          ?= 0
 ENABLE_SCAN_RANGES            ?= 1
-# Candidate editor measured separately until the complete profile fits flash.
+# Minimal RX default; tools/build-transport.sh selects the complete APRS candidate.
 ENABLE_APRS_TRANSPORT         ?= 0
 ENABLE_APRS_MESSAGING         ?= 0
 ENABLE_APRS_SESSION           ?= 0
@@ -84,7 +84,7 @@ BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
 BSP_HEADERS     := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
 BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
-OBJS = helper/compact_memory.o helper/compact_division.o helper/compact_division_glue.o ui/display_text.o app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
+OBJS = helper/packed_huffman.o helper/compact_memory.o helper/compact_division.o helper/compact_division_glue.o ui/display_text.o app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
 ifeq ($(ENABLE_APRS_TRANSPORT),1)
 override ENABLE_APRS_MESSAGING := 1
 OBJS += app/aprs_runtime.o app/aprs_setup.o ui/aprs_setup.o app/aprs_tx.o
@@ -281,7 +281,7 @@ endif
 
 CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_TRANSPORT) $(CFLAGS_FONTS)
 ifeq ($(ENABLE_CLANG),0)
-	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fbuiltin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
+	CFLAGS += -Os -fno-early-inlining -Wall -Werror -mcpu=cortex-m0 -fbuiltin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c99 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=gnu99 -MMD

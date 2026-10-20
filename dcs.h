@@ -34,8 +34,10 @@ enum {
 	CDCSS_NEGATIVE_CODE = 2U,
 };
 
-extern const uint16_t CTCSS_Options[50];
-extern const uint16_t DCS_Options[104];
+extern uint16_t gToneOptions[154];
+#define DCS_Options (*(const uint16_t (*)[104])gToneOptions)
+#define CTCSS_Options (*(const uint16_t (*)[50])(gToneOptions+104))
+void DCS_Init(void);
 
 uint32_t DCS_GetGolayCodeWord(DCS_CodeType_t CodeType, uint8_t Option);
 uint8_t DCS_GetCdcssCode(uint32_t Code);

@@ -69,7 +69,7 @@ void MESSAGE_Draw(void)
     } else if(m->page==MESSAGE_OPTIONS || m->page==MESSAGE_QUICK) {
         const bool quick=m->page==MESSAGE_QUICK;
         UI_PrintLine(quick ? DISPLAY_TEXT("QUICK MESSAGES") : DISPLAY_TEXT("MESSAGE OPTIONS"),0);
-        const char *const options[]={DISPLAY_TEXT("QUICK MESSAGE"),DISPLAY_TEXT("REVIEW AND SEND"),DISPLAY_TEXT("EDIT RECIPIENT")};
+        static const char *const options[]={DISPLAY_TEXT("QUICK MESSAGE"),DISPLAY_TEXT("REVIEW AND SEND"),DISPLAY_TEXT("EDIT RECIPIENT")};
         for(unsigned i=0;i<3;i++) {
             sprintf(line,DISPLAY_TEXT("%c%.16s"),i==m->selected ? '>' : ' ',quick ? gAPRS_Quick[i] : options[i]);
             UI_PrintLine(line,2+i);
@@ -77,7 +77,7 @@ void MESSAGE_Draw(void)
         footer=DISPLAY_TEXT("MENU:SELECT  EXIT:BODY");
     } else {
 #ifdef ENABLE_APRS_TRANSPORT
-        const char *const states[]={DISPLAY_TEXT("IDLE"),DISPLAY_TEXT("QUEUED"),DISPLAY_TEXT("WAITING FOR ACK"),DISPLAY_TEXT("BEACON SENT"),DISPLAY_TEXT("ACK RECEIVED"),
+        static const char *const states[]={DISPLAY_TEXT("IDLE"),DISPLAY_TEXT("QUEUED"),DISPLAY_TEXT("WAITING FOR ACK"),DISPLAY_TEXT("BEACON SENT"),DISPLAY_TEXT("ACK RECEIVED"),
             DISPLAY_TEXT("MESSAGE REJECTED"),DISPLAY_TEXT("UNCONFIRMED"),DISPLAY_TEXT("TX BLOCKED"),DISPLAY_TEXT("TX FAILED"),DISPLAY_TEXT("CANCELLED"),DISPLAY_TEXT("EXPIRED")};
         sprintf(line,gAPRS_TX.needsAcknowledgment ? DISPLAY_TEXT("TO %s") : DISPLAY_TEXT("STATIC BEACON"),gAPRS_TX.recipient);UI_PrintLine(line,0);
         UI_PrintLine(states[gAPRS_TX.state],2);

@@ -1,3 +1,6 @@
+HISTORICAL UPSTREAM QUICKSTART: retained for attribution.
+For this project use release/aprs-candidate/README.md and FLASHING.md.
+
 VUURWERK v1.3.3 - Quick Start Guide
 
 FLASHING:

@@ -20,6 +20,7 @@
 #include "external/printf/printf.h"
 #include "font.h"
 #include "ui/helper.h"
+#include "ui/display_text.h"
 #include "ui/inputbox.h"
 #include "misc.h"
 
@@ -302,4 +303,10 @@ void UI_DisplaySmallest(const char *pString, uint8_t x, uint8_t y,
 void __attribute__((noinline)) UI_PrintLine(const char *text,uint8_t row)
 {
     UI_PrintStringSmallNormal(text,0,0,row);
+}
+
+int __attribute__((noinline)) UI_FormatFrequency(char *text,uint32_t frequency,bool pad)
+{
+    return sprintf(text,pad ? DISPLAY_TEXT("%3u.%05u"):DISPLAY_TEXT("%u.%05u"),
+                   (unsigned)(frequency/100000u),(unsigned)(frequency%100000u));
 }

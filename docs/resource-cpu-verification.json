@@ -1,0 +1,22 @@
+{
+  "compiler": "ARM GCC 10.3.1",
+  "cpu": "QEMU microbit Cortex-M0, 16 KiB SRAM",
+  "status": "passed",
+  "resources": {
+    "font-bold": {
+      "raw_sha256": "a31f7db679348fd5fbeb73714ac0ca8d4780b9b384dda7e3f982bc7d5c662c7a",
+      "packed_sha256": "24af0e1791636b6c3ec5f9c70d528b126da03aff6e2fa6b4cb4f2b2cbaf8fc8b"
+    },
+    "font-plain": {
+      "raw_sha256": "2aab2f0b00e2a2c1668dd778e4028d890b7ec902632c41593d4e8a114f669ac6",
+      "packed_sha256": "0ae6ae98ab3839a353b52ac58615bf28ab63d43cb90042785e20b7c0f9db58cb"
+    },
+    "display": {
+      "raw_sha256": "18664dcbf104a3aff7a64b25a1a71afa15315970db2dea6f3ec7b0c5b641f2cd",
+      "packed_sha256": "deaf0b6c3b6bdffb4bf9c33e020edb4e93181560ce51482c7575c528837efded"
+    }
+  },
+  "decoder_sha256": "2c60c4b90c316ecb2e353f15fe160171b530525416d4f58db8fc798f21a813cb",
+  "elf_sha256": "7d6592c0552c81ee60563c36a94998ce14ca950d5359e31d4c00ebb59aa9da22",
+  "limitations": "CPU/decoder execution only; no radio peripherals, physical hardware or RF validation."
+}

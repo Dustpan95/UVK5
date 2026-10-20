@@ -873,7 +873,11 @@ int printf_(const char* format, ...)
 #ifdef PRINTF_COMPACT_BUFFER
 /* UVK5: share a smaller integer/string buffer path. Original MIT-licensed
  * implementation above remains intact for device/callback output and tests. */
+#ifdef PRINTF_RADIO_BUFFER
+#include "../../helper/format_radio.inc"
+#else
 #include "../../helper/format_buffer.inc"
+#endif
 #define BUFFER_PRINT(buffer, count, format, va) FormatBufferPrint(buffer, count, format, va)
 #else
 #define BUFFER_PRINT(buffer, count, format, va) _vsnprintf(_out_buffer, buffer, count, format, va)

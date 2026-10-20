@@ -20,29 +20,19 @@
 #include "driver/i2c.h"
 #include "driver/systick.h"
 
-void I2C_Start(void)
+/* Four pin transitions, retaining their original order and 1 us delays.
+ * Low bit selects SCL rather than SDA; bit 1 selects the high level. */
+static void __attribute__((noinline)) Sequence(uint8_t sequence)
 {
-	GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-	SYSTICK_DelayUs(1);
-	GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-	SYSTICK_DelayUs(1);
-	GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-	SYSTICK_DelayUs(1);
-	GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-	SYSTICK_DelayUs(1);
+    for(unsigned step=0;step<4;step++,sequence>>=2) {
+        unsigned pin=(sequence&1) ? GPIOA_PIN_I2C_SCL:GPIOA_PIN_I2C_SDA;
+        if(sequence&2) GPIO_SetBit(&GPIOA->DATA,pin);
+        else GPIO_ClearBit(&GPIOA->DATA,pin);
+        SYSTICK_DelayUs(1);
+    }
 }
-
-void I2C_Stop(void)
-{
-	GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-	SYSTICK_DelayUs(1);
-	GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-	SYSTICK_DelayUs(1);
-	GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-	SYSTICK_DelayUs(1);
-	GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-	SYSTICK_DelayUs(1);
-}
+void I2C_Start(void) {Sequence(0x4e);}
+void I2C_Stop(void) {Sequence(0xb4);}
 
 uint8_t I2C_Read(bool bFinal)
 {

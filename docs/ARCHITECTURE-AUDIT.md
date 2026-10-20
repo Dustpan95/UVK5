@@ -1,5 +1,8 @@
 # Feature-preserving flash investigation
 
+**Historical checkpoint.** The later complete candidate fits the original MCU;
+see [FINAL-FIT.md](FINAL-FIT.md) for current measurements and validation.
+
 The audit baseline used **67,896 / 61,440 bytes**: **6,456 bytes over**.
 The subsequent feature-preserving implementation uses **63,832 bytes**,
 **2,392 over**; see [COMPACT-RUNTIME.md](COMPACT-RUNTIME.md).

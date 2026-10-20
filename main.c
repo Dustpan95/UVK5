@@ -24,6 +24,7 @@
 
 #include "audio.h"
 #include "font.h"
+#include "dcs.h"
 #include "ui/display_text.h"
 #include "board.h"
 #include "misc.h"
@@ -84,6 +85,7 @@ void Main(void)
 {
     FONT_Init();
     DISPLAY_TEXT_Init();
+    DCS_Init();
 	// Enable clock gating of blocks we need
 	SYSCON_DEV_CLK_GATE = 0
 		| SYSCON_DEV_CLK_GATE_GPIOA_BITS_ENABLE

@@ -6,4 +6,7 @@
  * device/callback formatter and allow byte-for-byte regression comparisons. */
 #ifndef PRINTF_LEGACY_BUFFER
 #define PRINTF_COMPACT_BUFFER
+#ifndef PRINTF_COMPACT_EXTENDED
+#define PRINTF_RADIO_BUFFER
+#endif
 #endif

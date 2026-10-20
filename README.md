@@ -1,10 +1,9 @@
 # VUURWERK UV-K6 APRS — experimental UVK5 fork
 
-**Experimental development project:** the custom home layout is approved. APRS
-message composition, transmit implementation and feature tradeoffs are still
-in development. A [receive-session bench image](release/rx-session-bench/README.md) is available
-for owner-controlled physical testing. This is a development checkpoint, not a
-completed firmware release.
+**Complete APRS experimental candidate:** the full feature profile now fits the
+original MCU's 61,440-byte application flash. Software verification is complete;
+physical boot and RF/TNC validation remain pending. See the
+[candidate package](release/aprs-candidate/README.md) for binaries, source and hashes.
 See the [custom interface review](docs/design/DECISIONS.md) and
 [interactive mockup](docs/design/review.html).
 
@@ -13,8 +12,7 @@ maintained in [Dustpan95/UVK5](https://github.com/Dustpan95/UVK5).
 
 This is a complete modified VUURWERK firmware fork, with an approved custom home
 layout influenced by F4HWN and standalone APRS receive adapted from TA1JS.
-The receive profiles fit the original radio's 60 KiB application flash; the
-complete APRS transmit candidate still exceeds it. **It has not been flashed or RF-tested
+The complete APRS transport profile fits the original radio's 60 KiB application flash. **It has not been flashed or RF-tested
 on a physical radio.** A UV-K6 model label or an Egzumer v0.21 boot screen alone
 does not establish the MCU revision.
 
@@ -37,16 +35,16 @@ does not establish the MCU revision.
   characters. Callsigns, positions and text appear on the radio's LCD. A phone,
   computer, external MCU or TNC is not required by the firmware's receive path.
 
-The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md)
-remain available separately (`ENABLE_APRS_MESSAGING=1`). The new
-`ENABLE_APRS_TRANSPORT=1` candidate binds the actual setup screens, session
-service, separate-frequency hardware adapter, tone sender and delivery status.
-It measures **63,832 bytes: 2,392 over the original MCU's 61,440-byte limit**.
-It is **not a flashable build**; the production linker rejects it. The three owner-selected removals are applied. The fitting default and receive-session bench keep
-this candidate disabled. See [transport implementation](docs/APRS-RUNTIME.md)
-and [flash feasibility](docs/FLASH-FEASIBILITY.md). The earlier
-[itemized feature costs](docs/FLASH-CHOICES.md) are diagnostic history. Current
-work focuses on preserving the agreed features through shared implementation.
+The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md), setup,
+separate-frequency radio adapter and delivery service are included by
+`./tools/build-transport.sh` (`ENABLE_APRS_TRANSPORT=1`). The complete candidate
+uses **61,440 / 61,440 flash bytes**, with **12,268 bytes of static RAM** and the
+unchanged **2,048-byte stack reserve**. It passes the production linker; the
+flash limit has not been enlarged. This leaves no flash growth margin.
+The three owner-selected removals remain the only additional feature cuts.
+The default minimal receive profile and historical receive-session image remain
+separate. See [feature-preserving size work](docs/FINAL-FIT.md) and
+[transport implementation](docs/APRS-RUNTIME.md).
 
 The candidate implements a separate APRS frequency, automatic ACKs for personal
 numbered messages, up to three total sends, a configurable **10-second default
@@ -64,10 +62,10 @@ are session-only and reset at power-off. The minimal default receive profile rem
 an all-traffic packet browser. The receive-session bench and full messaging candidate add a separate
 personal inbox filtered by an operator-entered callsign/SSID, unread markers,
 a deduplicated station directory, and an all-traffic monitor. All received APRS messages still trigger brief
-banners and configured sound, regardless of addressee. **Currently implemented on-radio: receive.** Standard-compatible transmit is
-being investigated before release, with messaging primary and a simple
-static-position beacon also requested. TX release scope is not yet fixed; see the measured
-[transmit investigation](docs/APRS-TX-INVESTIGATION.md).
+banners and configured sound, regardless of addressee. Receive, composition,
+ACK/retry handling and the intended standard 1200/2200 Hz transmit path are
+implemented and software-tested. RF compatibility, tone timing/deviation and
+independent TNC decoding require physical validation before everyday use.
 
 The provisional prototype disables the spectrum analyzer to measure APRS fit;
 final feature cuts have not been approved. See [measured options](docs/FEATURE-COSTS.md). FM broadcast, VOX,
@@ -106,10 +104,11 @@ Requires Linux, Docker, and host GCC for the sanitizer tests. A direct ARM GCC
 ```bash
 ./tools/setup-toolchain.sh
 ./tools/test.sh
-./tools/build.sh
+./tools/build-transport.sh
 ```
 
-`tools/build.sh` performs a clean build, rejects flash/RAM overflow, checks the
+`tools/build-transport.sh` selects all agreed APRS features and packages
+`build/transport-candidate/`. The underlying `tools/build.sh` performs a clean build, rejects flash/RAM overflow, checks the
 Cortex-M0 ELF architecture and reset vector, and validates the packed updater
 payload and CRC. Outputs are `uvk6-experimental.bin` and
 `uvk6-experimental.packed.bin`; the verification report is

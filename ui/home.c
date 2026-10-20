@@ -32,6 +32,7 @@
 #include "settings.h"
 #include "ui/inputbox.h"
 #include "ui/main.h"
+#include "ui/helper.h"
 #include "dtmf.h"
 #include "toast.h"
 #include "vfo_split.h"
@@ -84,7 +85,7 @@ static void Center(const char *s, unsigned y, unsigned size)
 static void Frequency(uint32_t f, unsigned y)
 {
     char s[12];
-    sprintf(s, DISPLAY_TEXT("%3u.%05u"), (unsigned)(f / 100000), (unsigned)(f % 100000));
+    UI_FormatFrequency(s,f,true);
     if (f >= 100000000) { Center(s, y, 2); return; }
     unsigned x = 23;
     for (unsigned n = 0; n < 7; ++n) {
@@ -135,7 +136,7 @@ static void Input(bool memory)
     if(memory) sprintf(s,DISPLAY_TEXT("CH-%.3s"),ascii);
     else {
         const unsigned digits=HomeVfo(gEeprom.TX_VFO)->pRX->Frequency>=100000000 ? 4 : 3;
-        sprintf(s,DISPLAY_TEXT("%.*s.%s"),digits,ascii,ascii+digits);
+        memcpy(s,ascii,digits);s[digits]='.';strcpy(s+digits+1,ascii+digits);
     }
     Center(s,20,2);Center(memory ? DISPLAY_TEXT("CHANNEL ENTRY") : DISPLAY_TEXT("FREQUENCY ENTRY"),40,0);
     Rect(0,57,128,7,true);Text(DISPLAY_TEXT("EXIT:DELETE  HOLD EXIT:CANCEL"),8,58,0,true);
@@ -159,7 +160,7 @@ static void Overlays(unsigned primary)
         if(alert) strcpy(s,DISPLAY_TEXT("VFO B ACTIVITY"));
         else sprintf(s,DISPLAY_TEXT("B SCAN CH%03u"),gVfoSplit.current_channel+1);
         Text(s,2,49,0,false);
-        sprintf(frequency,DISPLAY_TEXT("%3u.%05u"),(unsigned)(f/100000),(unsigned)(f%100000));
+        UI_FormatFrequency(frequency,f,true);
         Text(frequency,2,57,1,false);
         if(alert) {sprintf(s,DISPLAY_TEXT("%ddBm"),gVfoSplit.alert.rssi_dBm);Text(s,86,58,0,false);}
     } else if(gScanStateDir!=SCAN_OFF || SCANNER_IsScanning()) {
@@ -216,7 +217,7 @@ bool UI_HomeDraw(void)
     Text(s, 2, memory ? 9 : 10, 0, false);
     if (memory && name[0]) {
         Center(name, 16, 2);
-        sprintf(s, DISPLAY_TEXT("%3u.%05u"), (unsigned)(f / 100000), (unsigned)(f % 100000));
+        UI_FormatFrequency(s,f,true);
         Center(s, 34, 1);
         const int32_t shift = (int32_t)v->pTX->Frequency - (int32_t)v->pRX->Frequency;
         const uint32_t delta = shift < 0 ? -shift : shift;
@@ -240,7 +241,7 @@ bool UI_HomeDraw(void)
     }
     const unsigned secondary = primary ^ 1;
     const uint32_t other = HomeVfo(secondary)->pRX->Frequency;
-    sprintf(s, DISPLAY_TEXT("%c %3u.%05u"), 'A' + secondary, (unsigned)(other / 100000), (unsigned)(other % 100000));
+    s[0]='A'+secondary;s[1]=' ';UI_FormatFrequency(s+2,other,true);
     Text(s, 4, 49, 1, false);
     if (tx) {
         Rect(0, memory && name[0] ? 42 : 38, 128, memory && name[0] ? 15 : 19, false);

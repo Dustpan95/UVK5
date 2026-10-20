@@ -1,5 +1,8 @@
 # Lossless display resources
 
+This records an earlier checkpoint; see [FINAL-FIT.md](FINAL-FIT.md) for
+the current formatter, lossless codec and complete fitting build.
+
 This checkpoint used **65,752 / 61,440 flash bytes**, **4,312
 bytes over**. This follows the shared-implementation checkpoint at 66,796
 bytes and preserves its retained radio features, screen layouts and controls.

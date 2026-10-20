@@ -201,51 +201,23 @@ void BK4819_UpdateRegisterBits(BK4819_REGISTER_t Register, uint16_t mask, uint16
 		(BK4819_ReadRegister(Register) & ~mask) | (value & mask));
 }
 
-void BK4819_WriteU8(uint8_t Data)
+/* Both transfers shift MSB first using the same three explicit delays. */
+static void __attribute__((noinline)) WriteBits(uint32_t data,unsigned count)
 {
-	unsigned int i;
-
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-	for (i = 0; i < 8; i++)
-	{
-		if ((Data & 0x80) == 0)
-			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-		else
-			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-
-		SYSTICK_DelayUs(1);
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_DelayUs(1);
-
-		Data <<= 1;
-
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_DelayUs(1);
-	}
+    GPIO_ClearBit(&GPIOC->DATA,GPIOC_PIN_BK4819_SCL);
+    while(count--) {
+        if(data & 0x8000u) GPIO_SetBit(&GPIOC->DATA,GPIOC_PIN_BK4819_SDA);
+        else GPIO_ClearBit(&GPIOC->DATA,GPIOC_PIN_BK4819_SDA);
+        SYSTICK_DelayUs(1);
+        GPIO_SetBit(&GPIOC->DATA,GPIOC_PIN_BK4819_SCL);
+        data<<=1;
+        SYSTICK_DelayUs(1);
+        GPIO_ClearBit(&GPIOC->DATA,GPIOC_PIN_BK4819_SCL);
+        SYSTICK_DelayUs(1);
+    }
 }
-
-void BK4819_WriteU16(uint16_t Data)
-{
-	unsigned int i;
-
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-	for (i = 0; i < 16; i++)
-	{
-		if ((Data & 0x8000) == 0)
-			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-		else
-			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-
-		SYSTICK_DelayUs(1);
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-
-		Data <<= 1;
-
-		SYSTICK_DelayUs(1);
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_DelayUs(1);
-	}
-}
+void BK4819_WriteU8(uint8_t data) {WriteBits((uint32_t)data<<8,8);}
+void BK4819_WriteU16(uint16_t data) {WriteBits(data,16);}
 
 void BK4819_SetAGC(bool enable)
 {

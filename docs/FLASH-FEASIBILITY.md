@@ -1,5 +1,8 @@
 # Original-MCU flash feasibility
 
+**Historical checkpoint.** The later complete candidate fits the original MCU;
+see [FINAL-FIT.md](FINAL-FIT.md) for current measurements and validation.
+
 The requested complete build has not been shown to fit. The original DP32G030
 application limit remains **61,440 bytes**; diagnostic linker enlargement does
 not increase the radio's physical capacity. No feature cuts are approved.

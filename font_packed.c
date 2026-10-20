@@ -13,5 +13,5 @@ _Static_assert(sizeof(FONT_Storage)==2388
     ,"Font layout must match the generator's byte sequence");
 void FONT_Init(void)
 {
-    PACK_Expand(&gFonts,sizeof(gFonts),gPackedFonts);
+    PACK_HuffmanExpand(&gFonts,sizeof(gFonts),gPackedFonts);
 }

@@ -17,9 +17,9 @@
 
 void APRS_FormatCoordinate(char *out, int32_t value, char positive, char negative)
 {
-    const uint32_t abs = value < 0 ? (uint32_t)-value : (uint32_t)value;
-    sprintf(out, DISPLAY_TEXT("%lu.%05lu%c"), (unsigned long)(abs / 1000000),
-            (unsigned long)((abs % 1000000) / 10), value < 0 ? negative : positive);
+    const uint32_t abs = value < 0 ? 0u-(uint32_t)value : (uint32_t)value;
+    unsigned n=UI_FormatFrequency(out,abs/10u,false);
+    out[n]=value<0 ? negative:positive;out[n+1]=0;
 }
 
 void APRS_DrawRecord(const APRS_Record *r)

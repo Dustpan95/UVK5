@@ -27,7 +27,9 @@
 
 typedef struct {
 	const char  name[7];    // menu display area only has room for 6 characters
+#ifdef ENABLE_VOICE
 	VOICE_ID_t  voice_id;
+#endif
 	uint8_t     menu_id;
 } t_menu_item;
 
@@ -154,7 +156,7 @@ extern const char        gSubMenu_D_RSP[4][11];
 extern const char* const gSubMenu_PTT_ID[5];
 extern const char* const gSubMenu_F_LOCK[F_LOCK_LEN];
 
-typedef struct {char* name; uint8_t id;} t_sidefunction;
+typedef struct {uint16_t name_offset; uint8_t id;} t_sidefunction;
 extern const uint8_t 		 gSubMenu_SIDEFUNCTIONS_size;
 extern const t_sidefunction gSubMenu_SIDEFUNCTIONS[];
 				         

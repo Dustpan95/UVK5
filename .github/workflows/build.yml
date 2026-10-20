@@ -26,8 +26,6 @@ jobs:
             uvk6-experimental.packed.bin
             uvk6-experimental.map
             build/verification.json
-      - name: Compile and measure oversized transport candidate (never a release image)
-        run: python3 tools/measure-transport.py
       - name: Build original-MCU receive-session bench package
         run: ./tools/build-receiver-bench.sh
       - name: Reproduce published bench binaries from their frozen source
@@ -36,3 +34,9 @@ jobs:
         with:
           name: uvk6-rx-session-bench
           path: build/receiver-bench/
+      - name: Build and verify complete APRS transport candidate
+        run: ./tools/build-transport.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uvk6-aprs-candidate
+          path: build/transport-candidate/

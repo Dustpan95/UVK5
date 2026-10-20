@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
-from lzss import pack
+from huffman_lz import pack_huffman
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
@@ -22,21 +22,20 @@ values = set()
 tokens = re.compile(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', re.S)
 for source in sorted((root / 'ui').glob('*.c')):
     text = tokens.sub(lambda m: ' ' if m[0].startswith('/') else m[0], source.read_text())
-    for literal in re.findall(r'DISPLAY_TEXT\(\s*("(?:\\.|[^"\\])*")\s*\)', text):
+    for literal in re.findall(r'DISPLAY_TEXT(?:_OFFSET)?\(\s*("(?:\\.|[^"\\])*")\s*\)', text):
         value = ast.literal_eval(literal)
         value.encode('ascii')
         values.add(value)
 if not values:
     raise SystemExit('No display text found')
-raw = bytearray()
-offsets = {}
-for value in sorted(values, key=lambda s: (-len(s), s)):
-    data = value.encode('ascii') + b'\0'
-    offset = raw.find(data)
-    if offset < 0:
-        offset = len(raw)
-        raw.extend(data)
-    offsets[value] = offset
+# Preserve complete C strings and suffix aliases, grouping similar-length
+# labels before compression. All literal offsets are regenerated and tested.
+roots=[value for value in values if not any(other!=value and other.endswith(value) for other in values)]
+raw=bytearray()
+for value in sorted(roots,key=lambda value:(-len(value)//4,value)):
+    raw.extend(value.encode('ascii')+b'\0')
+offsets={value:raw.find(value.encode('ascii')+b'\0') for value in values}
+assert all(offset>=0 for offset in offsets.values())
 text_raw = bytes(raw)
 hints_source = (root / 'ui/menu_hints.inc').read_text()
 hints_source = hints_source[hints_source.index('static const char sHintPool'):]
@@ -53,8 +52,8 @@ for match in re.finditer(r'const char (gSubMenu_\w+)\[\]\[(\d+)\]\s*=\s*\{(.*?)\
         raise SystemExit('Invalid choice table: ' + name)
     data = b''.join(row.ljust(width, b'\0') for row in rows)
     choices.append((name, len(rows), width, data))
-raw = hints + text_raw + b''.join(data for _, _, _, data in choices)
-packed = pack(raw)
+raw = text_raw + b''.join(data for _, _, _, data in choices) + hints
+packed = pack_huffman(raw)
 notice = '''/* SPDX-License-Identifier: GPL-3.0-only
  * Generated losslessly from project UI text by tools/pack-display-text.py.
  * Original copyright/license notices remain in the source UI files and CREDITS.
@@ -65,10 +64,10 @@ header = notice + '''#ifndef UVK5_DISPLAY_TEXT_H
 #include <stdint.h>
 '''
 header += f'enum {{ DISPLAY_TEXT_BYTES={len(text_raw)}, DISPLAY_HINT_BYTES={len(hints)}, DISPLAY_RESOURCE_BYTES={len(raw)} }};\n'
-header += 'typedef struct {\n    char hints[DISPLAY_HINT_BYTES], text[DISPLAY_TEXT_BYTES];\n'
+header += 'typedef struct {\n    char text[DISPLAY_TEXT_BYTES];\n'
 for name, count, width, _ in choices:
     header += f'    char menu_{name[9:]}[{count}][{width}];\n'
-header += '} DisplayResources;\nextern DisplayResources gDisplayResources;\n'
+header += '    char hints[DISPLAY_HINT_BYTES];\n} DisplayResources;\nextern DisplayResources gDisplayResources;\n'
 header += '#define gDisplayText (gDisplayResources.text)\nvoid DISPLAY_TEXT_Init(void);\n'
 for name, count, width, _ in choices:
     header += f'#define {name} (*(const char (*)[{count}][{width}])gDisplayResources.menu_{name[9:]})\n'
@@ -132,7 +131,7 @@ static const struct {const char *actual,*expected;unsigned offset;} cases[]={
     if os.environ.get('SANITIZE', '1') == '1':
         flags += ['-fsanitize=address,undefined', '-fno-omit-frame-pointer']
     subprocess.run([compiler, *flags, str(out / 'test.c'), str(root / 'ui/display_text.c'),
-                    str(root / 'helper/packed.c'), '-o', str(out / 'test')], check=True)
+                    str(root / 'helper/packed.c'), str(root / 'helper/packed_huffman.c'), '-o', str(out / 'test')], check=True)
     subprocess.run([str(out / 'test')], check=True)
     unknown = '#include "ui/display_text.h"\nconst char *bad=DISPLAY_TEXT("UVK5_UNREGISTERED_LITERAL");\n'
     result = subprocess.run([compiler, *flags, '-x', 'c', '-c', '-', '-o', str(out / 'unknown.o')],

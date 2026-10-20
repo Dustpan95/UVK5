@@ -12,7 +12,7 @@ void SESSION_Draw(void)
     const char *footer=DISPLAY_TEXT("MENU:OPEN  EXIT:RADIO");
     if(gAPRS_View==APRS_HUB) {
         UI_PrintLine(DISPLAY_TEXT("APRS"),0);
-        const char *const items[]={DISPLAY_TEXT("PERSONAL INBOX"),DISPLAY_TEXT("ALL TRAFFIC"),DISPLAY_TEXT("STATIONS"),
+        static const char *const items[]={DISPLAY_TEXT("PERSONAL INBOX"),DISPLAY_TEXT("ALL TRAFFIC"),DISPLAY_TEXT("STATIONS"),
 #ifndef ENABLE_APRS_CALLSIGN_ONLY
             DISPLAY_TEXT("NEW MESSAGE"),
 #endif

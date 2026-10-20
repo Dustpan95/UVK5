@@ -305,3 +305,31 @@ Sequential verified builds measure default RX **52,068 bytes**, RX-session
 development **54,492 bytes**, full transport **63,832 bytes** (2,392 over).
 The full candidate remains non-flashable. Frozen release files are unchanged;
 physical RF and radio hardware remain untested.
+
+## Complete original-MCU fit
+
+The full APRS transport candidate passes the unchanged production linker at
+**61,440 bytes**, with **12,268 static RAM bytes** and a **2,048-byte stack
+reserve**. ARMv6S-M/Thumb-1 vectors, all flash LOAD ranges, updater payload/CRC
+and SRAM reservation checks pass. No additional feature removals were made.
+The minimal RX profile uses 49,888 bytes and the current RX-session profile
+52,448 bytes; the older frozen bench image remains unchanged.
+
+The full ASan/UBSan application suite passes. Additional differential checks:
+
+- 583,680 bounded and 6,080 unbounded comparisons of every source buffer format;
+  158,208 checks of the retained broader formatter and source-format validation.
+- 16,002 default and 16,020 voice-enabled complete menu frames/preview traces.
+- 56,760 settings/getter/side-effect cases in each default/voice configuration,
+  plus all 256 menu IDs and their bounds.
+- 9,885 original tone-table, Golay/rotation and nearest-tone comparisons.
+- 2,072,020 original calling-band lookups, inclusive edges and channel parameters.
+- 131,584 BK4819 and 131,072 I2C original pin-state/programmed-delay traces.
+- 152 guarded exact Huffman/LZ streams and all original glyph/text bytes;
+  actual font/text expansion also passes on a Cortex-M0 CPU model with 16 KiB RAM.
+- 2,164,390 shared coordinate-format comparisons and all 56 stored LCD snapshots.
+
+These augment the existing decoder, runtime, RF-adapter, timing-fault, restoration,
+ACK/retry, compact memory and Cortex-M0 arithmetic/ABI checks. CPU modeling and
+pin traces do not establish physical RF timing, deviation, interoperability,
+boot or recovery. No hardware was flashed. See [FINAL-FIT.md](FINAL-FIT.md).

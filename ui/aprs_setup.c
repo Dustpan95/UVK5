@@ -14,8 +14,8 @@ void __attribute__((noinline)) SETUP_Draw(void)
     const APRS_Setup *s=&gAPRS_Setup;char line[24];
     UI_DisplayClear();const char *footer=DISPLAY_TEXT("MENU:SELECT EXIT:BACK");
     if(s->page==SETUP_HOME || s->page==SETUP_QUICK || s->page==SETUP_DATA) {
-        const char *const home[]={DISPLAY_TEXT("MY CALLSIGN"),DISPLAY_TEXT("STATIC POSITION"),DISPLAY_TEXT("QUICK MESSAGES"),DISPLAY_TEXT("DATA TX")};
-        const char *const data[]={DISPLAY_TEXT("APRS FREQUENCY"),DISPLAY_TEXT("TX AUDIO LEVEL"),DISPLAY_TEXT("ACK WAIT"),DISPLAY_TEXT("DATA TX"),DISPLAY_TEXT("SEND BEACON")};
+        static const char *const home[]={DISPLAY_TEXT("MY CALLSIGN"),DISPLAY_TEXT("STATIC POSITION"),DISPLAY_TEXT("QUICK MESSAGES"),DISPLAY_TEXT("DATA TX")};
+        static const char *const data[]={DISPLAY_TEXT("APRS FREQUENCY"),DISPLAY_TEXT("TX AUDIO LEVEL"),DISPLAY_TEXT("ACK WAIT"),DISPLAY_TEXT("DATA TX"),DISPLAY_TEXT("SEND BEACON")};
         unsigned count=s->page==SETUP_HOME ? 4 : s->page==SETUP_QUICK ? 3 : 5;
         UI_PrintStringSmallNormal(s->page==SETUP_HOME ? DISPLAY_TEXT("APRS SETUP SESSION") :
             s->page==SETUP_QUICK ? DISPLAY_TEXT("EDIT QUICK MSGS") : DISPLAY_TEXT("APRS DATA TX"),0,0,0);
@@ -23,8 +23,10 @@ void __attribute__((noinline)) SETUP_Draw(void)
             const char *label=s->page==SETUP_HOME ? home[i] : s->page==SETUP_QUICK ? gAPRS_Quick[i] : data[i];
             sprintf(line,DISPLAY_TEXT("%c%.16s"),i==s->selected ? '>' : ' ',label);
             if(s->page==SETUP_DATA && i==0) {
-                if(gAPRS_Runtime.frequency) sprintf(line,DISPLAY_TEXT("%cFREQ %3u.%05u"),i==s->selected ? '>' : ' ',
-                    (unsigned)(gAPRS_Runtime.frequency/100000),(unsigned)(gAPRS_Runtime.frequency%100000));
+                if(gAPRS_Runtime.frequency) {
+                    sprintf(line,DISPLAY_TEXT("%cFREQ "),i==s->selected ? '>' : ' ');
+                    UI_FormatFrequency(line+6,gAPRS_Runtime.frequency,true);
+                }
                 else sprintf(line,DISPLAY_TEXT("%cFREQ NOT SET"),i==s->selected ? '>' : ' ');
             }
             if(s->page==SETUP_DATA && i==1) {

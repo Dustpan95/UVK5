@@ -1,10 +1,13 @@
-# Actual APRS runtime candidate — not flashable yet
+# Complete APRS runtime candidate
 
 `ENABLE_APRS_TRANSPORT=1` selects the actual foreground/UI/RX/hardware binding.
 It forces messaging and session support. It is disabled by default. The complete
-candidate is 63,832 bytes versus the original DP32G030's 61,440-byte application
-limit; production linking refuses it. Oversized diagnostic binaries are never
-release artifacts. The existing fitting RX bench is unchanged.
+candidate now fits **61,440 / 61,440 bytes**, with 12,268 static RAM bytes and
+2,048 reserved stack bytes. `tools/build-transport.sh` selects this full profile,
+uses the unchanged production linker and packages verified raw/updater images.
+Physical boot and RF interoperability remain untested. The historical RX bench
+is unchanged. See [final fit](FINAL-FIT.md) and the
+[candidate package](../release/aprs-candidate/README.md).
 
 ## Implemented source paths
 
@@ -84,5 +87,6 @@ Secondary-VFO background activity scanning is now also excluded
 (`ENABLE_VFO_SPLIT=0`). Normal dual watch, A/B VFOs, Scan+Watch, memory/frequency
 scanning and repeater offsets remain. This removal saved 816 bytes in the
 complete candidate; shared setup handlers recovered another 208 with unchanged
-screens and controls. Current flash is 63,832 bytes, still 2,392 over. Earlier
+screens and controls. That checkpoint used 63,832 bytes, still 2,392 over. The later
+[feature-preserving implementation](FINAL-FIT.md) fits at 61,440 bytes. Earlier
 figures above describe previous checkpoints, not additional available savings.

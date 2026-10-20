@@ -1,5 +1,8 @@
 # Shared implementation, retained radio features
 
+This records an earlier checkpoint; see [FINAL-FIT.md](FINAL-FIT.md) for
+the current formatter, lossless codec and complete fitting build.
+
 This checkpoint used **66,796 / 61,440 bytes**,
 **5,356 bytes over flash**. Four feature-preserving changes recover **1,100
 bytes** against the architecture-audit baseline. This is still an oversized
