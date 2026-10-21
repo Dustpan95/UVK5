@@ -10,3 +10,7 @@ if [[ ${SANITIZE:-1} == 1 ]]; then flags+=(-fsanitize=address,undefined -fno-omi
     ui/display_text.c tests/init_display_text.c dcs.c tests/init_dcs.c helper/packed.c helper/packed_huffman.c \
     -o build/rx-diagnostics-tests/test
 build/rx-diagnostics-tests/test build/rx-diagnostics-tests
+"$compiler" "${flags[@]}" -ffunction-sections -fdata-sections tests/test_reference_gain.c \
+    app/aprs_rx.c app/aprs_decode.c app/aprs_position.c gain_staging.c am_fix.c \
+    -Wl,--gc-sections -o build/rx-diagnostics-tests/gain
+build/rx-diagnostics-tests/gain

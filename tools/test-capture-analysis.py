@@ -3,7 +3,7 @@ import importlib.util
 from pathlib import Path
 s=importlib.util.spec_from_file_location('analysis',Path(__file__).with_name('analyze-rx-capture.py'))
 m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
-b=Path('build/rx-diagnostics-tests/captures.bin').read_bytes();raw=b[24:24+240]
+b=Path('build/rx-diagnostics-tests/captures.bin').read_bytes();offset=48 if b[4]==3 else 24;raw=b[offset:offset+240]
 for swap in [False,True]:
  changed=b''.join(raw[i:i+2][::-1] for i in range(0,len(raw),2)) if swap else raw
  result=m.analyze(changed,swap=swap)

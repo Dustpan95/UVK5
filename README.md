@@ -1,19 +1,24 @@
 # VUURWERK UV-K6 APRS — experimental UVK5 fork
 
 **Complete APRS experimental candidate:** the full feature profile now fits the
-original MCU's 61,440-byte application flash. Software verification is complete;
-physical boot and RF/TNC validation remain pending. See the
+original MCU's flash and the updater's stricter 61,439-byte limit. Automated
+software checks pass. The owner reports boot, controls and voice receive work,
+but APRS packets do not yet decode; RF/TNC validation remains incomplete. See the
 [candidate package](release/aprs-candidate/README.md) for binaries, source and hashes.
 See the [custom interface review](docs/design/DECISIONS.md) and
 [interactive mockup](docs/design/review.html).
+The [TA1JS source comparison](docs/TA1JS-RX-COMPARISON.md) and temporary
+[D4 receive diagnostic](release/rx-diagnostics-d4/README.md) investigate filtering
+and gain differences. D4 is software-tested and awaits a local hardware test.
 
 Custom firmware for the **original Quansheng UV-K6 / UV-K5 with the DP32G030 MCU**,
 maintained in [Dustpan95/UVK5](https://github.com/Dustpan95/UVK5).
 
 This is a complete modified VUURWERK firmware fork, with an approved custom home
 layout influenced by F4HWN and standalone APRS receive adapted from TA1JS.
-The complete APRS transport profile fits the original radio's 60 KiB application flash. **It has not been flashed or RF-tested
-on a physical radio.** A UV-K6 model label or an Egzumer v0.21 boot screen alone
+The complete APRS transport profile fits the original radio's 60 KiB application
+flash. **Successful APRS RX and TX have not been demonstrated on the owner's
+radio.** A UV-K6 model label or an Egzumer v0.21 boot screen alone
 does not establish the MCU revision.
 
 ## Included in this experimental build

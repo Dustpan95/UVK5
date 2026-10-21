@@ -24,10 +24,11 @@ static void DrawDiagnostics(void)
     APRS_RxDiagnostics d;char line[48];
     APRS_GetDiagnostics(&d);UI_DisplayClear();
     if(gAPRS_DiagnosticPage==0) {
-        UI_PrintLine("APRS RX DIAG D3",0);
+        UI_PrintLine("APRS RX DIAG D4",0);
         sprintf(line,"EN%u RD%u AR%u CP%u",gAPRS_Enabled,d.ready,d.armed,d.capturing);UI_PrintLine(line,1);
         sprintf(line,"S%u F%u E%u",d.sync,d.fifo,d.end);UI_DisplaySmallest(line,0,16,false,true);
-        sprintf(line,"%c %s B%u L%u",'A'+d.mode,d.frozen?"HELD":"COLLECT",d.bytes,d.lastBytes);UI_DisplaySmallest(line,0,24,false,true);
+        static const char *const profiles[]={"BASE","REF","FLT","GAIN"};
+        sprintf(line,"%c:%s %s L%u",'A'+d.mode,profiles[d.mode],d.frozen?"HELD":"COLLECT",d.lastBytes);UI_DisplaySmallest(line,0,24,false,true);
         sprintf(line,"OK%u BAD%u TO%u",d.good,d.bad,d.timeout);UI_DisplaySmallest(line,0,32,false,true);
         sprintf(line,"FL%u FR%u CRC%u",d.flags,d.frames,d.crc);UI_DisplaySmallest(line,0,40,false,true);
         UI_PrintLine("1:CLR 2:MODE MENU",6);
@@ -37,14 +38,8 @@ static void DrawDiagnostics(void)
         sprintf(line,"3F%05u I%05u",d.reg3f,d.lastIrq);UI_DisplaySmallest(line,0,16,false,true);
         sprintf(line,"%u.%05u MHz",(unsigned)(gRxVfo->pRX->Frequency/100000u),
                 (unsigned)(gRxVfo->pRX->Frequency%100000u));UI_DisplaySmallest(line,0,24,false,true);
-        for(unsigned row=0;row<2;row++) {
-            static const char hex[]="0123456789ABCDEF";
-            memcpy(line,"RAW ",4);
-            for(unsigned i=0;i<4;i++) {
-                unsigned value=d.prefix[row*4+i];line[4+i*2]=hex[value>>4];line[5+i*2]=hex[value&15];
-            }
-            line[12]=0;UI_PrintLine(line,row+4);
-        }
+        sprintf(line,"43=%05u 13=%05u",d.reg43,d.reg13);UI_PrintLine(line,4);
+        sprintf(line,"7E=%05u B%u",d.reg7e,d.bytes);UI_PrintLine(line,5);
         UI_PrintLine("1:CLR 2:MODE MENU",6);
     }
     ST7565_BlitFullScreen();

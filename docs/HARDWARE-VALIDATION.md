@@ -11,6 +11,8 @@ collection. Three owner-exported 240-byte captures yield no valid frame across
 combinations; no physical decoding improvement has yet been demonstrated. The
 [D3 capture and independent speaker-audio findings](RX-INVESTIGATION.md) record
 the unsuccessful B/D captures and independent audio decode, with their limits.
+[D4](../release/rx-diagnostics-d4/README.md) adds a source-informed TA1JS
+filter/gain comparison with per-capture register readbacks; hardware untested.
 The following checklist is a validation plan; do not
 interpret every item as completed.
 

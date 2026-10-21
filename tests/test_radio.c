@@ -191,23 +191,24 @@ int main(int argc,char **argv) {
     for(unsigned i=0;i<3;i++) APRS_Tick500ms();
     fifo_active=false;APRS_GetDiagnostics(&d);
     assert(d.timeout==1 && d.bad==2 && d.lastBytes==24 && d.armed && !d.capturing);
-    uint8_t dump[1008],frozen_dump[1008],guard[66];
+    uint8_t dump[1104],frozen_dump[1104],guard[66];
     memset(guard,0xa5,sizeof(guard));
     assert(APRS_ReadDiagnosticCapture(0,255,guard+1)==64 && guard[0]==0xa5 && guard[65]==0xa5);
     for(unsigned offset=0;offset<sizeof(dump);offset+=64) {
         unsigned want=sizeof(dump)-offset;if(want>64) want=64;
         assert(APRS_ReadDiagnosticCapture(offset,want,dump+offset)==want);
     }
-    assert(!memcmp(dump,"UVRX",4) && dump[4]==2 && dump[5]==4 && dump[6]==0 && dump[7]==1 && dump[8]==8);
+    assert(!memcmp(dump,"UVRX",4) && dump[4]==3 && dump[5]==4 && dump[6]==0 && dump[7]==1 && dump[8]==8);
     for(unsigned slot=0;slot<4;slot++) {
-        uint8_t *r=dump+16+slot*248;assert(r[0]==slot+5 && !r[1] && !r[2] && !r[3]);
+        uint8_t *r=dump+16+slot*272;assert(r[0]==slot+5 && !r[1] && !r[2] && !r[3]);
         unsigned length=r[4]|r[5]<<8;assert(length==(slot==3 ? 24:240));
         assert(r[6]==(slot==3 ? 2:1) && !r[7]);
-        assert(!memcmp(r+8,slot==2 ? corrupt:capture_fixture,length));
-        for(unsigned i=length;i<240;i++) assert(!r[8+i]);
+        assert((r[8]|r[9]<<8)==0x3fc3 && (r[12]|r[13]<<8)==before[0x43]);
+        assert(!memcmp(r+32,slot==2 ? corrupt:capture_fixture,length));
+        for(unsigned i=length;i<240;i++) assert(!r[32+i]);
     }
-    assert(APRS_ReadDiagnosticCapture(1007,64,guard)==1);
-    assert(!APRS_ReadDiagnosticCapture(1008,1,guard) && !APRS_ReadDiagnosticCapture(65535,255,guard));
+    assert(APRS_ReadDiagnosticCapture(1103,64,guard)==1);
+    assert(!APRS_ReadDiagnosticCapture(1104,1,guard) && !APRS_ReadDiagnosticCapture(65535,255,guard));
     assert(!APRS_ReadDiagnosticCapture(0,1,NULL));
     fifo_capture=capture_fixture;fifo=0;fifo_active=true;
     APRS_Interrupt(BK4819_REG_02_FSK_RX_SYNC);
@@ -226,7 +227,7 @@ int main(int argc,char **argv) {
     for(unsigned page=0;page<3;page++) {
         assert(gAPRS_DiagnosticPage==page);
         uint8_t expected_title[128];
-        if(page<2) {UI_DisplayClear();UI_PrintLine(page==0 ? "APRS RX DIAG D3":"APRS REG / RAW",0);memcpy(expected_title,gFrameBuffer[0],128);}
+        if(page<2) {UI_DisplayClear();UI_PrintLine(page==0 ? "APRS RX DIAG D4":"APRS REG / RAW",0);memcpy(expected_title,gFrameBuffer[0],128);}
         diagnostic_writes=writes;APRS_Draw();assert(writes==diagnostic_writes);
         if(page<2) assert(!memcmp(expected_title,gFrameBuffer[0],128));
         snprintf(diagnostic_path,sizeof(diagnostic_path),"%s/diagnostics-%u.pbm",argv[1],page);image(diagnostic_path);
@@ -235,10 +236,18 @@ int main(int argc,char **argv) {
     assert(!gAPRS_DiagnosticPage);
     assert(APRS_Key(KEY_EXIT,true,false) && !gAPRS_Browser);
     APRS_Open();
-    const uint16_t mode_regs[]={0x3fc3,0x3fc9,0x33c9,0x33c3};
+
     for(unsigned next=1;next<=4;next++) {
         assert(APRS_Key(KEY_2,true,false));APRS_GetDiagnostics(&d);
-        assert(d.mode==next%4 && d.armed && !d.capturing && d.reg58==mode_regs[next%4]);
+        assert(d.mode==next%4 && d.armed && !d.capturing && d.reg58==0x3fc3);
+        bool referenceGain=d.mode==1 || d.mode==3;
+        assert(APRS_UsesReferenceGain()==referenceGain);
+        assert(d.reg43==((d.mode==1 || d.mode==2)?0x3628:before[0x43]));
+        assert(d.reg13==(referenceGain?0x03be:before[0x13]));
+        assert(d.reg7e==(referenceGain?((before[0x7e]&0x0fff)|0x3000):before[0x7e]));
+        APRS_Stop();assert(!APRS_UsesReferenceGain());
+        assert(regs[0x43]==before[0x43] && regs[0x13]==before[0x13] && regs[0x7e]==before[0x7e]);
+        APRS_Resume();
         assert(APRS_Key(KEY_2,true,true));APRS_GetDiagnostics(&d);assert(d.mode==next%4);
         fifo_capture=capture_fixture;fifo=0;fifo_active=true;
         APRS_Interrupt(BK4819_REG_02_FSK_RX_SYNC);
@@ -247,8 +256,12 @@ int main(int argc,char **argv) {
     }
     APRS_ReadDiagnosticCapture(0,64,guard);
     for(unsigned slot=0;slot<4;slot++) {
-        assert(APRS_ReadDiagnosticCapture(16+slot*248,8,guard)==8);
+        assert(APRS_ReadDiagnosticCapture(16+slot*272,32,guard)==32);
         assert(guard[7]==(slot+1)%4);
+        unsigned profile=guard[7];
+        assert((guard[8]|guard[9]<<8)==0x3fc3);
+        assert((guard[12]|guard[13]<<8)==((profile==1 || profile==2)?0x3628:before[0x43]));
+        assert((guard[14]|guard[15]<<8)==((profile==1 || profile==3)?0x03be:before[0x13]));
     }
     assert(APRS_Key(KEY_1,true,false));APRS_GetDiagnostics(&d);assert(!d.frozen && !d.mode);
     gSerialConfigCountDown_500ms=1;APRS_Tick500ms();APRS_GetDiagnostics(&d);assert(!d.ready && !d.armed);

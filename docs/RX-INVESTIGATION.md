@@ -51,7 +51,17 @@ decodable audio reached the K6's internal modem. The K6 receive path, speaker,
 room, phone microphone and AAC processing are all part of the recorded path.
 The owner's audio, raw captures and any station information are not published.
 
-## Next discriminating test
+## Source-informed receive comparison
+
+The [TA1JS production-source comparison](TA1JS-RX-COMPARISON.md) reproduces
+both actual receive paths: modem-arm writes match, valid/stalled fixtures pass,
+and both decoders reject all five saved captures. Differences in REG_43 RF/IF
+filtering and software FM gain staging motivate the controlled
+[D4 reference profiles](../release/rx-diagnostics-d4/README.md). This is a new
+hardware-test hypothesis, not evidence of a fix. The owner is currently away
+from the radio; software preparation can finish without another physical test.
+
+## Additional discriminating test
 
 Record the same beacon through one of the owner's other receivers, using the
 same phone and recording method. An independently decodable comparison recording
@@ -60,7 +70,7 @@ K6 receive/audio path. If the comparison also fails, improve or bypass the
 acoustic recording path before using it to judge the K6 modem.
 
 The current evidence does not justify selecting a new production modem setting
-or describing another speculative diagnostic build as a decoding fix. Further
+or describing D4 as a decoding fix. Further
 changes should follow evidence that distinguishes the receive/audio path,
 synchronization, FIFO servicing and software framing. The complete R2 binary
 remains unchanged by D3 instrumentation; hardware RX and TX validation remain
