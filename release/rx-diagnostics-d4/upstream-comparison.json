@@ -1,0 +1,29 @@
+{
+  "upstream_commit": "6320cdac7a2dce46f88027d220ff67e47eb0e3fb",
+  "source_sha256": "e52db816b210d5aee099d1fe68301f4ac6b731723c9c40c1cf802fccc966f989",
+  "functions_sha256": {
+    "APRS_CalculateCRC": "519d568b26c7d4cb622a8cd3c3e66605a092228874456ed0f0e2d375c0d8062c",
+    "AX25_CalculateFCS": "1201a00d8f25f215162a148d2d2b1456d8fadb1f887302e40e7652d1f48c3f46",
+    "APRS_RxArm": "472a90c70978f7d8c9dbda078043009347afe5b10922b22ba6e1c1eb11d9e94b",
+    "APRS_RxDrainFifo": "6b12ce09df244d19c688f7236f425869dce89122d05839358d8dca3ed5deec10",
+    "APRS_DecodeCapture": "6fe585f6790fc2a9effae06cf343ecdc8118ece1e4caf2cc517b6a8ae98dd4bd",
+    "APRS_HandleRxInterrupts": "4fe4860af56720e4755f673ef9da5223ce9780792777c6d0f2e01493c42427cb",
+    "APRS_StopListening": "34dce7cb486b4cb664bfd9a9e3e79d9feacc02ad1cb2fe9465d61a42cb3908e3",
+    "APRS_Task": "68805f6169bf85fc3f25520f407b53ed4d941ac0ce087dbe702456ee655d05af"
+  },
+  "fixture_results": [
+    "identical arm writes: 11",
+    "UVK5 finished golden: valid, read 240 bytes",
+    "UVK5 stall golden: valid, read 72 bytes",
+    "upstream finished golden: valid, read 240 bytes",
+    "upstream stall golden: valid, read 72 bytes",
+    "both production decoders reject corrupted and truncated fixture"
+  ],
+  "private_capture_results": [
+    "capture: upstream=0 UVK5=0 bytes=240",
+    "capture: upstream=0 UVK5=0 bytes=240",
+    "capture: upstream=0 UVK5=0 bytes=240",
+    "capture: upstream=0 UVK5=0 bytes=240",
+    "capture: upstream=0 UVK5=0 bytes=240"
+  ]
+}
