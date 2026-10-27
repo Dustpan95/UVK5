@@ -13,8 +13,8 @@ combinations; no physical decoding improvement has yet been demonstrated. The
 the unsuccessful B/D captures and independent audio decode, with their limits.
 [D4](../release/rx-diagnostics-d4/README.md) adds a source-informed TA1JS
 filter/gain comparison with per-capture register readbacks. The owner reports
-failed B/C/D decodes; all four exported D:GAIN captures fail both production
-decoders. See the linked investigation for evidence and limits.
+failed B/C/D decodes; four D:GAIN and two B:REF raw captures fail both
+production decoders. See the linked investigation for evidence and limits.
 The following checklist is a validation plan; do not
 interpret every item as completed.
 

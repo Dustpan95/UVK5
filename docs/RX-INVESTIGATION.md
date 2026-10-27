@@ -13,7 +13,7 @@ No cloud tool has connected to or flashed the radio.
 | D3 / B | One complete 240-byte capture | No valid FCS under the same 12 interpretations |
 | D3 / C | Owner reports no captures stored | Eligibility indicators were not supplied with this report; cause unknown |
 | D3 / D | One complete 240-byte capture | No valid FCS under the same 12 interpretations |
-| D4 / B:REF | Owner reports BAD=4, L240, FL23, FR0, CRC0; live register settings match reference | No B-profile raw captures in the supplied D4 file |
+| D4 / B:REF | Owner reports BAD=4, L240, FL23, FR0, CRC0; two full 240-byte captures in a second export | Readbacks match reference; both production decoders reject both; no valid FCS under 12 interpretations |
 | D4 / C:FLT | Owner reports BAD increased to 5 after a beacon | No C-profile raw captures in the supplied D4 file |
 | D4 / D:GAIN | Owner reports BAD increased to 6; four full 240-byte captures exported | Both production decoders reject all four; no valid FCS under the same 12 interpretations |
 
@@ -26,7 +26,7 @@ See [D3 settings and instructions](../release/rx-diagnostics-d3/README.md).
 
 ## D4 owner capture analysis
 
-The D4 export is a valid 1,104-byte wire-v3 dump with four records, sequences
+The first D4 export is a valid 1,104-byte wire-v3 dump with four records, sequences
 1–4, all tagged D:GAIN and completed by RX_FINISHED. JSON records agree with
 the binary dump, including lengths, profile tags, reasons and actual register
 snapshots. This file contains no B:REF or C:FLT raw captures; counter reports
@@ -52,9 +52,42 @@ four-slot ring overwrites older records until a read freezes storage, while
 live counters continue even when storage is held. Full buffers and flag-like
 patterns therefore do not establish that the saved records contain the intended
 beacon. Background false captures and overwrite remain unconfirmed hypotheses.
-The next observation is whether BAD increases with the test transmitter quiet,
-followed if needed by a promptly frozen/exported controlled beacon capture.
-This export alone does not justify another modem/filter change.
+The owner subsequently reports BAD stayed at 17 before and after a quiet
+interval. That observation weakens continuous background false captures in
+that interval; it does not prove every prior record contains beacon data.
+
+### Controlled B:REF export
+
+After clearing stored captures and requesting a single beacon test, a second
+valid wire-v3 export contains two full 240-byte RX_FINISHED records, sequences
+1 and 2, both B:REF. No exact BAD increment or capture timestamps were supplied;
+two records must not be described as two separate transmitted beacons. The
+exact HTML decoder reconstructs the JSON records from the binary dump.
+Readbacks show the expected REG_43=0x3628, REG_13=0x03BE, REG_7E=0x37EE,
+REG_58=0x3FC3, REG_59=0x1000, REG_70=0x80E0, REG_71=22714,
+REG_72=12389 and REG_3F=0x3C0E. Completion-time REG_67 is 129–130.
+
+Both actual production decoders reject both records while the valid and
+invalid fixtures continue to behave correctly under ASan/UBSan. No valid FCS
+is found under 12 interpretations per record, or when concatenating both raw
+records in either order under the same interpretations. Concatenation assumes
+no rearm gap and does not rule out real loss between captures.
+
+Under the production MSB-first/NRZI interpretation, the first record has six
+flag patterns. The second has 47, including a run of 25 adjacent flags and a
+later run of 15. The intervening long segment violates HDLC stuffing before a
+complete frame can form. Thus the second capture contains substantial regular
+flag structure, rather than being uniformly uninterpretable bytes. This does
+not identify whether errors arose in RF demodulation, clock recovery, FIFO
+service or another part of the capture path, nor establish payload validity.
+
+A further source check finds the production FIFO word order, four-word
+threshold drain, completion drain, sync reset and framing/FCS path match the
+pinned TA1JS implementation. The active aircopy FIFO reader is compiled out
+of this diagnostic profile. No new, demonstrated source defect was found;
+another speculative firmware change is not justified by these captures alone.
+An independent TNC decode of the same beacon over the air is still unrecorded
+and would establish a valid RF reference before more configuration tests.
 
 ## Independent test of the K6 speaker recording
 
