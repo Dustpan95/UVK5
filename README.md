@@ -9,7 +9,8 @@ See the [custom interface review](docs/design/DECISIONS.md) and
 [interactive mockup](docs/design/review.html).
 The [TA1JS source comparison](docs/TA1JS-RX-COMPARISON.md) and temporary
 [D4 receive diagnostic](release/rx-diagnostics-d4/README.md) investigate filtering
-and gain differences. D4 is software-tested and awaits a local hardware test.
+and gain differences. D4 passes software tests, but the owner’s filter/gain tests still fail to decode.
+See the [D4 capture findings](docs/RX-INVESTIGATION.md#d4-owner-capture-analysis).
 
 Custom firmware for the **original Quansheng UV-K6 / UV-K5 with the DP32G030 MCU**,
 maintained in [Dustpan95/UVK5](https://github.com/Dustpan95/UVK5).

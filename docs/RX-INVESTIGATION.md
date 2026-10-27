@@ -1,6 +1,6 @@
 # APRS receive investigation — hardware evidence
 
-The owner has flashed the full R2 candidate and D1–D3 diagnostic images locally.
+The owner has flashed the full R2 candidate and D1–D4 diagnostic images locally.
 Voice reception works and a packet burst is audible, but no successful on-radio
 APRS decode has been reported. This remains an unresolved receive failure.
 No cloud tool has connected to or flashed the radio.
@@ -13,6 +13,9 @@ No cloud tool has connected to or flashed the radio.
 | D3 / B | One complete 240-byte capture | No valid FCS under the same 12 interpretations |
 | D3 / C | Owner reports no captures stored | Eligibility indicators were not supplied with this report; cause unknown |
 | D3 / D | One complete 240-byte capture | No valid FCS under the same 12 interpretations |
+| D4 / B:REF | Owner reports BAD=4, L240, FL23, FR0, CRC0; live register settings match reference | No B-profile raw captures in the supplied D4 file |
+| D4 / C:FLT | Owner reports BAD increased to 5 after a beacon | No C-profile raw captures in the supplied D4 file |
+| D4 / D:GAIN | Owner reports BAD increased to 6; four full 240-byte captures exported | Both production decoders reject all four; no valid FCS under the same 12 interpretations |
 
 The uploaded D2/D3 raw dumps agree with their JSON record lengths, sequence
 numbers, completion reasons and, for D3, modem-mode tags. A completed capture
@@ -20,6 +23,38 @@ establishes FIFO activity, not that every collected bit came from the beacon.
 The mode comparisons have not demonstrated a working receive configuration.
 They do not establish that the BK4819 is incapable of Bell 202 reception.
 See [D3 settings and instructions](../release/rx-diagnostics-d3/README.md).
+
+## D4 owner capture analysis
+
+The D4 export is a valid 1,104-byte wire-v3 dump with four records, sequences
+1–4, all tagged D:GAIN and completed by RX_FINISHED. JSON records agree with
+the binary dump, including lengths, profile tags, reasons and actual register
+snapshots. This file contains no B:REF or C:FLT raw captures; counter reports
+for those profiles are separate evidence.
+
+All four snapshots show REG_58=0x3FC3, REG_59=0x1000, REG_43=0x49A8,
+REG_13=0x03BE, REG_7E=0x37EE, REG_70=0x80E0, REG_71=22714,
+REG_72=12389 and REG_3F=0x3C0E. These match D:GAIN: baseline filtering,
+stock gain, hardware AGC and enabled FSK interrupts. Earlier live B:REF
+readings independently confirm its reference filter REG_43=0x3628, stock
+gain and hardware AGC; applied reference settings did not yield a decode.
+
+The offline analyzer finds no valid FCS under 12 byte/bit/coding interpretations
+per capture. Both the actual UVK5 and pinned TA1JS production decoders reject
+all four. Known-good completion/stall fixtures pass and corrupt/truncated
+fixtures fail in the same ASan/UBSan run. This adds four unsuccessful captures
+to the original five; private raw data, station information and audio are not
+published.
+
+Completion-time REG_67 readings are 114–120, not peak measurements during
+a beacon. Captures have no timestamps or signal-presence annotations. The
+four-slot ring overwrites older records until a read freezes storage, while
+live counters continue even when storage is held. Full buffers and flag-like
+patterns therefore do not establish that the saved records contain the intended
+beacon. Background false captures and overwrite remain unconfirmed hypotheses.
+The next observation is whether BAD increases with the test transmitter quiet,
+followed if needed by a promptly frozen/exported controlled beacon capture.
+This export alone does not justify another modem/filter change.
 
 ## Independent test of the K6 speaker recording
 
@@ -57,9 +92,8 @@ The [TA1JS production-source comparison](TA1JS-RX-COMPARISON.md) reproduces
 both actual receive paths: modem-arm writes match, valid/stalled fixtures pass,
 and both decoders reject all five saved captures. Differences in REG_43 RF/IF
 filtering and software FM gain staging motivate the controlled
-[D4 reference profiles](../release/rx-diagnostics-d4/README.md). This is a new
-hardware-test hypothesis, not evidence of a fix. The owner is currently away
-from the radio; software preparation can finish without another physical test.
+[D4 reference profiles](../release/rx-diagnostics-d4/README.md). The owner has now tested the D4 profiles without a successful decode;
+the reference settings remain an unsuccessful hardware-test hypothesis.
 
 ## Additional discriminating test
 
