@@ -1,0 +1,33 @@
+{
+  "status": "experimental transmit-only APRS; physical/RF validation pending",
+  "aprs_receive": false,
+  "receive_symbols_absent": [
+    "APRS_DecodeBits",
+    "APRS_ParseFrame",
+    "APRS_Interrupt",
+    "APRS_CanListen",
+    "APRS_ReadDiagnosticCapture",
+    "CMD_0540",
+    "SESSION_Receive",
+    "RUNTIME_Receive",
+    "TX_Acknowledge",
+    "gAPRS_Log",
+    "gAPRS_Inbox",
+    "gAPRS_Stations",
+    "gAPRS_RxDiagnostics"
+  ],
+  "hardware_target": "original DP32G030 UV-K5 / UV-K6; not other MCU revisions",
+  "compiler": "10.3.1",
+  "flash_bytes": 55252,
+  "flash_limit_bytes": 61440,
+  "flash_free_bytes": 6188,
+  "updater_limit_bytes": 61439,
+  "updater_free_bytes": 6187,
+  "static_ram_bytes": 10164,
+  "reserved_stack_bytes": 2048,
+  "ram_limit_bytes": 16384,
+  "initial_stack_pointer": "0x20003ff0",
+  "ram_after_static_bytes": 6204,
+  "raw_sha256": "3d09bd63da72b4c38d16206ea462e5d5a84875a8bad47fe6074d4fe8bd6103c1",
+  "packed_sha256": "d9925547039aefb3de7c850f898665cf24a3f318918d3b1946cad4eecc0d1500"
+}

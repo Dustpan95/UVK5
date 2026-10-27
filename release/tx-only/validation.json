@@ -1,0 +1,14 @@
+{
+  "source_commit": "a7a2518095fccf2063d2f2b1d77a3d160fc43402",
+  "ci_url": "https://github.com/Dustpan95/UVK5/actions/runs/40436524894",
+  "ci_result": "success",
+  "independent_ci_byte_comparison": [
+    "raw firmware",
+    "packed firmware",
+    "verification.json",
+    "manifest.json"
+  ],
+  "host_checks": "Full regression suite passed, including ASan/UBSan voice/settings/UI, UART framing, outgoing message/beacon encoding, single handoff, cancellation and immediate voice restoration.",
+  "radio_only_compile_check": "ENABLE_APRS_TRANSPORT=0 also builds and passes layout/size/receive-symbol checks in an isolated source copy.",
+  "physical_validation": "Unrun for this revised image; prior R2 boot/controls/voice RX passed per owner. APRS RF transmission remains unverified."
+}
