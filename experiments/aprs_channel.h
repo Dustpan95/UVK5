@@ -13,17 +13,17 @@ typedef struct {
 } APRS_ChannelOps;
 typedef struct {
     APRS_ChannelOps ops;
-    uint32_t frequency,deadline,voiceTicks;
-    bool configured,leased,waiting,ownSent,fault;
+    uint32_t frequency;
+    bool configured,leased,fault;
 } APRS_Channel;
 /* Caller zero-initializes this foreground-only state. Hardware enter must save
  * voice context and tune the requested channel; a refused enter must leave voice
  * untouched. Restore must drop any data TX and restore saved voice context.
- * This orchestration is a tested model, not the missing hardware adapter.
+ * The runtime binds the actual hardware adapter.
  */
 bool CHANNEL_Configure(APRS_Channel *channel,const APRS_ChannelOps *ops);
 void CHANNEL_Process(APRS_Channel *channel);
 /* PTT/key dispatch must restore voice before ordinary radio handling. Pending
- * retry deadlines remain intact; this does not claim delivery or disable TX. */
+ * No APRS receiver/ACK wait is started; this does not claim delivery. */
 void CHANNEL_Interrupt(APRS_Channel *channel);
 #endif

@@ -5,7 +5,6 @@
  */
 #include "aprs_hardware.h"
 #include "app/app.h"
-#include "app/aprs_rx.h"
 #include "app/chFrScanner.h"
 #include "app/scanner.h"
 #include "bsp/dp32g030/gpio.h"
@@ -39,16 +38,15 @@ void HARDWARE_Restore(void *context)
     BK4819_SetupPowerAmplifier(0,gEeprom.VfoInfo[h->index].pTX->Frequency);
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE,false);
     BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED,false);
-    APRS_Stop();
     VFO_Info_t *v=&gEeprom.VfoInfo[h->index];*v=h->voice;
     v->pRX=h->voice.pRX==&h->voice.freq_config_RX ? &v->freq_config_RX : &v->freq_config_TX;
     v->pTX=h->voice.pTX==&h->voice.freq_config_RX ? &v->freq_config_RX : &v->freq_config_TX;
     VfoState[h->index]=h->voiceState;
     gEeprom.TX_VFO=gEeprom.RX_VFO=h->index;
     gTxVfo=gRxVfo=gCurrentVfo=&gEeprom.VfoInfo[h->index];
-    gRxVfoIsActive=h->rxActive;gAPRS_Enabled=h->receiveEnabled;
+    gRxVfoIsActive=h->rxActive;
     gTxTimerCountdown_500ms=0;gTxTimeoutReached=false;gFlagEndTransmission=false;
-    FUNCTION_Select(FUNCTION_FOREGROUND);RADIO_SetupRegisters(false);APRS_Resume();
+    FUNCTION_Select(FUNCTION_FOREGROUND);RADIO_SetupRegisters(false);
     h->leased=false;gUpdateDisplay=true;gUpdateStatus=1;
 }
 APRS_ChannelAdmission HARDWARE_Enter(uint32_t frequency,void *context)
@@ -62,17 +60,17 @@ APRS_ChannelAdmission HARDWARE_Enter(uint32_t frequency,void *context)
        (v->pRX!=&v->freq_config_RX && v->pRX!=&v->freq_config_TX) ||
        (v->pTX!=&v->freq_config_RX && v->pTX!=&v->freq_config_TX)) return APRS_CHANNEL_DENIED;
     if(HARDWARE_Interrupted(h) || gCurrentFunction!=FUNCTION_FOREGROUND || g_SquelchLost ||
-       APRS_IsCapturing() || (BK4819_ReadRegister(BK4819_REG_0C)&1u)) return APRS_CHANNEL_BUSY;
+       (BK4819_ReadRegister(BK4819_REG_0C)&1u)) return APRS_CHANNEL_BUSY;
     h->index=gEeprom.TX_VFO;h->voice=*v;h->voiceState=VfoState[h->index];
     h->voice.pRX=v->pRX==&v->freq_config_RX ? &h->voice.freq_config_RX : &h->voice.freq_config_TX;
     h->voice.pTX=v->pTX==&v->freq_config_RX ? &h->voice.freq_config_RX : &h->voice.freq_config_TX;
-    h->receiveEnabled=gAPRS_Enabled;h->rxActive=gRxVfoIsActive;
-    APRS_Stop();h->leased=true;
+    h->rxActive=gRxVfoIsActive;
+    h->leased=true;
     RADIO_InitInfo(v,h->voice.CHANNEL_SAVE,frequency);
     v->Modulation=MODULATION_FM;v->OUTPUT_POWER=h->power;
     RADIO_ConfigureSquelchAndOutputPower(v);
-    gRxVfoIsActive=true;gAPRS_Enabled=true; /* ACK reception during the lease. */
-    RADIO_SetupRegisters(false);APRS_Resume();
+    gRxVfoIsActive=true;
+    RADIO_SetupRegisters(false);
     if(HARDWARE_Interrupted(h)) {HARDWARE_Restore(h);return APRS_CHANNEL_BUSY;}
     return APRS_CHANNEL_READY;
 }

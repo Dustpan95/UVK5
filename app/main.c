@@ -1,4 +1,4 @@
-/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
+/* Modified for UVK5: outgoing APRS integration; receive removed; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -15,8 +15,10 @@
  *     limitations under the License.
  */
 
-/* UVK5 integration: passive APRS hooks. */
-#include "app/aprs_rx.h"
+/* UVK5 integration: outgoing APRS controls; no APRS receiver. */
+#ifdef ENABLE_APRS_TRANSPORT
+#include "app/aprs_ui.h"
+#endif
 #include <string.h>
 
 #include "app/action.h"
@@ -186,8 +188,8 @@ static void VUURWERK_FKeyShortcut(uint8_t key_num)
 		case 5: { // F+5 = Spectrum analyzer (NOAA key repurposed)
 #ifdef ENABLE_SPECTRUM
             APP_RunSpectrum();
-#else
-            APRS_Open(); /* F+5 opens packet history in the APRS build. */
+#elif defined(ENABLE_APRS_TRANSPORT)
+            APRS_Open(); /* F+5 opens outgoing APRS controls. */
 #endif
 			break;
 		}
@@ -761,7 +763,9 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 
 void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
+#ifdef ENABLE_APRS_TRANSPORT
     if (APRS_Key(Key, bKeyPressed, bKeyHeld)) return;
+#endif
 #ifdef ENABLE_FMRADIO
 	if (gFmRadioMode && Key != KEY_PTT && Key != KEY_EXIT) {
 		if (!bKeyHeld && bKeyPressed)

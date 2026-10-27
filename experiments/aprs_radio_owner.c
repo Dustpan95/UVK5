@@ -4,7 +4,6 @@
  */
 #include "aprs_radio_owner.h"
 #include "bell202_radio.h"
-#include "app/aprs_rx.h"
 #include "app/chFrScanner.h"
 #include "app/scanner.h"
 #include "bsp/dp32g030/gpio.h"
@@ -38,15 +37,14 @@ APRS_LinkResult APRS_RadioSend(const uint8_t *frame,size_t length,uint32_t frequ
        gEeprom.DUAL_WATCH!=DUAL_WATCH_OFF || gEeprom.CROSS_BAND_RX_TX!=CROSS_BAND_OFF ||
        gScanStateDir!=SCAN_OFF || SCANNER_IsScanning() || gCssBackgroundScan ||
        VFO_SPLIT_IsEnabled()) return APRS_LINK_DENIED;
-    if(gCurrentFunction!=FUNCTION_FOREGROUND || g_SquelchLost || APRS_IsCapturing() ||
+    if(gCurrentFunction!=FUNCTION_FOREGROUND || g_SquelchLost ||
        !GPIO_CheckBit(&GPIOC->DATA,GPIOC_PIN_PTT) ||
        (BK4819_ReadRegister(BK4819_REG_0C)&1u)) return APRS_LINK_BUSY;
-    APRS_Stop();
     /* Preserve normal band locks, battery/overvoltage and TX timeout checks.
      * PTT ID/code/scrambler prerequisites above keep startup free of ID tones.
      */
     RADIO_PrepareTX();
-    if(gCurrentFunction!=FUNCTION_TRANSMIT) {APRS_Resume();return APRS_LINK_DENIED;}
+    if(gCurrentFunction!=FUNCTION_TRANSMIT) {return APRS_LINK_DENIED;}
     TX_COMPRESSOR_Stop();CTCSS_LEAD_Stop();BK4819_EnterTxMute();
     BELL202_Result result=BELL202_CANCELLED;
     for(unsigned i=0;i<TX_RAMP_STEPS && !Cancelled();i++) {
@@ -67,10 +65,7 @@ APRS_LinkResult APRS_RadioSend(const uint8_t *frame,size_t length,uint32_t frequ
     gTxTimerCountdown_500ms=0;gTxTimeoutReached=false;gFlagEndTransmission=false;
     FUNCTION_Select(FUNCTION_FOREGROUND);
     RADIO_SetupRegisters(false);
-    /* Listen for a prompt peer ACK before returning to the queued transport.
-     * Do not wait for a coalesced foreground 500 ms tick after a blocking burst.
-     */
-    APRS_Resume();
+
     gUpdateDisplay=true;gUpdateStatus=1;
     return result==BELL202_SENT ? APRS_LINK_SENT : APRS_LINK_FAULT;
 }

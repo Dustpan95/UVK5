@@ -1,4 +1,4 @@
-/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
+/* Modified for UVK5: outgoing APRS integration; receive removed; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -16,7 +16,9 @@
  */
 
 #include "ui/display_text.h"
-#include "app/aprs_rx.h"
+#ifdef ENABLE_APRS_TRANSPORT
+#include "app/aprs_ui.h"
+#endif
 #include "ui/home.h"
 #include <string.h>
 #include <stdlib.h>  // abs()
@@ -250,7 +252,9 @@ void UI_DisplayMain(void)
 		return;
 	}
 
+#ifdef ENABLE_APRS_TRANSPORT
 	if (gAPRS_Browser) { APRS_Draw(); return; }
+#endif
     if (UI_HomeDraw()) { ST7565_BlitFullScreen(); return; }
 
     /* Invalid indices must not index VFO arrays. Normal modes, scan, input,

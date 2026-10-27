@@ -1,4 +1,4 @@
-/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
+/* Modified for UVK5: outgoing APRS integration; receive removed; see docs/INTEGRATION.md. */
 /* Copyright (c) 2026 James Honiball (KC3TFZ)
  *
  * This file is part of VUURWERK and is dual-licensed:
@@ -104,9 +104,6 @@ uint8_t VUURWERK_MENU_GetCategoryForMenuId(uint8_t menu_id)
 	switch (menu_id)
 	{
 		// RECEIVE
-		case MENU_APRS_BEEP:
-        case MENU_APRS_RX:
-        case MENU_APRS_LOG:
         case MENU_SQL:
 		case MENU_STEP:
 		case MENU_W_N:

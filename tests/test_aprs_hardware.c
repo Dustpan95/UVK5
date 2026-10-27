@@ -18,14 +18,14 @@ FUNCTION_Type_t gCurrentFunction;
 TxSoftStart_t gTxSoftStart;
 VfoSplit_t gVfoSplit;
 TestRadioGPIO testRadioGPIO;
-bool gAPRS_Enabled,gRxVfoIsActive,g_SquelchLost,gCssBackgroundScan,gFlagEndTransmission,gUpdateDisplay;
+bool gRxVfoIsActive,g_SquelchLost,gCssBackgroundScan,gFlagEndTransmission,gUpdateDisplay;
 volatile uint8_t gSerialConfigCountDown_500ms;
 volatile uint16_t gTxTimerCountdown_500ms;
 volatile bool gTxTimeoutReached;
 uint8_t gUpdateStatus;
 int8_t gScanStateDir;
-static bool pendingWrites,scan,capture,irq,denied,interruptOnTune,muted;
-static unsigned tunes,stops,resumes,sends,paOff,redOff;
+static bool pendingWrites,scan,irq,denied,interruptOnTune,muted;
+static unsigned tunes,sends,paOff,redOff;
 static APRS_Hardware hardware;
 static EEPROM_Config_t original;
 static VfoState_t originalState;
@@ -33,13 +33,10 @@ bool APP_HasPendingWrites(void) {return pendingWrites;}
 #ifdef ENABLE_TONE_SEARCH
 bool SCANNER_IsScanning(void) {return scan;}
 #endif
-bool APRS_IsCapturing(void) {return capture;}
 uint32_t SCHEDULER_GetTicks10ms(void) {return 12345;}
 int32_t RX_freq_check(uint32_t f) {return f==14439000 ? 0 : -1;}
 int32_t TX_freq_check(uint32_t f) {return denied || f!=14439000 ? -1 : 0;}
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t r) {assert(r==BK4819_REG_0C);return irq;}
-void APRS_Stop(void) {++stops;}
-void APRS_Resume(void) {++resumes;}
 void TX_COMPRESSOR_Stop(void) {}
 void CTCSS_LEAD_Stop(void) {}
 void BK4819_EnterTxMute(void) {muted=true;}
@@ -53,7 +50,7 @@ void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t pin,bool on)
 void FUNCTION_Select(FUNCTION_Type_t f) {assert(f==FUNCTION_FOREGROUND && muted && paOff);gCurrentFunction=f;}
 void RADIO_InitInfo(VFO_Info_t *v,uint8_t channel,uint32_t frequency)
 {
-    assert(v==gTxVfo && stops && frequency==14439000);
+    assert(v==gTxVfo && frequency==14439000);
     memset(v,0,sizeof(*v));v->CHANNEL_SAVE=channel;
     v->pRX=&v->freq_config_RX;v->pTX=&v->freq_config_TX;
     v->pRX->Frequency=v->pTX->Frequency=frequency;v->Modulation=MODULATION_AM;
@@ -67,11 +64,11 @@ void RADIO_SetupRegisters(bool foreground)
 {
     assert(!foreground);++tunes;
     if(tunes==1) {
-        assert(gRxVfo->pRX->Frequency==14439000 && gAPRS_Enabled && gRxVfoIsActive);
+        assert(gRxVfo->pRX->Frequency==14439000 && gRxVfoIsActive);
         if(interruptOnTune) testRadioGPIO.DATA=0;
     } else {
         assert(!memcmp(&gEeprom,&original,sizeof(original)) && muted && paOff);
-        assert(VfoState[gEeprom.TX_VFO]==originalState && !gAPRS_Enabled && !gRxVfoIsActive);
+        assert(VfoState[gEeprom.TX_VFO]==originalState && !gRxVfoIsActive);
     }
 }
 APRS_LinkResult APRS_RadioSend(const uint8_t *frame,size_t length,uint32_t frequency,void *config)
@@ -91,10 +88,10 @@ static void Init(unsigned slot)
         v->FrequencyReverse=true;v->pRX->Frequency=14652000+i;v->pTX->Frequency=14592000+i;
         v->Modulation=MODULATION_AM;v->pRX->CodeType=CODE_TYPE_CONTINUOUS_TONE;v->pTX->CodeType=CODE_TYPE_DIGITAL;
     }
-    gCurrentFunction=FUNCTION_FOREGROUND;gAPRS_Enabled=gRxVfoIsActive=false;
+    gCurrentFunction=FUNCTION_FOREGROUND;gRxVfoIsActive=false;
     gSerialConfigCountDown_500ms=0;gScanStateDir=0;g_SquelchLost=gCssBackgroundScan=false;
-    pendingWrites=scan=capture=irq=denied=interruptOnTune=muted=false;
-    testRadioGPIO.DATA=1u<<GPIOC_PIN_PTT;tunes=stops=resumes=sends=paOff=redOff=0;
+    pendingWrites=scan=irq=denied=interruptOnTune=muted=false;
+    testRadioGPIO.DATA=1u<<GPIOC_PIN_PTT;tunes=sends=paOff=redOff=0;
     original=gEeprom;originalState=VfoState[slot]=VFO_STATE_BUSY;
 }
 int main(void)
@@ -102,19 +99,18 @@ int main(void)
     uint8_t frame[16]={0};
     for(unsigned slot=0;slot<2;++slot) {
         Init(slot);assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_READY);
-        assert(hardware.leased && tunes==1 && resumes==1);
+        assert(hardware.leased && tunes==1);
         assert(hardware.voice.pRX==&hardware.voice.freq_config_TX &&
             hardware.voice.pRX->Frequency==14652000+slot && hardware.voice.pTX->Frequency==14592000+slot);
         assert(HARDWARE_Send(frame,sizeof(frame),14439000,&hardware)==APRS_LINK_SENT && sends==1);
         HARDWARE_Restore(&hardware);
-        assert(!hardware.leased && tunes==2 && stops==2 && resumes==2 && paOff==1 && redOff==1);
+        assert(!hardware.leased && tunes==2 && paOff==1 && redOff==1);
         assert(!memcmp(&gEeprom,&original,sizeof(original)));
         HARDWARE_Restore(&hardware);assert(tunes==2);
     }
     Init(0);denied=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_DENIED && !tunes);
     Init(0);pendingWrites=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
     Init(0);irq=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
-    Init(0);capture=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
     Init(0);g_SquelchLost=true;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
     Init(0);gScanStateDir=SCAN_FWD;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_BUSY && !tunes);
     Init(0);hardware.radio.enabled=false;assert(HARDWARE_Enter(14439000,&hardware)==APRS_CHANNEL_DENIED && !tunes);

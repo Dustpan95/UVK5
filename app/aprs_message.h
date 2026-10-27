@@ -13,12 +13,11 @@ typedef enum {
     MESSAGE_QUICK, MESSAGE_REVIEW, MESSAGE_STATUS, MESSAGE_CALLSIGN, MESSAGE_QUICK_EDIT
 } MessagePage;
 typedef enum {
-    MESSAGE_DRAFT, MESSAGE_TX_UNAVAILABLE, MESSAGE_WAIT_ACK,
-    MESSAGE_ACKED, MESSAGE_REJECTED
+    MESSAGE_DRAFT, MESSAGE_TX_UNAVAILABLE
 } MessageDelivery;
 typedef enum { MESSAGE_OK, MESSAGE_BAD_CALL, MESSAGE_EMPTY, MESSAGE_FULL, MESSAGE_TX_BLOCKED } MessageError;
 typedef struct {
-    char recipient[10], text[APRS_MESSAGE_MAX+1], sender[10], id[6], editCall[10];
+    char recipient[10], text[APRS_MESSAGE_MAX+1], editCall[10];
     MessagePage page;
     MessageDelivery delivery;
     MessageError error;
@@ -39,17 +38,10 @@ const char *MESSAGE_QuickEditText(void);
 void MESSAGE_Open(const char *replyTo);
 void MESSAGE_Key(KEY_Code_t key);
 void MESSAGE_Tick500ms(void);
-/* An actual successful modem handoff must call this, never the Send button alone. */
-bool MESSAGE_MarkSent(const char *sender, const char *id);
-bool MESSAGE_Acknowledge(const char *source, const char *addressee,
-                         const char *id, bool rejected);
 /* Build an AX.25 UI body, without FCS. No relay path is assumed here. */
 size_t MESSAGE_BuildFrame(const char *sender, const char *recipient,
                          const char *text, const char *id, uint8_t *out, size_t capacity);
 size_t MESSAGE_BuildBeacon(const char *sender, int32_t latitude, int32_t longitude,
                            char table, char symbol, uint8_t *out, size_t capacity);
-/* ACK/reject controls are never numbered messages and never request an ACK. */
-size_t MESSAGE_BuildControl(const char *sender, const char *recipient,
-                            const char *id, bool rejected, uint8_t *out, size_t capacity);
 void MESSAGE_Draw(void);
 #endif

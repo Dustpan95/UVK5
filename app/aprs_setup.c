@@ -34,7 +34,7 @@ void __attribute__((noinline)) SETUP_Key(KEY_Code_t key)
 {
     APRS_Setup *s=&gAPRS_Setup;s->error=false;
     if(s->page==SETUP_HOME || s->page==SETUP_QUICK || s->page==SETUP_DATA) {
-        unsigned count=s->page==SETUP_HOME ? 4 : s->page==SETUP_QUICK ? 3 : 5;
+        unsigned count=s->page==SETUP_HOME ? 4 : s->page==SETUP_QUICK ? 3 : 4;
         if(key==KEY_EXIT) {s->page=s->page==SETUP_HOME ? SETUP_CLOSED : SETUP_HOME;s->selected=0;}
         else if(key==KEY_UP) s->selected=(s->selected+count-1)%count;
         else if(key==KEY_DOWN) s->selected=(s->selected+1)%count;
@@ -46,8 +46,7 @@ void __attribute__((noinline)) SETUP_Key(KEY_Code_t key)
             } else if(s->page==SETUP_QUICK) MESSAGE_EditQuick(s->selected);
             else if(s->selected==0) Entry(SETUP_FREQUENCY);
             else if(s->selected==1) Entry(SETUP_AUDIO);
-            else if(s->selected==2) Entry(SETUP_WAIT);
-            else if(s->selected==3) s->error=!RUNTIME_Enable(!RUNTIME_Enabled());
+            else if(s->selected==2) s->error=!RUNTIME_Enable(!RUNTIME_Enabled());
             else {s->page=SETUP_BEACON;}
         }
         return;
@@ -75,11 +74,10 @@ void __attribute__((noinline)) SETUP_Key(KEY_Code_t key)
     } else {
         uint32_t n=0;for(unsigned i=0;i<s->length;i++) n=n*10+s->digits[i]-'0';
         if(!s->length || (s->page==SETUP_FREQUENCY && (s->length!=8 || RX_freq_check(n) || TX_freq_check(n))) ||
-           (s->page==SETUP_AUDIO && n>127) || (s->page==SETUP_WAIT && (!n || n>600))) {s->error=true;return;}
+           (s->page==SETUP_AUDIO && n>127)) {s->error=true;return;}
         RUNTIME_Enable(false);
         if(s->page==SETUP_FREQUENCY) gAPRS_Runtime.frequency=n;
         else if(s->page==SETUP_AUDIO) {gAPRS_Runtime.audioLevel=n;gAPRS_Runtime.audioSet=true;}
-        else gAPRS_Runtime.acknowledgmentSeconds=n;
         s->page=SETUP_DATA;s->selected=0;
     }
 }

@@ -17,7 +17,6 @@
  */
 
 /* UVK5 integration: passive APRS hooks. */
-#include "app/aprs_rx.h"
 #include <string.h>
 
 #if !defined(ENABLE_OVERLAY)
@@ -298,9 +297,7 @@ int REFERENCE_MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMax = 1;
 			break;
 
-		case MENU_APRS_BEEP:
-        case MENU_APRS_RX:
-            *pMin = 0; *pMax = 1; break;
+
         case MENU_SCANWATCH:
 			*pMin = 0;
 			*pMax = gSubMenu_SCANWATCH_size - 1;
@@ -734,13 +731,7 @@ void REFERENCE_MENU_AcceptSetting(void)
 			gEeprom.BATTERY_TYPE = gSubMenuSelection;
 			break;
 
-		case MENU_APRS_BEEP:
-            gAPRS_AlertSound = gSubMenuSelection != 0;
-            return;
-        case MENU_APRS_RX:
-            gAPRS_Enabled = gSubMenuSelection != 0;
-            APRS_Stop();
-            return; /* RAM-only: do not write EEPROM for APRS. */
+
         case MENU_SCANWATCH:
 			if ((unsigned)gSubMenuSelection >= gSubMenu_SCANWATCH_size) return;
 #ifdef ENABLE_VFO_SPLIT
@@ -1115,12 +1106,7 @@ void REFERENCE_MENU_ShowCurrentSetting(void)
 			gSubMenuSelection = gEeprom.BATTERY_TYPE;
 			break;
 
-		case MENU_APRS_BEEP:
-            gSubMenuSelection = gAPRS_AlertSound;
-            break;
-        case MENU_APRS_RX:
-            gSubMenuSelection = gAPRS_Enabled;
-            break;
+
         case MENU_SCANWATCH:
 #ifdef ENABLE_VFO_SPLIT
 			if (gVfoSplit.mode != SPLIT_OFF)

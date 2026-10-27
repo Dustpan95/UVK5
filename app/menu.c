@@ -1,4 +1,4 @@
-/* Modified for UVK5: APRS receive / display integration; see docs/INTEGRATION.md. */
+/* Modified for UVK5: outgoing APRS integration; receive removed; see docs/INTEGRATION.md. */
 /* Copyright 2023 Dual Tachyon
  * https://github.com/DualTachyon
  *
@@ -15,8 +15,7 @@
  *     limitations under the License.
  */
 
-/* UVK5 integration: passive APRS hooks. */
-#include "app/aprs_rx.h"
+/* UVK5 integration: outgoing APRS controls; no APRS receiver. */
 #include <string.h>
 #include <stddef.h>
 
@@ -341,9 +340,7 @@ static uint32_t PackedLimits(uint8_t menu_id)
 		case MENU_BATCAL:
 			return MENU_LIMITS(1600, 2200);
 
-		case MENU_APRS_BEEP:
-        case MENU_APRS_RX:
-            return MENU_LIMITS(0, 1);
+
         case MENU_SCANWATCH:
 			return MENU_LIMITS(0, gSubMenu_SCANWATCH_size - 1);
 
@@ -651,13 +648,7 @@ void MENU_AcceptSetting(void)
 			return;
 		}
 
-		case MENU_APRS_BEEP:
-            gAPRS_AlertSound = gSubMenuSelection != 0;
-            return;
-        case MENU_APRS_RX:
-            gAPRS_Enabled = gSubMenuSelection != 0;
-            APRS_Stop();
-            return; /* RAM-only: do not write EEPROM for APRS. */
+
         case MENU_SCANWATCH:
 			if ((unsigned)gSubMenuSelection >= gSubMenu_SCANWATCH_size) return;
 #ifdef ENABLE_VFO_SPLIT
@@ -924,12 +915,7 @@ void MENU_ShowCurrentSetting(void)
 			gSubMenuSelection = gBatteryCalibration[3];
 			break;
 
-		case MENU_APRS_BEEP:
-            gSubMenuSelection = gAPRS_AlertSound;
-            break;
-        case MENU_APRS_RX:
-            gSubMenuSelection = gAPRS_Enabled;
-            break;
+
         case MENU_SCANWATCH:
 #ifdef ENABLE_VFO_SPLIT
 			if (gVfoSplit.mode != SPLIT_OFF)
@@ -1197,10 +1183,7 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 	if (bKeyHeld || !bKeyPressed)
 		return;
 
-	if (UI_MENU_GetCurrentMenuId() == MENU_APRS_LOG) {
-        APRS_Open();
-        return;
-    }
+
     if (UI_MENU_GetCurrentMenuId() == MENU_ABOUT) {
 		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 		VUURWERK_ABOUT_Show();

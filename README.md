@@ -1,157 +1,66 @@
-# VUURWERK UV-K6 APRS — experimental UVK5 fork
+# UVK5 — custom UV-K6 firmware
 
-**Complete APRS experimental candidate:** the full feature profile now fits the
-original MCU's flash and the updater's stricter 61,439-byte limit. Automated
-software checks pass. The owner reports boot, controls and voice receive work,
-but APRS packets do not yet decode; RF/TNC validation remains incomplete. See the
-[candidate package](release/aprs-candidate/README.md) for binaries, source and hashes.
-See the [custom interface review](docs/design/DECISIONS.md) and
-[interactive mockup](docs/design/review.html).
-The [TA1JS source comparison](docs/TA1JS-RX-COMPARISON.md) and temporary
-[D4 receive diagnostic](release/rx-diagnostics-d4/README.md) investigate filtering
-and gain differences. D4 passes software tests, but the owner’s filter/gain tests still fail to decode.
-See the [D4 capture findings](docs/RX-INVESTIGATION.md#d4-owner-capture-analysis).
+Custom firmware for the **original Quansheng UV-K6 / UV-K5 with DP32G030 MCU**,
+maintained by [Dustpan95](https://github.com/Dustpan95/UVK5). This is a complete
+modified VUURWERK fork with an approved custom interface influenced by F4HWN.
+Original project credits, source history and licenses are retained in
+[NOTICE](NOTICE), [CREDITS](CREDITS.md) and [LICENSE](LICENSE).
 
-Custom firmware for the **original Quansheng UV-K6 / UV-K5 with the DP32G030 MCU**,
-maintained in [Dustpan95/UVK5](https://github.com/Dustpan95/UVK5).
+**APRS receive has been removed entirely at the owner's request.** The current
+firmware has no APRS receiver, packet decoder, inbox, station list, traffic log,
+received-message alerts, diagnostic capture export or automatic ACK replies.
+The D1–D4 and R2 packages are historical builds and do not represent this version.
 
-This is a complete modified VUURWERK firmware fork, with an approved custom home
-layout influenced by F4HWN and standalone APRS receive adapted from TA1JS.
-The complete APRS transport profile fits the original radio's 60 KiB application
-flash. **Successful APRS RX and TX have not been demonstrated on the owner's
-radio.** A UV-K6 model label or an Egzumer v0.21 boot screen alone
-does not establish the MCU revision.
+The new [outgoing APRS package](release/tx-only/README.md) retains manual message
+composition and static beacons. Messages transmit once and report **TX SENT /
+DELIVERY UNKNOWN**; the radio cannot receive ACKs or confirm delivery. It restores
+voice operation immediately after a burst, without an APRS listening interval.
+Physical APRS TX interoperability remains unverified.
 
-## Included in this experimental build
+## Retained radio features
 
-- VUURWERK's FM TX compressor, adaptive squelch, adaptive channel scanning,
-  Scan+Watch and ordinary channel/frequency scanning remain.
-- Automatic CTCSS/DCS tone search, flashlight and secondary-VFO activity
-  scanning (VUURWERK VFO Split) are removed from the current
-  build by owner choice. Manual RX/TX CTCSS/DCS settings remain available.
-- Approved custom home: large channel name for named memories, large frequency
-  for VFOs and unnamed memories, smaller secondary VFO and battery percentage.
-  Scanning, frequency entry and temporary alerts use compact overlays
-  while keeping the home readout visible.
-- Brief incoming-message banners, plus a configurable sound defaulting ON;
-  general beep OFF also silences APRS. Five-second timing is provisional.
-- On-radio APRS receiver: source callsign/SSID, uncompressed, timestamped,
-  compressed and Mic-E positions; addressed text messages and other packet text.
-- A browser for the **four most recent packets**, including up to 67 message
-  characters. Callsigns, positions and text appear on the radio's LCD. A phone,
-  computer, external MCU or TNC is not required by the firmware's receive path.
+- Large active channel name or frequency, smaller secondary VFO, battery percent.
+- Compact overlays for frequency entry, scanning and temporary radio alerts.
+- VUURWERK FM TX compressor, adaptive squelch, channel/frequency scanning and
+  Scan+Watch; manual RX/TX CTCSS/DCS settings.
+- Original radio settings, channels and calibration layout; no new APRS EEPROM
+  storage. APRS callsign, position and edited quick messages remain session-only.
 
-The approved [messaging editor and inbox](docs/MESSAGING-IMPLEMENTATION.md), setup,
-separate-frequency radio adapter and delivery service are included by
-`./tools/build-transport.sh` (`ENABLE_APRS_TRANSPORT=1`). The complete candidate
-uses **61,432 / 61,440 flash bytes**, with **12,268 bytes of static RAM** and the
-unchanged **2,048-byte stack reserve**. It passes the production linker; the
-flash limit has not been enlarged. The updater permits at most 61,439 bytes; seven bytes remain below that limit.
-The three owner-selected removals remain the only additional feature cuts.
-The default minimal receive profile and historical receive-session image remain
-separate. See [feature-preserving size work](docs/FINAL-FIT.md) and
-[transport implementation](docs/APRS-RUNTIME.md).
+The prior owner-selected removals remain: automatic CTCSS/DCS tone search,
+flashlight and secondary-VFO activity scanning. This change does not restore
+or remove additional optional voice features.
 
-The candidate implements a separate APRS frequency, automatic ACKs for personal
-numbered messages, up to three total sends, a configurable **10-second default
-ACK wait**, and **30 seconds on voice between attempts**. It includes approved
-degrees/minutes static-position entry, editable quick messages and separate
-beacon review/send. These paths have software tests; radio retuning, RF audio
-level, on-air interoperability and physical recovery remain untested. One RF
-receiver alternates channels; voice reception pauses during data operation.
+## Outgoing APRS
 
-The USB-C socket charges the original radio; programming/backups require its
-two-pin serial adapter. See [backup preparation](FLASHING.md).
+Press **F then 5** for **APRS TX**. The hub contains **NEW MESSAGE**, **MY CALLSIGN**
+and **SETUP**, preserving the existing recipient → compose/quick message → review
+before send flow. Setup retains degrees/minutes static position entry, quick
+messages, a separate APRS frequency, audio level, explicit data-TX enable and
+manual beacon review/send. ACK-wait settings are gone.
 
-All APRS settings, static position, quick-message edits and received history
-are session-only and reset at power-off. The minimal default receive profile remains
-an all-traffic packet browser. The receive-session bench and full messaging candidate add a separate
-personal inbox filtered by an operator-entered callsign/SSID, unread markers,
-a deduplicated station directory, and an all-traffic monitor. All received APRS messages still trigger brief
-banners and configured sound, regardless of addressee. Receive, composition,
-ACK/retry handling and the intended standard 1200/2200 Hz transmit path are
-implemented and software-tested. RF compatibility, tone timing/deviation and
-independent TNC decoding require physical validation before everyday use.
+Data TX defaults OFF. A callsign, valid frequency and explicitly set audio level
+are needed to enable it. Calibration/band locks, carrier-busy checks, scan/serial
+exclusion, muted PA ramp, timeout/PTT cancellation and voice restoration remain.
+A successful software handoff does not prove an independently decodable RF packet.
 
-The provisional prototype disables the spectrum analyzer to measure APRS fit;
-final feature cuts have not been approved. See [measured options](docs/FEATURE-COSTS.md). FM broadcast, VOX,
-voice prompts, NOAA and several other optional features were already disabled
-in the selected VUURWERK configuration and remain disabled. No claim is made
-that every feature in all three upstream projects fits simultaneously.
+## Build and validation
 
-## APRS on the radio
-
-1. Confirm the radio has the supported MCU before considering installation.
-   Back up your current firmware, EEPROM, channel data and calibration first.
-2. Tune the active VFO to your local APRS frequency in FM. Turn off dual watch,
-   cross-band receive, channel scanning for continuous receive.
-3. In **MENU → RECEIVE → APRS**, choose **ON**. Enable it again after power-off.
-4. Use **F + 5**, or **MENU → RECEIVE → RxLog**, to open packet history.
-5. Use **UP/DOWN** to browse, and **EXIT** to return to the radio. PTT closes the
-   browser and follows the existing voice-transmit path.
-
-`APRS RX` means the firmware permits listening; it does not prove an RF packet
-was received. `APRS PAUSE` means another mode owns the receiver. Scanning,
-transmission, dual watch, cross-band receive, power save, serial programming and
-non-FM modes exclude APRS capture. Beeps temporarily release the modem. Battery
-save is suppressed while APRS is enabled, so power use increases.
-
-Packets must fit a 240-byte raw-bit capture and a 192-byte AX.25 frame. The
-capture decoder records the first valid packet per capture. Position-ambiguity
-encodings, objects/items, weather decoding and a power-off inbox persistence are not implemented (session-only history is the
-approved requirement). APRS RF decoding sensitivity and interoperability still need
-physical testing.
-
-## Build and validate
-
-Requires Linux, Docker, and host GCC for the sanitizer tests. A direct ARM GCC
-10.3.1 toolchain plus Python 3 / `crcmod` is also supported.
-
-```bash
-./tools/setup-toolchain.sh
+```sh
 ./tools/test.sh
 ./tools/build-transport.sh
 ```
 
-`tools/build-transport.sh` selects all agreed APRS features and packages
-`build/transport-candidate/`. The underlying `tools/build.sh` performs a clean build, rejects flash/RAM overflow, checks the
-Cortex-M0 ELF architecture and reset vector, and validates the packed updater
-payload and CRC. Outputs are `uvk6-experimental.bin` and
-`uvk6-experimental.packed.bin`; the verification report is
-`build/verification.json`. Nothing in these commands flashes hardware.
+The package is written to `build/tx-only/`. Pinned compiler: ARM GCC 10.3.1;
+original DP32G030 application flash: 61,440 bytes; updater limit: **61,439 bytes**;
+SRAM: 16 KiB with a reserved 2 KiB stack. Verification checks the CPU/vector
+layout, size, packed CRC/payload and absence of removed receive symbols.
 
-To build the receive-session bench package (stations, positions and inbox), run
-`./tools/build-receiver-bench.sh`. It uses the same original-MCU limits and
-packages the matching manifest; it never flashes a radio.
+Automated checks cover retained radio settings and LCD rendering, outgoing frame
+encoding, explicit send permissions, single-send behavior, cancellation and
+voice restoration. The owner confirmed boot/controls/voice RX on the earlier
+R2 image; this revised image still needs local boot/voice and RF TX tests.
+See [hardware validation](docs/HARDWARE-VALIDATION.md) and
+[backup/flashing preparation](FLASHING.md). No cloud tool flashes the radio.
 
-See [BUILD.md](BUILD.md), [validation results](docs/VALIDATION.md),
-[integration and remaining work](docs/INTEGRATION.md), and
-[hardware test procedure](docs/HARDWARE-VALIDATION.md).
-
-## Original projects and licensing
-
-**Original authors retain credit and their copyright notices.**
-
-- **James Honiball, KC3TFZ / Tokeloshe — [VUURWERK](https://github.com/Tokeloshe/vuurwerk-firmware)**:
-  complete base firmware, radio features, compressor, adaptive squelch/scanning.
-- **Armel, F4HWN — [F4HWN firmware](https://github.com/armel/uv-k5-firmware-custom)**:
-  display and channel/frequency presentation used in the earlier prototype,
-  informing the current custom home layout.
-- **TA1JS / bcanata — [TA1JS APRS firmware](https://github.com/bcanata/uv-k5-firmware-ta1js)**:
-  standalone BK4819 receive setup and HDLC/NRZI/FCS processing adapted here.
-- **DualTachyon, Egzumer, OneOfEleven and fagci**, and the other upstream authors:
-  original open firmware, radio drivers, UI, AM reception and spectrum heritage.
-- **F4JTV**: credited by TA1JS for its position decoders. This fork uses its own
-  coordinate-parser implementation; F4JTV's parser source is excluded because
-  a clear code license was not found during the audit.
-
-The complete fork follows VUURWERK's explicit permission to fork, modify and
-redistribute its **complete firmware package under GPL v3**. VUURWERK also states
-additional restrictions on extracting its original modules. Its original
-[LICENSE](LICENSE) is preserved unchanged. Imported Apache-2.0 notices,
-third-party licenses, original credits and base Git history are retained.
-See [NOTICE](NOTICE), [LICENSES](LICENSES), and [upstream revisions](docs/upstream/sources.json).
-
-The project owner is Dustpan95. No collaborators or agents have been invited or
-added. GitHub may list legitimate upstream commit authors in its contributor
-statistics because their history is preserved.
+Historical [receive investigation](docs/RX-INVESTIGATION.md) records why receive
+was abandoned; it is no longer a testing plan for this firmware.

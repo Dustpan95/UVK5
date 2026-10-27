@@ -13,9 +13,6 @@
  */
 
 #include "gain_staging.h"
-#ifdef ENABLE_APRS_RX_DIAGNOSTICS
-#include "app/aprs_rx.h"
-#endif
 #include "am_fix.h"
 #include "driver/bk4819.h"
 #include "functions.h"
@@ -52,11 +49,6 @@ void GAIN_STAGING_10ms(uint8_t vfo)
     if (gRxVfo->Modulation != MODULATION_FM)
         return;
 
-#ifdef ENABLE_APRS_RX_DIAGNOSTICS
-    /* The diagnostic reference profile owns REG_13 until APRS_Stop restores
-     * the saved voice gain. Keep the normal per-VFO state intact meanwhile. */
-    if (APRS_UsesReferenceGain()) return;
-#endif
 
     // === VUURWERK v1.2.8: yield to the BK4819 hardware AGC during scan ===
     // The per-hop freq-change reset plus the release off-by-one would pin
@@ -188,9 +180,6 @@ void GAIN_STAGING_10ms(uint8_t vfo)
 int8_t GAIN_STAGING_GetGainDiff(uint8_t vfo)
 {
     if (vfo > 1) return 0;
-#ifdef ENABLE_APRS_RX_DIAGNOSTICS
-    if (APRS_UsesReferenceGain()) return 0;
-#endif
 
     // Same formula as AM_fix: original_dB - current_dB
     // Positive = gain was reduced, add back to RSSI for true signal strength

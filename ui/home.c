@@ -20,7 +20,6 @@
  */
 #include "ui/display_text.h"
 #include "ui/home.h"
-#include "app/aprs_rx.h"
 #include "app/chFrScanner.h"
 #include "app/scanner.h"
 #include "driver/st7565.h"
@@ -171,8 +170,6 @@ static void Overlays(unsigned primary)
     } else if(RUNTIME_Leased()) {
         Banner(DISPLAY_TEXT("APRS ACTIVE"),DISPLAY_TEXT("PTT:RETURN TO VOICE"));
 #endif
-    } else if(gAPRS_BannerTicks) {
-        sprintf(s,DISPLAY_TEXT("MSG %s"),gAPRS_BannerSource);Banner(s,gAPRS_BannerText);
     } else if(gSetting_live_DTMF_decoder && gDTMF_RX_live[0]) {
         unsigned n=strlen(gDTMF_RX_live);Banner(DISPLAY_TEXT("DTMF DECODE"),gDTMF_RX_live+(n>17 ? n-17 : 0));
     } else if(BANDSCOPE_IsEnabled() && !FUNCTION_IsRx()) {
@@ -193,10 +190,11 @@ void UI_HomeStatus(void)
                        v->OUTPUT_POWER == OUTPUT_POWER_MID ? 'M' : 'L';
     sprintf(s, DISPLAY_TEXT("%s %c"), v->Modulation<MODULATION_UKNOWN ? gModulationStr[v->Modulation] : DISPLAY_TEXT("?"), power);
     Text(s, 19, 1, 0, true);
-    if (gAPRS_Enabled) Text(DISPLAY_TEXT("APRS"), 47, 1, 0, true);
+#ifdef ENABLE_APRS_TRANSPORT
+    if (RUNTIME_Enabled()) Text(DISPLAY_TEXT("APRS TX"),47,1,0,true);
+#endif
     if (gEeprom.KEY_LOCK) Text(DISPLAY_TEXT("LK"), 75, 1, 0, true);
     else if (gWasFKeyPressed) Text(DISPLAY_TEXT("F"), 75, 1, 0, true);
-    else if (gAPRS_BannerTicks) Text(DISPLAY_TEXT("M"), 75, 1, 0, true);
     sprintf(s, DISPLAY_TEXT("%u%%"), BATTERY_VoltsToPercent(gBatteryVoltageAverage));
     Text(s, 126 - (strlen(s) * 7 - 1), 0, 1, true);
 }

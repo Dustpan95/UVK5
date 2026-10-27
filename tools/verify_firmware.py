@@ -29,7 +29,7 @@ else:
     raise AssertionError('upstream updater obfuscation key not found')
 plain = bytes(value ^ key[i % len(key)] for i, value in enumerate(packed[:-2]))
 assert plain[:8192] + plain[8208:] == raw, 'updater payload differs from raw firmware'
-assert plain[8192:8208] == b'*VUURWERK rx-dev', 'unexpected experimental updater version'
+assert plain[8192:8208] == b'*VUURWERK tx-dev', 'unexpected experimental updater version'
 attributes = subprocess.check_output(['arm-none-eabi-readelf', '-A', str(target)], text=True)
 assert 'Tag_CPU_arch: v6S-M' in attributes and 'Tag_THUMB_ISA_use: Thumb-1' in attributes, 'wrong CPU architecture'
 sections = subprocess.check_output(['arm-none-eabi-size', '-A', str(target)], text=True)
@@ -52,8 +52,16 @@ reserved_stack = section_sizes.get('._user_heap_stack', 0)
 assert flash == len(raw), 'raw length and ELF loadable sections differ'
 assert reserved_stack >= 2048, 'linker stack reservation below 2 KiB'
 assert static_ram + reserved_stack <= sp - 0x20000000, 'RAM reservation exceeds DP32G030 SRAM'
+symbols = subprocess.check_output(['arm-none-eabi-nm', str(target)], text=True)
+removed_symbols = ['APRS_DecodeBits', 'APRS_ParseFrame', 'APRS_Interrupt', 'APRS_CanListen',
+                   'APRS_ReadDiagnosticCapture', 'CMD_0540', 'SESSION_Receive', 'RUNTIME_Receive',
+                   'TX_Acknowledge', 'gAPRS_Log', 'gAPRS_Inbox', 'gAPRS_Stations', 'gAPRS_RxDiagnostics']
+for name in removed_symbols:
+    assert name not in symbols, 'removed APRS receive symbol linked: ' + name
 report = {
-    'status': 'experimental; RF and physical hardware not tested',
+    'status': 'experimental transmit-only APRS; physical/RF validation pending',
+    'aprs_receive': False,
+    'receive_symbols_absent': removed_symbols,
     'hardware_target': 'original DP32G030 UV-K5 / UV-K6; not other MCU revisions',
     'compiler': subprocess.check_output(['arm-none-eabi-gcc', '-dumpfullversion'], text=True).strip(),
     'flash_bytes': flash, 'flash_limit_bytes': FLASH_LIMIT, 'flash_free_bytes': FLASH_LIMIT - flash,

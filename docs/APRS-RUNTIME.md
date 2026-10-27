@@ -1,3 +1,7 @@
+> Historical receive/ACK runtime design. The current transmit-only runtime
+> removes receive, automatic replies, ACK waits and delivery confirmation.
+> See [current integration](INTEGRATION.md).
+
 # Complete APRS runtime candidate
 
 `ENABLE_APRS_TRANSPORT=1` selects the actual foreground/UI/RX/hardware binding.

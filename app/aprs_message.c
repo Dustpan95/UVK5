@@ -196,22 +196,6 @@ void MESSAGE_Key(KEY_Code_t key)
     text[n-1]=group[m->tapIndex];
     m->tapKey=key; m->tapTicks=2; m->delivery=MESSAGE_DRAFT;
 }
-bool MESSAGE_MarkSent(const char *sender, const char *id)
-{
-    if (!MESSAGE_ValidCall(sender) || !MESSAGE_ValidCall(gAPRS_Message.recipient) ||
-        !ValidId(id) || !gAPRS_Message.text[0]) return false;
-    strcpy(gAPRS_Message.sender,sender); strcpy(gAPRS_Message.id,id);
-    gAPRS_Message.delivery=MESSAGE_WAIT_ACK; gAPRS_Message.page=MESSAGE_STATUS;
-    return true;
-}
-bool MESSAGE_Acknowledge(const char *source, const char *addressee, const char *id, bool rejected)
-{
-    APRS_Message *m=&gAPRS_Message;
-    if (!source || !addressee || !id || m->delivery!=MESSAGE_WAIT_ACK ||
-        !MESSAGE_CallsMatch(source,m->recipient) || !MESSAGE_CallsMatch(addressee,m->sender) || strcmp(id,m->id)) return false;
-    m->delivery=rejected ? MESSAGE_REJECTED : MESSAGE_ACKED;
-    return true;
-}
 static void Address(uint8_t *out, const char *call, bool last)
 {
     unsigned i=0, ssid=0;
@@ -226,17 +210,6 @@ static void MessageHeader(uint8_t *out, const char *sender, const char *recipien
     Address(out,"APZUVK",false); Address(out+7,sender,true);
     out[14]=3;out[15]=0xf0;out[16]=':';
     memset(out+17,' ',9);memcpy(out+17,recipient,strlen(recipient));out[26]=':';
-}
-size_t MESSAGE_BuildControl(const char *sender, const char *recipient,
-                            const char *id, bool rejected, uint8_t *out, size_t capacity)
-{
-    if(!MESSAGE_ValidCall(sender) || !MESSAGE_ValidCall(recipient) || !id || !out) return 0;
-    unsigned n=0;
-    while(n<5 && (Alnum(id[n]) || (id[n]>='a' && id[n]<='z'))) ++n;
-    if(!n || id[n] || capacity<30+n) return 0;
-    MessageHeader(out,sender,recipient);
-    memcpy(out+27,rejected ? "rej" : "ack",3);memcpy(out+30,id,n);
-    return 30+n;
 }
 size_t MESSAGE_BuildFrame(const char *sender, const char *recipient, const char *text,
                          const char *id, uint8_t *out, size_t capacity)

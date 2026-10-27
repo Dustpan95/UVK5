@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 #include "app/aprs_setup.h"
+#include "app/aprs_ui.h"
 #include "app/aprs_runtime.h"
 #include "app/aprs_session.h"
 #include "app/aprs_message.h"
@@ -10,7 +11,8 @@
 #include <stdio.h>
 #include <string.h>
 APRS_Setup gAPRS_Setup;
-APRS_RuntimeSettings gAPRS_Runtime={.acknowledgmentSeconds=10};
+uint8_t gAPRS_HubSelected;
+APRS_RuntimeSettings gAPRS_Runtime;
 APRS_Profile gAPRS_Profile={.callsign="N0CALL",.latitude=41390833,.longitude=-87655000};
 APRS_Message gAPRS_Message;
 APRS_TX_Job gAPRS_TX;
@@ -43,7 +45,7 @@ int main(int argc,char **argv)
     for(unsigned p=SETUP_HOME;p<=SETUP_BEACON;p++) {
         gAPRS_Setup.page=p;strcpy(gAPRS_Setup.digits,p==SETUP_LONGITUDE ? "0873930" : "412345");
         gAPRS_Setup.length=strlen(gAPRS_Setup.digits);gAPRS_Setup.negative=p==SETUP_LONGITUDE;
-        if(p==SETUP_AUDIO || p==SETUP_WAIT) {strcpy(gAPRS_Setup.digits,p==SETUP_AUDIO ? "25" : "10");gAPRS_Setup.length=2;}
+        if(p==SETUP_AUDIO) {strcpy(gAPRS_Setup.digits,"25");gAPRS_Setup.length=2;}
         if(p==SETUP_FREQUENCY) {strcpy(gAPRS_Setup.digits,"14439000");gAPRS_Setup.length=8;}
         SETUP_Draw();Image(argv[1],p);gAPRS_Setup.error=true;SETUP_Draw();gAPRS_Setup.error=false;
     }
@@ -54,6 +56,10 @@ int main(int argc,char **argv)
     }
     gAPRS_Message.page=MESSAGE_STATUS;strcpy(gAPRS_TX.recipient,"N0CALL-15");
     for(unsigned state=APRS_TX_IDLE;state<=APRS_TX_EXPIRED;state++) {gAPRS_TX.state=state;MESSAGE_Draw();}
-    assert(blits==2*SETUP_BEACON+MESSAGE_QUICK_EDIT+APRS_TX_EXPIRED+1);
+    unsigned previous=blits;
+    gAPRS_Setup.page=SETUP_CLOSED;gAPRS_Message.page=MESSAGE_CLOSED;
+    for(unsigned i=0;i<APRS_HUB_ITEMS;i++) {gAPRS_HubSelected=i;APRS_Draw();}
+    assert(blits==previous+3);
+    assert(previous==2*SETUP_BEACON+MESSAGE_QUICK_EDIT+APRS_TX_EXPIRED+1);
     puts("PASS actual setup/editor/status framebuffer rendering for all pages and TX states under ASan/UBSan");
 }

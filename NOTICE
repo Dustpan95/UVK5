@@ -21,8 +21,9 @@ adapted in the earlier display prototype; retained heritage and original
 copyright notices in the custom ui/home.c implementation. Original Apache-2.0 notices and license preserved.
 
 TA1JS / bcanata, bcanata/uv-k5-firmware-ta1js
-Standalone BK4819 APRS receive setup, FIFO capture, NRZI/HDLC and FCS logic
-adapted in app/aprs_rx.c and app/aprs_decode.c. Original source notice:
+The former receive implementation adapted standalone BK4819 receive setup,
+FIFO capture and NRZI/HDLC logic. Receive is now removed at the owner’s request;
+the shared transmit-frame FCS remains in app/aprs_frame.c. Original source notice:
 Copyright 2024 UV-K5 Firmware Custom. Apache License 2.0.
 The TA1JS documentation credits F4JTV for its position decoders; this fork
 excludes that parser source because a clear license was not found and uses

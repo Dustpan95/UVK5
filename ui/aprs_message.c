@@ -77,21 +77,19 @@ void MESSAGE_Draw(void)
         footer=DISPLAY_TEXT("MENU:SELECT  EXIT:BODY");
     } else {
 #ifdef ENABLE_APRS_TRANSPORT
-        static const char *const states[]={DISPLAY_TEXT("IDLE"),DISPLAY_TEXT("QUEUED"),DISPLAY_TEXT("WAITING FOR ACK"),DISPLAY_TEXT("BEACON SENT"),DISPLAY_TEXT("ACK RECEIVED"),
-            DISPLAY_TEXT("MESSAGE REJECTED"),DISPLAY_TEXT("UNCONFIRMED"),DISPLAY_TEXT("TX BLOCKED"),DISPLAY_TEXT("TX FAILED"),DISPLAY_TEXT("CANCELLED"),DISPLAY_TEXT("EXPIRED")};
-        sprintf(line,gAPRS_TX.needsAcknowledgment ? DISPLAY_TEXT("TO %s") : DISPLAY_TEXT("STATIC BEACON"),gAPRS_TX.recipient);UI_PrintLine(line,0);
+        static const char *const states[]={DISPLAY_TEXT("IDLE"),DISPLAY_TEXT("QUEUED"),DISPLAY_TEXT("TX SENT"),DISPLAY_TEXT("TX BLOCKED"),DISPLAY_TEXT("TX FAILED"),DISPLAY_TEXT("CANCELLED"),DISPLAY_TEXT("EXPIRED")};
+        sprintf(line,gAPRS_TX.message ? DISPLAY_TEXT("TO %s") : DISPLAY_TEXT("STATIC BEACON"),gAPRS_TX.recipient);UI_PrintLine(line,0);
         UI_PrintLine(states[gAPRS_TX.state],2);
+        if(gAPRS_TX.state==APRS_TX_SENT) UI_PrintLine(DISPLAY_TEXT("DELIVERY UNKNOWN"),3);
         sprintf(line,DISPLAY_TEXT("ATTEMPTS %u/%u"),gAPRS_TX.attempts,gAPRS_TX.policy.maxAttempts);UI_PrintLine(line,4);
-        footer=DISPLAY_TEXT("MENU:CANCEL EXIT:BACK");
+        footer=gAPRS_TX.state==APRS_TX_QUEUED ? DISPLAY_TEXT("MENU:CANCEL EXIT:BACK") : DISPLAY_TEXT("EXIT:BACK");
 #else
         sprintf(line,DISPLAY_TEXT("TO %s"),m->recipient);UI_PrintLine(line,0);
-        const char *status=m->delivery==MESSAGE_ACKED ? DISPLAY_TEXT("ACK RECEIVED") :
-            m->delivery==MESSAGE_WAIT_ACK ? DISPLAY_TEXT("WAITING FOR ACK") :
-            m->delivery==MESSAGE_REJECTED ? DISPLAY_TEXT("MESSAGE REJECTED") : DISPLAY_TEXT("NOT SENT");
+        const char *status=DISPLAY_TEXT("NOT SENT");
         UI_PrintLine(status,2);
         if(m->delivery==MESSAGE_TX_UNAVAILABLE)
             UI_PrintLine(DISPLAY_TEXT("TX UNAVAILABLE"),4);
-        footer=DISPLAY_TEXT("EXIT:PACKETS");
+        footer=DISPLAY_TEXT("EXIT:BACK");
 #endif
     }
 #endif

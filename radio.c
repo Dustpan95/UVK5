@@ -16,7 +16,6 @@
  */
 
 /* UVK5 integration: passive APRS hooks. */
-#include "app/aprs_rx.h"
 #include "driver/bk4819-regs.h"
 #include <string.h>
 
@@ -529,7 +528,6 @@ void RADIO_SelectVfos(void)
 
 void RADIO_SetupRegisters(bool switchToForeground)
 {
-    APRS_Stop();
 	BK4819_FilterBandwidth_t Bandwidth = gRxVfo->CHANNEL_BANDWIDTH;
 
 	AUDIO_AudioPathOff();
@@ -766,7 +764,6 @@ void RADIO_SetupRegisters(bool switchToForeground)
 
 void RADIO_SetTxParameters(void)
 {
-    APRS_Stop();
 	BK4819_FilterBandwidth_t Bandwidth = gCurrentVfo->CHANNEL_BANDWIDTH;
 
 	AUDIO_AudioPathOff();

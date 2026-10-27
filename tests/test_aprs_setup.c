@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-APRS_RuntimeSettings gAPRS_Runtime={.acknowledgmentSeconds=10};
+APRS_RuntimeSettings gAPRS_Runtime;
 APRS_Profile gAPRS_Profile;
 APRS_Message gAPRS_Message;
 static bool enabled;

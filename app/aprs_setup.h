@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 typedef enum { SETUP_CLOSED,SETUP_HOME,SETUP_LATITUDE,SETUP_LONGITUDE,SETUP_POSITION_REVIEW,
-    SETUP_QUICK,SETUP_DATA,SETUP_FREQUENCY,SETUP_AUDIO,SETUP_WAIT,SETUP_BEACON } APRS_SetupPage;
+    SETUP_QUICK,SETUP_DATA,SETUP_FREQUENCY,SETUP_AUDIO,SETUP_BEACON } APRS_SetupPage;
 typedef struct {
     APRS_SetupPage page;
     uint8_t selected,length;

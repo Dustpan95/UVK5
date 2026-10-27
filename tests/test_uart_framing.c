@@ -11,15 +11,7 @@ static __typeof__(*DMA_CH0) testDma;
 #include "app/uart.c"
 uint8_t UART_DMA_Buffer[256];
 static uint8_t wire[256];
-static unsigned wireSize,reads;
-uint8_t APRS_ReadDiagnosticCapture(uint16_t offset,uint8_t size,uint8_t *out)
-{
-    ++reads;if(offset>=1008) return 0;
-    if(size>64) size=64;
-    if(size>1008-offset) size=1008-offset;
-    for(unsigned i=0;i<size;i++) out[i]=(uint8_t)(offset+i);
-    return size;
-}
+static unsigned wireSize;
 void UART_Send(const void *p,uint32_t n) {assert(wireSize+n<=sizeof(wire));memcpy(wire+wireSize,p,n);wireSize+=n;}
 uint16_t CRC_Calculate(const void *p,uint16_t n)
 {
@@ -39,19 +31,13 @@ static void Check(unsigned offset,unsigned wanted,bool encrypted,unsigned start,
     for(unsigned i=0;i<length;i++) UART_DMA_Buffer[(start+i)%256]=frame[i];
     testDma.ST=(start+length-1)%256;assert(!UART_IsCommandAvailable());
     testDma.ST=(start+length)%256;bool available=UART_IsCommandAvailable();assert(available==!corrupt);
-    wireSize=reads=0;
-    if(available) {assert(UART_Command.Header.ID==0x0540);CMD_0540();}
-    if(corrupt || bodySize!=8 || declared!=4) {assert(!wireSize && !reads);++cases;return;}
-    assert(reads==1);unsigned n=offset>=1008 ? 0:wanted;
-    if(n>64)n=64;
-    if(n>1008-offset && offset<1008)n=1008-offset;
-    assert(wireSize==n+16 && wire[0]==0xab && wire[1]==0xcd && wire[2]==n+8 && !wire[3]);
-    assert(wire[wireSize-2]==0xdc && wire[wireSize-1]==0xba);
-    if(encrypted) for(unsigned i=0;i<n+10;i++) wire[4+i]^=Obfuscation[i%16];
-    assert(wire[4]==0x41 && wire[5]==5 && wire[6]==n+4 && !wire[7]);
-    assert(wire[8]==(uint8_t)offset && wire[9]==offset>>8 && wire[10]==n && wire[11]==1);
-    for(unsigned i=0;i<n;i++) assert(wire[12+i]==(uint8_t)(offset+i));
-    assert(wire[12+n]==0xff && wire[13+n]==0xff);++cases;
+    wireSize=0;
+    if(available) {
+        assert(UART_Command.Header.ID==0x0540);
+        assert(!memcmp(UART_Command.Buffer, (uint8_t[]){0x40,5,declared,0,offset,offset>>8,wanted,0},bodySize));
+    }
+    assert(!wireSize);++cases;
+
 }
 int main(void)
 {
@@ -60,5 +46,5 @@ int main(void)
       for(unsigned o=0;o<8;o++) for(unsigned n=0;n<6;n++) Check(offsets[o],sizes[n],enc,start,8,4,false);
     for(unsigned n=4;n<=8;n++) Check(0,64,true,250,n,4,false);
     Check(0,64,true,250,8,3,false);Check(0,64,true,250,8,4,true);
-    printf("PASS %u actual UART diagnostic requests/replies, XOR/CRC, partial frames, DMA wrap, truncated commands and bounded reads\n",cases);
+    printf("PASS %u actual UART framing checks: CRC rejection, XOR/plain transport, partial DMA frames and wrap; no capture handler\n",cases);
 }

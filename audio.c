@@ -15,7 +15,6 @@
  */
 
 /* Modified for UVK5: release the APRS modem before a shared tone beep. */
-#include "app/aprs_rx.h"
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
@@ -63,7 +62,6 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		BK1080_Mute(true);
 #endif
 
-	APRS_Stop();
 	AUDIO_AudioPathOff();
 
 	if (gCurrentFunction == FUNCTION_POWER_SAVE && gRxIdleMode)

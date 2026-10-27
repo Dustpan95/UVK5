@@ -10,7 +10,6 @@
 #include "scanwatch.h"
 #include "driver/bk4819.h"
 #include "ui/ui.h"
-#include "app/aprs_rx.h"
 #include "app/chFrScanner.h"
 #include "dtmf.h"
 #include "helper/battery.h"
@@ -82,14 +81,13 @@ int main(void) {
 }
 /* No selected field operation may reach hardware or persistent storage. */
 char gDTMF_RX_live[20];uint8_t gDTMF_RX_live_timeout,gScanWatchArmed;int8_t gScanStateDir;
-uint16_t gBatteryCalibration[6];bool gAPRS_AlertSound,gAPRS_Enabled;
+uint16_t gBatteryCalibration[6];
 void SETTINGS_SaveChannelName(uint8_t channel,const char *name) {(void)channel;(void)name;assert(0);}
 void SETTINGS_UpdateChannel(uint8_t channel,const VFO_Info_t *v,bool keep) {(void)channel;(void)v;(void)keep;assert(0);}
 void SETTINGS_LoadCalibration(void) {assert(0);}
 void SETTINGS_FactoryReset(bool all) {(void)all;assert(0);}
 void SETTINGS_SaveBatteryCalibration(const uint16_t *c) {(void)c;assert(0);}
 void BK4819_DisableDTMF(void) {assert(0);}
-void APRS_Stop(void) {assert(0);}
 void SCANWATCH_Disable(void) {assert(0);}
 void SCANWATCH_Enable(uint8_t vfo) {(void)vfo;assert(0);}
 uint8_t RADIO_FindNextChannel(uint8_t channel,int8_t direction,bool scan,uint8_t radio) {(void)channel;(void)direction;(void)scan;(void)radio;assert(0);return 0;}

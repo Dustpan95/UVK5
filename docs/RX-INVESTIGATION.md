@@ -1,4 +1,8 @@
-# APRS receive investigation — hardware evidence
+# APRS receive investigation — historical hardware evidence
+
+**Retired:** APRS receive was removed at the owner’s request. This document is
+a record of the unsuccessful investigation, not an active testing plan. See
+[current firmware](../README.md).
 
 The owner has flashed the full R2 candidate and D1–D4 diagnostic images locally.
 Voice reception works and a packet burst is audible, but no successful on-radio

@@ -1,68 +1,32 @@
-# Physical validation — outstanding
+# Physical validation — current outgoing APRS firmware
 
-No radio has been connected or flashed by the cloud tools. The owner reports
-that revision 2 was locally flashed and boots; home display, controls, saved
-channels and voice receive checks pass. A clear APRS beacon burst is audible,
-but no packet decodes despite enabling APRS. MCU identity, voice TX, data TX,
-RF timing/deviation and recovery remain unverified. The temporary
-[D3 modem comparison](../release/rx-diagnostics-d3/README.md) follows D2 capture
-collection. Three owner-exported 240-byte captures yield no valid frame across
-12 byte/bit/coding interpretations. D3 compares four documented RX mode/filter
-combinations; no physical decoding improvement has yet been demonstrated. The
-[D3 capture and independent speaker-audio findings](RX-INVESTIGATION.md) record
-the unsuccessful B/D captures and independent audio decode, with their limits.
-[D4](../release/rx-diagnostics-d4/README.md) adds a source-informed TA1JS
-filter/gain comparison with per-capture register readbacks. The owner reports
-failed B/C/D decodes; four D:GAIN and two B:REF raw captures fail both
-production decoders. See the linked investigation for evidence and limits.
-The following checklist is a validation plan; do not
-interpret every item as completed.
+The owner reports boot, controls, channels and voice reception passed on the
+earlier full R2 image. APRS receive never successfully decoded and has now been
+removed at the owner's request. D1–D4 receive experiments are historical; do not
+continue their receive tests for this version.
 
-1. Identify the MCU as **DP32G030** using reliable board/revision evidence.
-   Do not infer it solely from a UV-K6 label or Egzumer v0.21 version string.
-   This build is not for replacement MCU revisions.
-2. Read and preserve the current EEPROM/calibration/channel data and original
-   firmware with a known compatible method. Confirm recovery access before
-   deciding to install an experimental image. APRS introduces no new EEPROM
-   mapping, but cross-firmware compatibility has not been physically verified.
-3. After owner-controlled installation, verify boot, keypad, LCD, memory/VFO
-   tuning, normal FM receive and voice TX into a suitable dummy load.
-4. Feed known Bell 202 / AX.25 test signals through suitable RF test equipment.
-   Check real stations, uncompressed/compressed/Mic-E positions, SSIDs, addressed
-   messages (including 67-character text), corrupt frames and repeated packets.
-   Compare the displayed result with an independent decoder. Measure sensitivity,
-   frequency offset tolerance, missed packets and capture/rearm behavior.
-5. Test APRS enable/disable, F+5/RxLog, history navigation, PTT press/release,
-   beeps, channel changes, scanning, CSS scanning, dual watch, VFO split,
-   serial programming, battery save, low battery and key lock. Check that the
-   modem releases and recovers without corrupting normal radio behavior.
-6. With RF/audio measurement equipment, measure mic gain, FM deviation,
-   compressor attack/release, squelch behavior, scan dwell and tone-coded scan
-   acquisition. Calibrate the upstream compressor threshold before making
-   audio-quality claims. Restore normal mic gain after every TX and confirm
-   no unintended transmitter activation.
-7. Measure current consumption, long-running stability and peak stack use.
-   Verify EEPROM/channel/calibration integrity before and after testing.
+This revised image is software-verified but has not yet run on the owner's radio.
+No cloud tool has connected to or flashed hardware. Confirm the original DP32G030
+hardware and retain the owner's EEPROM/calibration/channel backups and recovery
+preparation as described in [FLASHING.md](../FLASHING.md).
 
-Record MCU marking, board revision, firmware commit and artifact hashes,
-measurement setup, expected/observed outcomes and failures. Do not promote this
-experimental build to a hardware-validated release until those results exist.
+Local checks for the revised image:
 
-For a future TX bench image, additionally measure actual 1200/2200 Hz tones,
-1200-baud edge timing across SysTick reloads, write/interrupt jitter, tone phase
-continuity and FM deviation at both frequencies. Decode real output with an
-independent TNC; verify messages, ACK/rejects and beacons, busy-channel behavior,
-PA ramp, timeout/PTT abort and receive restoration. Start with explicit TX enable
-and a calibrated tone gain. The complete transport candidate includes these paths; they still require
-physical RF tests. The D1 receive-diagnostic image omits APRS transmit.
+1. Boot, keypad/LCD, battery percent, saved channels, VFO tuning, FM receive,
+   voice transmit, compressor, adaptive squelch, normal scan and Scan+Watch.
+2. Confirm APRS RX/RxLog/RxBeep menus and received-message/history screens are
+   absent. F+5 opens only the outgoing message/callsign/setup hub. Ordinary voice
+   receive and power-save behavior remain available.
+3. On suitable RF bench equipment, measure actual 1200/2200 Hz tones, 1200-baud
+   timing, deviation, PA ramp and independent TNC decoding. Check messages and
+   static beacons. Outgoing messages are sent once without delivery confirmation.
+4. Verify carrier-busy, band/power/battery/timeout and serial/scan exclusions,
+   PTT interruption, failure handling, and immediate restoration of the complete
+   voice VFO after each APRS burst. No APRS receiver should be armed afterward.
+5. Compare EEPROM/calibration before/after, power consumption and long-running
+   stability. Verify peak stack use on hardware; the linker reserves 2 KiB but
+   software budgets alone do not measure runtime peak use.
 
-## Owner preparation
-
-The original radio USB-C socket is charging-only. A compatible USB serial adapter
-using the two-pin programming sockets is needed before any local backup or
-installation. See `../FLASHING.md` for a read-only full-EEPROM backup example and
-`../tools/check-eeprom-backups.py` for file consistency checks. Two matching
-8,192-byte files include the calibration region, but file checks alone do not
-establish calibration correctness or recovery. `k5prog -r` reads EEPROM, not a
-firmware dump. Physical MCU identification and usable recovery remain required.
-Independent receivers/TNCs can validate RF once hardware preparation is complete.
+Record the exact source/binary hashes and expected/observed results. Do not
+label outgoing APRS as RF-validated until an independent decoder accepts the
+actual radio's transmitted waveform. Upstream credits/licenses are unchanged.

@@ -1,8 +1,8 @@
 # UVK5 backup and installation preparation
 
-The [complete APRS candidate](release/aprs-candidate/README.md) now fits the
-original MCU and passes software verification. It has not been physically
-validated. This guide does not flash a
+The current [outgoing APRS candidate](release/tx-only/README.md) removes APRS
+receive. It fits the original MCU; physical validation of the revised image is
+pending. Earlier R2/D1–D4 packages are historical. This guide does not flash a
 radio. The [inherited VUURWERK v1.5.0 instructions](docs/upstream/FLASHING-vuurwerk-v1.5.0.md)
 are retained for provenance and are not the installation procedure for this project.
 
@@ -86,7 +86,7 @@ later installation step after backup, hardware and recovery checks are complete.
 ## Owner-controlled experimental installation
 
 After hardware identification, backups and recovery preparation, follow the
-specific [complete candidate instructions](release/aprs-candidate/README.md) and
+specific [current candidate instructions](release/tx-only/README.md) and
 [physical test plan](docs/HARDWARE-VALIDATION.md). Match the image's manifest and
 hashes. Use its packed updater image only with a compatible local updater.
 The old VUURWERK filename/banner in the archived guide is a different build.

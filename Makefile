@@ -46,11 +46,8 @@ ENABLE_REDUCE_LOW_MID_TX_POWER?= 0
 ENABLE_BYP_RAW_DEMODULATORS   ?= 0
 ENABLE_BLMIN_TMP_OFF          ?= 0
 ENABLE_SCAN_RANGES            ?= 1
-# Minimal RX default; tools/build-transport.sh selects the complete APRS candidate.
-ENABLE_APRS_TRANSPORT         ?= 0
-ENABLE_APRS_MESSAGING         ?= 0
-ENABLE_APRS_SESSION           ?= 0
-ENABLE_APRS_RX_DIAGNOSTICS    ?= 0
+# Outgoing APRS only. No receiver/decoder/diagnostic build remains.
+ENABLE_APRS_TRANSPORT         ?= 1
 ENABLE_FONT_PACKING           ?= 1
 
 # ---- DEBUGGING ----
@@ -85,33 +82,16 @@ BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
 BSP_HEADERS     := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
 BSP_HEADERS     := $(patsubst %.def,%.h,$(BSP_HEADERS))
 
-OBJS = helper/packed_huffman.o helper/compact_memory.o helper/compact_division.o helper/compact_division_glue.o ui/display_text.o app/aprs_position.o app/aprs_decode.o app/aprs_rx.o ui/aprs.o ui/home.o
-ifeq ($(ENABLE_APRS_RX_DIAGNOSTICS),1)
-ifeq ($(ENABLE_APRS_SESSION),1)
-$(error Receive diagnostics uses the minimal RX profile; disable ENABLE_APRS_SESSION)
+OBJS = helper/packed_huffman.o helper/compact_memory.o helper/compact_division.o helper/compact_division_glue.o ui/display_text.o ui/home.o
+ifneq ($(filter 1,$(ENABLE_APRS_RX_DIAGNOSTICS) $(ENABLE_APRS_SESSION) $(ENABLE_APRS_MESSAGING)),)
+$(error APRS receive and legacy receive profiles have been removed)
 endif
 ifeq ($(ENABLE_APRS_TRANSPORT),1)
-$(error Receive diagnostics is a separate profile; disable ENABLE_APRS_TRANSPORT)
-endif
-CFLAGS_DIAGNOSTICS = -DENABLE_APRS_RX_DIAGNOSTICS
-endif
-ifeq ($(ENABLE_APRS_TRANSPORT),1)
-override ENABLE_APRS_MESSAGING := 1
+OBJS += app/aprs_ui.o ui/aprs.o app/aprs_frame.o app/aprs_format.o app/aprs_message.o app/aprs_session.o ui/aprs_message.o
 OBJS += app/aprs_runtime.o app/aprs_setup.o ui/aprs_setup.o app/aprs_tx.o
 OBJS += experiments/aprs_service.o experiments/aprs_channel.o experiments/aprs_hardware.o
 OBJS += experiments/aprs_radio_owner.o experiments/bell202_radio.o experiments/bell202_timing.o experiments/bell202_symbols.o
-CFLAGS_TRANSPORT = -DENABLE_APRS_TRANSPORT
-endif
-ifeq ($(ENABLE_APRS_MESSAGING),1)
-override ENABLE_APRS_SESSION := 1
-CFLAGS_MESSAGING = -DENABLE_APRS_MESSAGING
-endif
-ifeq ($(ENABLE_APRS_SESSION),1)
-OBJS += app/aprs_format.o app/aprs_message.o app/aprs_session.o ui/aprs_message.o ui/aprs_session.o
-CFLAGS_MESSAGING += -DENABLE_APRS_SESSION
-ifneq ($(ENABLE_APRS_MESSAGING),1)
-CFLAGS_MESSAGING += -DENABLE_APRS_CALLSIGN_ONLY
-endif
+CFLAGS_TRANSPORT = -DENABLE_APRS_TRANSPORT -DENABLE_APRS_SESSION
 endif
 # Startup files
 OBJS += start.o
@@ -281,7 +261,7 @@ OBJCOPY = arm-none-eabi-objcopy
 SIZE = arm-none-eabi-size
 
 AUTHOR_STRING ?= VUURWERK
-VERSION_STRING ?= rx-dev
+VERSION_STRING ?= tx-dev
 
 
 ASFLAGS = -c -mcpu=cortex-m0
@@ -289,7 +269,7 @@ ifeq ($(ENABLE_OVERLAY),1)
 	ASFLAGS += -DENABLE_OVERLAY
 endif
 
-CFLAGS = $(CFLAGS_MESSAGING) $(CFLAGS_TRANSPORT) $(CFLAGS_FONTS) $(CFLAGS_DIAGNOSTICS)
+CFLAGS = $(CFLAGS_TRANSPORT) $(CFLAGS_FONTS)
 ifeq ($(ENABLE_CLANG),0)
 	CFLAGS += -Os -fno-early-inlining -Wall -Werror -mcpu=cortex-m0 -fbuiltin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD

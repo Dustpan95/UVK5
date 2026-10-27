@@ -18,7 +18,6 @@
 
 /* UVK5 integration: passive APRS hooks. */
 #include "ui/display_text.h"
-#include "app/aprs_rx.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -544,13 +543,7 @@ void REFERENCE_UI_DisplayMenu(void)
 			strcpy(String, reference_side[gSubMenuSelection].name);
 			break;
 
-		case MENU_APRS_BEEP:
-        case MENU_APRS_RX:
-            strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
-            break;
-        case MENU_APRS_LOG:
-            strcpy(String, DISPLAY_TEXT("PACKETS"));
-            break;
+
         case MENU_SCANWATCH:
 		{
 			strcpy(String, gSubMenu_SCANWATCH[(unsigned)gSubMenuSelection < gSubMenu_SCANWATCH_size ? gSubMenuSelection : 0]);

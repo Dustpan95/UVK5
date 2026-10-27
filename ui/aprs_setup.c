@@ -5,7 +5,7 @@
 #include "app/aprs_runtime.h"
 #include "app/aprs_session.h"
 #include "app/aprs_message.h"
-#include "app/aprs_rx.h"
+#include "app/aprs_ui.h"
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
 #include "ui/helper.h"
@@ -15,8 +15,8 @@ void __attribute__((noinline)) SETUP_Draw(void)
     UI_DisplayClear();const char *footer=DISPLAY_TEXT("MENU:SELECT EXIT:BACK");
     if(s->page==SETUP_HOME || s->page==SETUP_QUICK || s->page==SETUP_DATA) {
         static const char *const home[]={DISPLAY_TEXT("MY CALLSIGN"),DISPLAY_TEXT("STATIC POSITION"),DISPLAY_TEXT("QUICK MESSAGES"),DISPLAY_TEXT("DATA TX")};
-        static const char *const data[]={DISPLAY_TEXT("APRS FREQUENCY"),DISPLAY_TEXT("TX AUDIO LEVEL"),DISPLAY_TEXT("ACK WAIT"),DISPLAY_TEXT("DATA TX"),DISPLAY_TEXT("SEND BEACON")};
-        unsigned count=s->page==SETUP_HOME ? 4 : s->page==SETUP_QUICK ? 3 : 5;
+        static const char *const data[]={DISPLAY_TEXT("APRS FREQUENCY"),DISPLAY_TEXT("TX AUDIO LEVEL"),DISPLAY_TEXT("DATA TX"),DISPLAY_TEXT("SEND BEACON")};
+        unsigned count=s->page==SETUP_HOME ? 4 : s->page==SETUP_QUICK ? 3 : 4;
         UI_PrintStringSmallNormal(s->page==SETUP_HOME ? DISPLAY_TEXT("APRS SETUP SESSION") :
             s->page==SETUP_QUICK ? DISPLAY_TEXT("EDIT QUICK MSGS") : DISPLAY_TEXT("APRS DATA TX"),0,0,0);
         for(unsigned i=0;i<count;i++) {
@@ -33,8 +33,7 @@ void __attribute__((noinline)) SETUP_Draw(void)
                 if(gAPRS_Runtime.audioSet) sprintf(line,DISPLAY_TEXT("%cTX AUDIO %u"),i==s->selected ? '>' : ' ',gAPRS_Runtime.audioLevel);
                 else sprintf(line,DISPLAY_TEXT("%cTX AUDIO NOT SET"),i==s->selected ? '>' : ' ');
             }
-            if(s->page==SETUP_DATA && i==2) sprintf(line,DISPLAY_TEXT("%cACK WAIT %us"),i==s->selected ? '>' : ' ',gAPRS_Runtime.acknowledgmentSeconds);
-            if(s->page==SETUP_DATA && i==3) sprintf(line,DISPLAY_TEXT("%cDATA TX %s"),i==s->selected ? '>' : ' ',RUNTIME_Enabled() ? DISPLAY_TEXT("ON") : DISPLAY_TEXT("OFF"));
+            if(s->page==SETUP_DATA && i==2) sprintf(line,DISPLAY_TEXT("%cDATA TX %s"),i==s->selected ? '>' : ' ',RUNTIME_Enabled() ? DISPLAY_TEXT("ON") : DISPLAY_TEXT("OFF"));
             UI_PrintLine(line,i+1);
         }
     } else if(s->page==SETUP_POSITION_REVIEW || s->page==SETUP_BEACON) {
@@ -50,7 +49,7 @@ void __attribute__((noinline)) SETUP_Draw(void)
         bool longitude=s->page==SETUP_LONGITUDE;
         bool position=longitude || s->page==SETUP_LATITUDE;
         const char *title=position ? (longitude ? DISPLAY_TEXT("LON DDD MM.mm") : DISPLAY_TEXT("LATITUDE DD MM.mm")) :
-            s->page==SETUP_FREQUENCY ? DISPLAY_TEXT("APRS FREQ MHz") : s->page==SETUP_AUDIO ? DISPLAY_TEXT("TX AUDIO 0-127") : DISPLAY_TEXT("ACK WAIT SECONDS");
+            s->page==SETUP_FREQUENCY ? DISPLAY_TEXT("APRS FREQ MHz") : s->page==SETUP_AUDIO ? DISPLAY_TEXT("TX AUDIO 0-127") : DISPLAY_TEXT("TX AUDIO 0-127");
         UI_PrintLine(title,0);
         char formatted[13];unsigned out=0,width=longitude ? 3 : 2;
         if(position || s->page==SETUP_FREQUENCY) {

@@ -14,35 +14,11 @@ jobs:
           fetch-depth: 0
       - name: Install pinned ARM compiler and test dependencies
         run: sudo bash tools/install-container.sh
-      - name: Test decoder, receiver handoff and LCD rendering with sanitizers
+      - name: Test voice functions, outgoing APRS handoff and LCD rendering with sanitizers
         run: ./tools/test.sh
-      - name: Build and verify DP32G030 firmware
-        run: ./tools/build.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: uvk6-experimental
-          path: |
-            uvk6-experimental.bin
-            uvk6-experimental.packed.bin
-            uvk6-experimental.map
-            build/verification.json
-      - name: Build original-MCU receive-session bench package
-        run: ./tools/build-receiver-bench.sh
-      - name: Reproduce published bench binaries from their frozen source
-        run: python3 tools/verify-bench-release.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: uvk6-rx-session-bench
-          path: build/receiver-bench/
-      - name: Build and verify complete APRS transport candidate
+      - name: Build, verify and package outgoing APRS firmware without receive support
         run: ./tools/build-transport.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: uvk6-aprs-candidate
-          path: build/transport-candidate/
-      - name: Build and verify temporary APRS receive diagnostics
-        run: ./tools/build-rx-diagnostics.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: uvk6-rx-diagnostics-d4
-          path: build/rx-diagnostics-d4/
+          name: uvk6-tx-only
+          path: build/tx-only/

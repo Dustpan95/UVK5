@@ -9,7 +9,7 @@ typedef struct {
     uint8_t power,index;
     VFO_Info_t voice;
     VfoState_t voiceState;
-    bool leased,receiveEnabled,rxActive;
+    bool leased,rxActive;
 } APRS_Hardware;
 /* Actual original-MCU adapter. Normal firmware binding is still separate.
  * Foreground only. Caller zero-initializes state and explicitly supplies radio

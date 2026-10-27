@@ -15,7 +15,6 @@
  */
 
 /* Modified for UVK5: release APRS modem before scanning. */
-#include "app/aprs_rx.h"
 #include "app/app.h"
 #include "app/generic.h"
 #include "app/menu.h"
@@ -271,7 +270,6 @@ void SCANNER_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 
 void SCANNER_Start(void)
 {
-    APRS_Stop();
 	// VUURWERK v1.3.0 (A1): frequency-hunt mode removed -- unreachable.
 	gMonitor = false;
 
